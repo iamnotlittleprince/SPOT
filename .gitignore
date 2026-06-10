@@ -32,3 +32,6 @@ Thumbs.db
 "vendor/" 
 "node_modules/" 
 "spot-desktop/" 
+"nativephp/electron/dist/" 
+"node_modules/" 
+"vendor/" 
