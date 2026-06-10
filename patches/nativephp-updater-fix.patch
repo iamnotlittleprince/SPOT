@@ -1,0 +1,11 @@
+--- a/src/Drivers/Electron/Updater/UpdaterManager.php
++++ b/src/Drivers/Electron/Updater/UpdaterManager.php
+@@ -41,6 +41,10 @@ class UpdaterManager extends Manager
+      */
+     public function resolve($name = null)
+     {
++        if (! config('nativephp.updater.enabled', true)) {
++            return null;
++        }
++
+         $name = $name ?: $this->getDefaultDriver();

@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../curso-laravel"
+		},
+		{
+			"path": "../laravel"
+		},
+		{
+			"path": "."
+		}
+	]
+}
