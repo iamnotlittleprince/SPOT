@@ -2,10 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,23 +17,27 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('tb_perfil')->upsert([
-            ['id_perfil' => 1, 'perfil' => 'Administrador'],
-            ['id_perfil' => 2, 'perfil' => 'Gestor'],
-            ['id_perfil' => 3, 'perfil' => 'Analista'],
-            ['id_perfil' => 4, 'perfil' => 'Convidado'],
-            ['id_perfil' => 5, 'perfil' => 'AdmGest'],
-        ], ['id_perfil'], ['perfil']);
+        $now = now();
 
-        DB::table('tb_usuario')->updateOrInsert(
-            ['Email' => 'admin@spot.local'],
-            [
-                'Senha' => Hash::make('password'),
-                'id_perfil' => 1,
-                'email_verified_at' => now(),
-                'updated_at' => now(),
-                'created_at' => now(),
-            ],
+        DB::table('profiles')->upsert([
+            ['name' => 'Administrador', 'slug' => 'administrador', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'Gestor', 'slug' => 'gestor', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'Analista', 'slug' => 'analista', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'Convidado', 'slug' => 'convidado', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'Administrador e Gestor', 'slug' => 'adm-gest', 'created_at' => $now, 'updated_at' => $now],
+        ], ['slug'], ['name', 'updated_at']);
+
+        User::firstOrCreate(
+            ['email' => 'admin@estoque.com'],
+            ['name' => 'Administrador', 'password' => 'senha123'],
         );
+
+        foreach ([
+            'Papelaria' => 'Cadernos, canetas e papéis.',
+            'Eletrônicos' => 'Cabos, adaptadores e acessórios.',
+            'Bebidas' => 'Refrigerantes e sucos.',
+        ] as $name => $description) {
+            Category::updateOrCreate(['name' => $name], ['description' => $description]);
+        }
     }
 }

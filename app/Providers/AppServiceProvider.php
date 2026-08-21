@@ -2,17 +2,28 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
 
+    /**
+     * Bootstrap any application services.
+     */
     public function boot(): void
     {
-        Route::middleware('web')
-            ->group(base_path('routes/web.php'));
+        Event::listen(function (SocialiteWasCalled $event): void {
+            $event->extendSocialite('microsoft', MicrosoftProvider::class);
+        });
     }
 }
-

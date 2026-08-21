@@ -1,191 +1,72 @@
-# Spot Desktop — NativePHP + Laravel 13
+# Spot V2
 
-Aplicação desktop para **Windows / macOS / Linux** com a tela de login visual do Spot.
+Aplicação de gestão de projetos construída com Laravel 13, React 18 e Vite.
 
-## Stack utilizada
+A V2 acrescenta a API REST de controle de estoque documentada na apostila: JWT,
+categorias, produtos, movimentações atômicas e dashboard.
 
-| Ferramenta | Versão |
-|---|---|
-| PHP | 8.5.6 |
-| Laravel | 13.14.0 |
-| Node.js | 22.22.3 |
-| Composer | 2.10.0 |
-| NativePHP/Electron | latest |
+## Executar
 
----
-
-## 1. Criar o projeto Laravel
+O projeto já inclui runtimes locais de PHP e Node.js, além das dependências
+instaladas. No Linux, basta executar:
 
 ```bash
-composer create-project laravel/laravel spot-desktop
-cd spot-desktop
+./iniciar.sh
 ```
 
----
+Depois, acesse [http://localhost:8000](http://localhost:8000).
 
-## 2. Instalar dependências PHP
+O script inicia o Laravel pelo FrankenPHP na porta `8000` e o Vite na porta
+`5173`. Encerre ambos com `Ctrl+C`.
+
+## Comandos locais
+
+Não é necessário instalar PHP ou Composer globalmente:
 
 ```bash
-# NativePHP
-composer require nativephp/electron
-
-# Socialite (OAuth Google + Microsoft)
-composer require laravel/socialite
-composer require socialiteproviders/microsoft
+./php artisan migrate
+./php artisan route:list
+./composer install
+./composer test
 ```
 
----
-
-## 3. Instalar dependências Node
+Para os comandos JavaScript, carregue o Node local antes:
 
 ```bash
+export PATH="$PWD/.runtime/bin:$PATH"
 npm install
-```
-
----
-
-## 4. Publicar e configurar o NativePHP
-
-```bash
-php artisan native:install
-```
-
-Isso publica o arquivo `config/nativephp.php` e registra os Service Providers necessários.
-
----
-
-## 5. Copiar os arquivos deste projeto
-
-Substitua / crie os arquivos nas respectivas pastas:
-
-```
-resources/
-  css/app.css                          ← estilos da tela de login
-  js/app.js                            ← JS principal
-  views/
-    auth/login.blade.php               ← view de login
-    auth/forgot-password.blade.php     ← (criar conforme necessidade)
-
-app/Http/Controllers/Auth/
-  LoginController.php
-  SocialLoginController.php
-
-app/Http/Requests/Auth/
-  LoginRequest.php
-
-routes/
-  web.php
-
-config/
-  nativephp.php
-  services.php
-
-vite.config.js
-.env.example → copie para .env e preencha
-```
-
----
-
-## 6. Variáveis de ambiente
-
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-Preencha no `.env`:
-
-```dotenv
-# SQLite (mais simples para desktop)
-DB_CONNECTION=sqlite
-
-# Google OAuth
-GOOGLE_CLIENT_ID=seu-client-id
-GOOGLE_CLIENT_SECRET=seu-client-secret
-
-# Microsoft OAuth
-MICROSOFT_CLIENT_ID=seu-client-id
-MICROSOFT_CLIENT_SECRET=seu-client-secret
-MICROSOFT_TENANT_ID=common
-```
-
----
-
-## 7. Migrar banco de dados
-
-```bash
-php artisan migrate
-```
-
----
-
-## 8. Adicionar ícones / imagens
-
-Coloque na pasta `public/images/`:
-
-- `spot-logo.svg` — logotipo Spot (rodapé esquerdo)
-- `spot-icon.png` — ícone do app (512×512 px)
-- `google-icon.svg` — ícone colorido Google
-- `microsoft-icon.svg` — ícone colorido Microsoft
-
----
-
-## 9. Rodar em desenvolvimento
-
-```bash
-# Terminal 1 — Vite (assets)
-npm run dev
-
-# Terminal 2 — NativePHP (abre a janela Electron)
-php artisan native:serve
-```
-
----
-
-## 10. Build para distribuição
-
-```bash
 npm run build
-php artisan native:build
 ```
 
-O instalador ficará em `dist/`.
+## Estrutura principal
 
----
+- `app/`, `config/`, `database/` e `routes/`: aplicação Laravel.
+- `resources/js/`: componentes React.
+- `resources/css/`: estilos da interface.
+- `resources/views/app.blade.php`: página base servida pelo Laravel.
+- `public/`: imagens e arquivos públicos.
+- `.runtime/`: PHP/FrankenPHP, Composer e Node.js portáteis.
 
-## Estrutura de pastas gerada
+O banco local usa SQLite em `database/database.sqlite`.
 
-```
-spot-desktop/
-├── app/
-│   └── Http/
-│       ├── Controllers/Auth/
-│       │   ├── LoginController.php
-│       │   └── SocialLoginController.php
-│       └── Requests/Auth/
-│           └── LoginRequest.php
-├── config/
-│   ├── nativephp.php
-│   └── services.php
-├── public/
-│   └── images/          ← coloque aqui os SVG/PNG
-├── resources/
-│   ├── css/app.css
-│   ├── js/app.js
-│   └── views/auth/
-│       └── login.blade.php
-├── routes/
-│   └── web.php
-├── vite.config.js
-├── .env.example
-└── README.md
-```
+## API de estoque V2
 
----
+Execute as migrations e dados iniciais com `./php artisan migrate --seed`. As rotas
+protegidas exigem o header `Authorization: Bearer <access_token>`.
 
-## Notas importantes
+| Método | Rota | Finalidade |
+| --- | --- | --- |
+| POST | `/api/auth/register` | Cria usuário e devolve JWT |
+| POST | `/api/auth/login` | Faz login e devolve JWT |
+| POST | `/api/auth/logout` | Invalida o JWT |
+| GET | `/api/auth/me` | Usuário autenticado |
+| GET/POST/PUT/DELETE | `/api/categories` | Categorias (PUT/DELETE usam `/{id}`) |
+| GET/POST/PUT/DELETE | `/api/products` | Produtos (PUT/DELETE usam `/{id}`) |
+| GET/POST | `/api/movements` | Histórico e movimentação de estoque |
+| GET | `/api/dashboard` | Indicadores e movimentações recentes |
 
-- **SQLite** é recomendado para apps desktop (sem servidor externo).
-- O provider Microsoft do Socialite requer registro em `config/app.php` → `providers` ou via `EventServiceProvider`.
-- Para produção, rode `php artisan optimize` antes do build.
-- A janela é configurada em `config/nativephp.php` (tamanho, título, ícone).
+A quantidade do produto não pode ser alterada pelo endpoint de atualização. Ela muda
+apenas em `POST /api/movements`, que registra o histórico e ajusta o saldo na mesma
+transação; saídas com saldo insuficiente recebem resposta `422`.
+
+O cliente React da V2 é a aplicação principal, em [http://localhost:8000](http://localhost:8000).

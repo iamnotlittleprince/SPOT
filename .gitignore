@@ -6,6 +6,11 @@
 .phpactor.json
 .phpunit.result.cache
 /.codex
+/.runtime
+/backups
+/dist
+/src
+/index.html
 /.cursor/
 /.idea
 /.nova
@@ -25,13 +30,3 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-"vendor/" 
-"node_modules/" 
-"vendor/" 
-"node_modules/" 
-"vendor/" 
-"node_modules/" 
-"spot-desktop/" 
-"nativephp/electron/dist/" 
-"node_modules/" 
-"vendor/" 
