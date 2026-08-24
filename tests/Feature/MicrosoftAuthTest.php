@@ -17,6 +17,7 @@ class MicrosoftAuthTest extends TestCase
     public function test_microsoft_redirect_starts_oauth_flow(): void
     {
         $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('scopes')->once()->with(['offline_access', 'Calendars.ReadWrite'])->andReturnSelf();
         $provider->shouldReceive('redirect')->once()->andReturn(redirect('https://login.microsoftonline.com/common/oauth2/v2.0/authorize'));
         Socialite::shouldReceive('driver')->once()->with('microsoft')->andReturn($provider);
 
@@ -26,6 +27,7 @@ class MicrosoftAuthTest extends TestCase
 
     public function test_microsoft_callback_creates_and_authenticates_user(): void
     {
+        User::factory()->create(['name' => 'Pessoa Microsoft', 'email' => 'pessoa@example.com', 'active' => true, 'account_status' => 'active']);
         $microsoftUser = (new SocialiteUser)->map([
             'id' => 'microsoft-123',
             'name' => 'Pessoa Microsoft',
@@ -43,6 +45,6 @@ class MicrosoftAuthTest extends TestCase
         $user = User::where('email', 'pessoa@example.com')->firstOrFail();
         $this->assertAuthenticatedAs($user);
         $this->assertSame('microsoft-123', $user->microsoft_id);
-        $this->assertNull($user->password);
+        $this->assertSame('pessoa@example.com', $user->microsoft_email);
     }
 }

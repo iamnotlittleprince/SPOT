@@ -17,7 +17,8 @@ class GoogleAuthTest extends TestCase
     public function test_google_redirect_starts_oauth_flow(): void
     {
         $provider = Mockery::mock(Provider::class);
-        $provider->shouldReceive('with')->once()->with(['prompt' => 'select_account'])->andReturnSelf();
+        $provider->shouldReceive('scopes')->once()->with(['https://www.googleapis.com/auth/calendar.events'])->andReturnSelf();
+        $provider->shouldReceive('with')->once()->with(['prompt' => 'consent select_account', 'access_type' => 'offline'])->andReturnSelf();
         $provider->shouldReceive('redirect')->once()->andReturn(redirect('https://accounts.google.com/o/oauth2/auth'));
         Socialite::shouldReceive('driver')->once()->with('google')->andReturn($provider);
 
@@ -27,6 +28,7 @@ class GoogleAuthTest extends TestCase
 
     public function test_google_callback_creates_and_authenticates_user(): void
     {
+        User::factory()->create(['name' => 'Pessoa Teste', 'email' => 'pessoa@example.com', 'active' => true, 'account_status' => 'active']);
         $googleUser = (new SocialiteUser)->map([
             'id' => 'google-123',
             'name' => 'Pessoa Teste',
@@ -44,6 +46,6 @@ class GoogleAuthTest extends TestCase
         $user = User::where('email', 'pessoa@example.com')->firstOrFail();
         $this->assertAuthenticatedAs($user);
         $this->assertSame('google-123', $user->google_id);
-        $this->assertNull($user->password);
+        $this->assertSame('pessoa@example.com', $user->google_email);
     }
 }

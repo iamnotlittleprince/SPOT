@@ -13,13 +13,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['person_id', 'name', 'email', 'password', 'google_id', 'microsoft_id', 'avatar_url', 'email_verified_at'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(['person_id', 'current_company_id', 'organization_id', 'name', 'job_title', 'department', 'email', 'password', 'google_id', 'google_email', 'microsoft_id', 'microsoft_email', 'google_access_token', 'google_refresh_token', 'google_token_expires_at', 'microsoft_access_token', 'microsoft_refresh_token', 'microsoft_token_expires_at', 'avatar_url', 'email_verified_at', 'active', 'account_status', 'timezone', 'last_login_at', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at', 'notify_new_login', 'notify_password_change', 'notify_provider_link', 'notification_preferences'])]
+#[Hidden(['password', 'remember_token', 'google_id', 'microsoft_id', 'google_access_token', 'google_refresh_token', 'microsoft_access_token', 'microsoft_refresh_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
+
+    protected $attributes = ['active' => true, 'account_status' => 'active'];
 
     public function person(): BelongsTo
     {
@@ -30,6 +33,27 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Company::class, 'company_user_profiles')
             ->withPivot('profile_id')->withTimestamps();
+    }
+
+    public function profiles(): BelongsToMany
+    {
+        return $this->belongsToMany(Profile::class, 'company_user_profiles')
+            ->withPivot('company_id')->withTimestamps();
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        $override = $this->belongsToMany(Permission::class, 'user_permission_overrides')
+            ->withPivot('allowed')->where('slug', $permission)->first();
+
+        if ($override) {
+            return (bool) $override->pivot->allowed;
+        }
+
+        return $this->profiles()
+            ->wherePivot('company_id', $this->current_company_id)
+            ->whereHas('permissions', fn ($query) => $query->where('slug', $permission))
+            ->exists();
     }
 
     public function movements(): HasMany
@@ -67,6 +91,17 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'active' => 'boolean',
+            'last_login_at' => 'datetime',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
+            'notify_new_login' => 'boolean',
+            'notify_password_change' => 'boolean',
+            'notify_provider_link' => 'boolean',
+            'notification_preferences' => 'array',
+            'google_access_token' => 'encrypted', 'google_refresh_token' => 'encrypted', 'google_token_expires_at' => 'datetime',
+            'microsoft_access_token' => 'encrypted', 'microsoft_refresh_token' => 'encrypted', 'microsoft_token_expires_at' => 'datetime',
         ];
     }
 }

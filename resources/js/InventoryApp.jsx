@@ -2,13 +2,20 @@ import React, { useCallback, useEffect, useState } from "react";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-async function request(path, token, options = {}) {
-  const response = await fetch(`/api${path}`, {
+function csrfToken() {
+  return decodeURIComponent(document.cookie.split("; ").find((item) => item.startsWith("XSRF-TOKEN="))?.split("=").slice(1).join("=") || "");
+}
+
+async function request(path, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) await fetch('/sanctum/csrf-cookie', { credentials: 'same-origin' });
+  const response = await fetch(`/api/v1${path}`, {
     ...options,
+    credentials: "same-origin",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(!['GET', 'HEAD', 'OPTIONS'].includes(method) ? { 'X-XSRF-TOKEN': csrfToken() } : {}),
       ...options.headers,
     },
   });
@@ -18,43 +25,40 @@ async function request(path, token, options = {}) {
 }
 
 function Auth({ onAuthenticated }) {
-  const [mode, setMode] = useState("login");
-  const [form, setForm] = useState({ name: "", email: "", password: "", password_confirmation: "" });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const submit = async (event) => {
     event.preventDefault(); setError("");
     try {
-      const data = await request(`/auth/${mode}`, null, { method: "POST", body: JSON.stringify(form) });
-      onAuthenticated(data.access_token, data.user);
+      const data = await request(`/auth/login`, { method: "POST", body: JSON.stringify(form) });
+      onAuthenticated(data.user);
     } catch (err) { setError(err.message); }
   };
   return <main className="inventory-auth"><section><span className="inventory-kicker">SPOT V2</span><h1>Controle de estoque</h1><p>Entre para registrar produtos e movimentações com segurança.</p><form onSubmit={submit}>
-    {mode === "register" && <label>Nome<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>}
     <label>E-mail<input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
-    <label>Senha<input required type="password" minLength="6" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
-    {mode === "register" && <label>Confirmar senha<input required type="password" minLength="6" value={form.password_confirmation} onChange={(e) => setForm({ ...form, password_confirmation: e.target.value })} /></label>}
-    {error && <p className="inventory-error">{error}</p>}<button>{mode === "login" ? "Entrar" : "Criar conta"}</button>
-  </form><button className="inventory-link" onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}>{mode === "login" ? "Ainda não tenho conta" : "Já tenho uma conta"}</button></section></main>;
+    <label>Senha<input required type="password" minLength="8" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
+    {error && <p className="inventory-error">{error}</p>}<button>Entrar</button>
+  </form><a className="inventory-link" href="/first-access">Primeiro acesso</a></section></main>;
 }
 
 export default function InventoryApp() {
-  const [token, setToken] = useState(() => localStorage.getItem("spot_inventory_token"));
-  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("spot_inventory_user") || "null"));
+  const [authenticated, setAuthenticated] = useState(() => Boolean(window.__SPOT__?.authenticated));
+  const [user, setUser] = useState(() => window.__SPOT__?.user || null);
   const [data, setData] = useState({ dashboard: null, categories: [], products: [], movements: [] });
   const [message, setMessage] = useState("");
   const load = useCallback(async () => {
-    if (!token) return;
+    if (!authenticated) return;
     try {
-      const [dashboard, categories, products, movements] = await Promise.all(["/dashboard", "/categories", "/products", "/movements"].map((path) => request(path, token)));
+      const [dashboard, categories, products, movements] = await Promise.all(["/dashboard", "/categories", "/products", "/movements"].map((path) => request(path)));
       setData({ dashboard, categories, products, movements });
-    } catch (err) { setMessage(err.message); if (/token|autentic|unauthor/i.test(err.message)) setToken(null); }
-  }, [token]);
+    } catch (err) { setMessage(err.message); if (/token|autentic|unauthor/i.test(err.message)) setAuthenticated(false); }
+  }, [authenticated]);
   useEffect(() => { load(); }, [load]);
-  const authenticate = (newToken, newUser) => { localStorage.setItem("spot_inventory_token", newToken); localStorage.setItem("spot_inventory_user", JSON.stringify(newUser)); setToken(newToken); setUser(newUser); };
-  const submit = async (path, payload) => { try { await request(path, token, { method: "POST", body: JSON.stringify(payload) }); setMessage("Registro salvo com sucesso."); await load(); } catch (err) { setMessage(err.message); } };
-  if (!token) return <Auth onAuthenticated={authenticate} />;
+  const authenticate = (newUser) => { setAuthenticated(true); setUser(newUser); };
+  const submit = async (path, payload) => { try { await request(path, { method: "POST", body: JSON.stringify(payload) }); setMessage("Registro salvo com sucesso."); await load(); } catch (err) { setMessage(err.message); } };
+  if (!authenticated) return <Auth onAuthenticated={authenticate} />;
   const dashboard = data.dashboard || {};
-  return <main className="inventory-shell"><header className="inventory-header"><div><span className="inventory-kicker">SPOT V2 · API + JWT</span><h1>Estoque</h1></div><div><span>Olá, {user?.name}</span><button onClick={() => { localStorage.removeItem("spot_inventory_token"); localStorage.removeItem("spot_inventory_user"); setToken(null); }}>Sair</button></div></header>
+  return <main className="inventory-shell"><header className="inventory-header"><div><span className="inventory-kicker">SPOT V2 · API segura</span><h1>Estoque</h1></div><div><span>Olá, {user?.name}</span><button onClick={async () => { await request('/auth/logout', { method: 'POST' }); setAuthenticated(false); setUser(null); }}>Sair</button></div></header>
     {message && <p className="inventory-notice">{message}</p>}
     <section className="inventory-stats"><article><small>Produtos</small><strong>{dashboard.total_products ?? "–"}</strong></article><article><small>Categorias</small><strong>{dashboard.total_categories ?? "–"}</strong></article><article><small>Unidades em estoque</small><strong>{dashboard.total_stock_units ?? "–"}</strong></article><article><small>Valor em estoque</small><strong>{currency.format(dashboard.total_stock_value || 0)}</strong></article></section>
     <section className="inventory-grid"><FormCard title="Nova categoria" onSubmit={(form) => submit("/categories", form)} fields={[['name', 'Nome'], ['description', 'Descrição (opcional)']]} /><FormCard title="Novo produto" onSubmit={(form) => submit("/products", { ...form, category_id: Number(form.category_id), price: Number(form.price), quantity: Number(form.quantity || 0) })} fields={[['name', 'Nome'], ['sku', 'SKU'], ['price', 'Preço', 'number'], ['quantity', 'Quantidade inicial', 'number']]} select={{ name: 'category_id', label: 'Categoria', options: data.categories }} /><FormCard title="Movimentar estoque" onSubmit={(form) => submit("/movements", { ...form, product_id: Number(form.product_id), quantity: Number(form.quantity) })} fields={[['quantity', 'Quantidade', 'number'], ['note', 'Observação (opcional)']]} select={{ name: 'product_id', label: 'Produto', options: data.products }} movement /></section>

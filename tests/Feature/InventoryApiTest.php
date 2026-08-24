@@ -18,15 +18,14 @@ class InventoryApiTest extends TestCase
         $this->getJson('/api/products')->assertUnauthorized();
     }
 
-    public function test_user_can_register_and_receive_a_jwt(): void
+    public function test_public_registration_is_disabled(): void
     {
         $this->postJson('/api/auth/register', [
             'name' => 'Ana Estoque',
             'email' => 'ana@example.com',
             'password' => 'senha123',
             'password_confirmation' => 'senha123',
-        ])->assertCreated()
-            ->assertJsonStructure(['access_token', 'token_type', 'expires_in', 'user' => ['id', 'name', 'email']]);
+        ])->assertStatus(405);
     }
 
     public function test_movement_updates_stock_and_rejects_negative_stock(): void

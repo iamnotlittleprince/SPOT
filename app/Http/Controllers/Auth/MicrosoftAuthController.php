@@ -13,7 +13,7 @@ class MicrosoftAuthController extends Controller
 {
     public function redirect(): RedirectResponse
     {
-        return Socialite::driver('microsoft')->redirect();
+        return Socialite::driver('microsoft')->scopes(['offline_access', 'Calendars.ReadWrite'])->redirect();
     }
 
     public function callback(): RedirectResponse
@@ -34,15 +34,11 @@ class MicrosoftAuthController extends Controller
 
         $avatar = $microsoftUser->getAvatar();
 
-        $user = User::query()->updateOrCreate(
-            ['email' => $email],
-            [
-                'name' => $microsoftUser->getName() ?: $microsoftUser->getNickname() ?: $email,
-                'microsoft_id' => $microsoftUser->getId(),
-                'avatar_url' => $avatar ? (string) $avatar : null,
-                'email_verified_at' => now(),
-            ],
-        );
+        $user = User::query()->where('microsoft_id', $microsoftUser->getId())->orWhere('microsoft_email', $email)->orWhere('email', $email)->first();
+        if (! $user || ! $user->active || $user->account_status !== 'active') return redirect('/?auth_error=account_not_provisioned');
+        if ($user->microsoft_id && $user->microsoft_id !== $microsoftUser->getId()) return redirect('/?auth_error=microsoft_already_linked');
+        if (! in_array(mb_strtolower($email), array_filter([mb_strtolower($user->email), mb_strtolower((string) $user->microsoft_email)]), true)) return redirect('/?auth_error=email_mismatch');
+        $user->forceFill(['microsoft_id' => $microsoftUser->getId(), 'microsoft_email' => $email, 'microsoft_access_token' => $microsoftUser->token, 'microsoft_refresh_token' => $microsoftUser->refreshToken ?: $user->microsoft_refresh_token, 'microsoft_token_expires_at' => $microsoftUser->expiresIn ? now()->addSeconds($microsoftUser->expiresIn) : null, 'avatar_url' => $user->avatar_url ?: ($avatar ? (string) $avatar : null), 'email_verified_at' => $user->email_verified_at ?: now(), 'last_login_at' => now()])->save();
 
         Auth::login($user, remember: true);
         request()->session()->regenerate();

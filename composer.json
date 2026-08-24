@@ -7,9 +7,12 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "bacon/bacon-qr-code": "^3.0",
         "laravel/framework": "^13.8",
+        "laravel/sanctum": "^4.3",
         "laravel/socialite": "^5.29",
         "laravel/tinker": "^3.0",
+        "pragmarx/google2fa": "^8.0",
         "socialiteproviders/microsoft": "^4.9",
         "tymon/jwt-auth": "^2.3"
     },

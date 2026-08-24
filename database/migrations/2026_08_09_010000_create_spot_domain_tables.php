@@ -19,7 +19,7 @@ return new class extends Migration
             $table->id();
             $table->string('legal_name');
             $table->string('trade_name')->nullable();
-            $table->char('cnpj', 14)->unique();
+            $table->char('cnpj', 14)->nullable()->unique();
             $table->timestamps();
         });
 

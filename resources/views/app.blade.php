@@ -9,7 +9,10 @@
     <script>
         window.__SPOT__ = {{ Illuminate\Support\Js::from([
             'authenticated' => auth()->check(),
-            'user' => auth()->user()?->only(['name', 'email', 'avatar_url']),
+            'user' => auth()->user() ? [
+                ...auth()->user()->only(['name', 'email', 'avatar_url', 'timezone', 'job_title', 'department']),
+                'can_manage_identity' => auth()->user()->can('security.manage'),
+            ] : null,
         ]) }};
     </script>
     @viteReactRefresh
