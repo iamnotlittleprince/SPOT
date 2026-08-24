@@ -1,4 +1,4 @@
-# Spot V2
+# Spot
 
 Aplicação de gestão de projetos construída com Laravel 13, React 18 e Vite.
 
