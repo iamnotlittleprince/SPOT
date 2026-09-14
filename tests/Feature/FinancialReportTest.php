@@ -54,4 +54,29 @@ class FinancialReportTest extends TestCase
             ->assertJsonPath('actual.estimated_minutes_consumed_percent', 20)
             ->assertJsonPath('estimated.profit', '7255.00');
     }
+
+    public function test_project_analytics_is_consolidated_by_python_and_pandas(): void
+    {
+        $company = Company::create(['legal_name' => 'Computécnica']);
+        $manager = User::factory()->create(['current_company_id' => $company->id]);
+        $profile = Profile::create(['name' => 'Gestor', 'slug' => 'gestor']);
+        $permission = Permission::create(['name' => 'Financeiro', 'slug' => 'financial.view', 'module' => 'Financeiro']);
+        $profile->permissions()->attach($permission);
+        $manager->profiles()->attach($profile, ['company_id' => $company->id]);
+        Project::create([
+            'company_id' => $company->id, 'user_id' => $manager->id, 'project_manager_id' => $manager->id,
+            'name' => 'Projeto Analytics', 'client_name' => 'Cliente Analytics', 'status' => 'in_progress',
+            'progress' => 60, 'contract_value' => 15000, 'estimated_minutes' => 1200,
+            'start_date' => '2026-08-10', 'due_date' => now()->addMonth(),
+        ]);
+
+        $this->actingAs($manager)->getJson('/api/v1/reports/project-analytics')
+            ->assertOk()
+            ->assertJsonPath('processor', 'Python + Pandas')
+            ->assertJsonPath('summary.total', 1)
+            ->assertJsonPath('summary.in_progress', 1)
+            ->assertJsonPath('summary.contract_value', 15000)
+            ->assertJsonPath('clients.0.label', 'Cliente Analytics')
+            ->assertJsonPath('projects.0.manager', $manager->name);
+    }
 }

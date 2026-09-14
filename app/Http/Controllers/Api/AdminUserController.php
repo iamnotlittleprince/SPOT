@@ -2,19 +2,52 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Audit\AuditRecorder;
 use App\Domain\Identity\Actions\CreateActivationLink;
 use App\Http\Controllers\Controller;
 use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
-use App\Domain\Audit\AuditRecorder;
 use Illuminate\Validation\ValidationException;
 
 class AdminUserController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        Gate::authorize('security.manage');
+
+        $companyId = $request->user()->current_company_id;
+        $managedProfiles = ['administrador', 'gestor-administrador', 'gestor', 'analista'];
+
+        $users = User::query()
+            ->where('current_company_id', $companyId)
+            ->with(['profiles' => fn ($query) => $query
+                ->wherePivot('company_id', $companyId)
+                ->select('profiles.id', 'profiles.name', 'profiles.slug')])
+            ->orderBy('name')
+            ->orderBy('id')
+            ->get([
+                'id', 'name', 'email', 'google_email', 'microsoft_email',
+                'job_title', 'department', 'account_status', 'active',
+            ]);
+
+        return response()->json([
+            'users' => $users,
+            'organizations' => DB::table('organizations')
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'profiles' => Profile::query()
+                ->whereIn('slug', $managedProfiles)
+                ->orderByRaw('CASE slug WHEN ? THEN 1 WHEN ? THEN 2 WHEN ? THEN 3 WHEN ? THEN 4 ELSE 5 END', $managedProfiles)
+                ->get(['slug', 'name']),
+        ]);
+    }
+
     public function store(Request $request, CreateActivationLink $activation): JsonResponse
     {
         Gate::authorize('security.manage');
@@ -56,13 +89,16 @@ class AdminUserController extends Controller
         $willBeAdmin = in_array($data['profile'], ['administrador', 'gestor-administrador'], true) && $data['account_status'] === 'active';
         if ($currentIsAdmin && ! $willBeAdmin) {
             $otherAdmins = User::query()->where('id', '!=', $user->id)->where('account_status', 'active')->whereHas('profiles', fn ($query) => $query->whereIn('slug', ['administrador', 'gestor-administrador']))->exists();
-            if (! $otherAdmins) throw ValidationException::withMessages(['profile' => 'O último administrador ativo não pode perder o acesso administrativo.']);
+            if (! $otherAdmins) {
+                throw ValidationException::withMessages(['profile' => 'O último administrador ativo não pode perder o acesso administrativo.']);
+            }
         }
         $old = ['profiles' => $user->profiles->pluck('slug'), 'account_status' => $user->account_status];
         $profile = Profile::where('slug', $data['profile'])->firstOrFail();
         $user->profiles()->sync([$profile->id => ['company_id' => $request->user()->current_company_id]]);
         $user->update(['account_status' => $data['account_status'], 'active' => $data['account_status'] === 'active', ...collect($data)->only(['job_title', 'department'])->all()]);
         $audit->record('user.access_updated', $user, $request->user(), $old, $data);
+
         return response()->json(['user' => $user->load('profiles')]);
     }
 }

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Documentação técnica do sistema Spot</title>
+  <style>
+    @page { size: A4; margin: 3cm 2cm 2cm 3cm; }
+    body { margin: 0; color: #111; font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.5; text-align: justify; }
+    h1, h2, h3 { font-size: 12pt; line-height: 1.5; text-align: left; }
+    h1 { margin: 1.5em 0 1em; text-transform: uppercase; }
+    h1.chapter { page-break-before: always; break-before: page; }
+    h2 { margin: 1.2em 0 .7em; }
+    h3 { margin: 1em 0 .5em; font-weight: normal; font-style: italic; }
+    p { margin: 0 0 .65em; text-indent: 1.25cm; }
+    ul, ol { margin: .4em 0 .8em 1.1cm; }
+    li { margin-bottom: .25em; }
+    code { font-family: "Liberation Mono", monospace; font-size: 10pt; }
+    table { width: 100%; margin: .8em 0 1.2em; border-collapse: collapse; font-size: 10pt; line-height: 1.25; text-align: left; }
+    th, td { padding: 6px; border: 1px solid #555; vertical-align: top; }
+    th { background: #e8e8e8; }
+    caption { margin-bottom: .45em; font-size: 10pt; text-align: left; }
+    .cover, .title-page { min-height: 23.7cm; display: flex; flex-direction: column; text-align: center; page-break-after: always; }
+    .cover .author, .title-page .author { margin-top: 1cm; }
+    .cover .title { margin: auto 0; font-weight: bold; text-transform: uppercase; }
+    .cover .place { margin-top: auto; }
+    .title-page .title { margin: 4cm 0 1.5cm; font-weight: bold; text-transform: uppercase; }
+    .nature { width: 8cm; margin-left: auto; font-size: 10pt; line-height: 1; text-align: justify; }
+    .title-page .place { margin-top: auto; }
+    .new-page { page-break-before: always; }
+    .center { text-align: center; text-indent: 0; }
+    .no-indent { text-indent: 0; }
+    .abstract { line-height: 1; }
+    .keywords { text-indent: 0; }
+    .toc p { margin: .15em 0; text-indent: 0; }
+    .source { margin-top: -.8em; font-size: 9pt; text-indent: 0; }
+    .references p { line-height: 1; text-indent: 0; margin-bottom: 1em; }
+    .note { padding: .7em; border: 1px solid #777; font-size: 10pt; line-height: 1.2; text-indent: 0; }
+    .mono { white-space: pre-wrap; font-family: "Liberation Mono", monospace; font-size: 9pt; line-height: 1.2; text-align: left; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="author">[NOME DO AUTOR OU DA EQUIPE]</div>
+    <div class="title">DOCUMENTAÇÃO TÉCNICA DO SISTEMA SPOT<br>GESTÃO INTEGRADA DE PROJETOS</div>
+    <div class="place">[CIDADE]<br>2026</div>
+  </section>
+
+  <section class="title-page">
+    <div class="author">[NOME DO AUTOR OU DA EQUIPE]</div>
+    <div class="title">DOCUMENTAÇÃO TÉCNICA DO SISTEMA SPOT<br>GESTÃO INTEGRADA DE PROJETOS</div>
+    <p class="nature">Documentação técnica apresentada à [NOME DA INSTITUIÇÃO OU ORGANIZAÇÃO], como registro da arquitetura, das funcionalidades, dos requisitos operacionais e da evolução do sistema Spot.</p>
+    <div class="place">[CIDADE]<br>2026</div>
+  </section>
+
+  <section class="new-page">
+    <h1 class="center">RESUMO</h1>
+    <p class="abstract">Este documento registra o desenvolvimento do Spot, plataforma web destinada à organização, ao planejamento, à execução e ao acompanhamento financeiro de projetos. O sistema utiliza Laravel 13 no servidor, React 18 na interface, Vite no processo de construção, SQLite no ambiente local e uma rotina Python com Pandas para consolidação analítica. A solução contém autenticação por sessão protegida por Laravel Sanctum, compatibilidade com autenticação JWT, login social, administração de usuários, segurança de conta, gestão de projetos e tarefas, apontamentos de horas, despesas, convites, agenda, caixa de entrada, integrações e relatórios financeiros. O levantamento foi elaborado a partir do código-fonte, das migrações, das rotas, dos testes automatizados e do histórico Git disponíveis em 4 de setembro de 2026. Foram identificados três marcos funcionais versionados e um conjunto local ainda não versionado, relativo principalmente ao painel de portfólios e ao processamento de indicadores com Python e Pandas. Na verificação executada para esta edição, os 52 testes automatizados foram aprovados, totalizando 262 asserções, e a construção da interface de produção foi concluída com sucesso. O documento adota organização compatível com normas ABNT aplicáveis à apresentação, numeração de seções, resumo, citações e referências, com campos institucionais mantidos para posterior preenchimento.</p>
+    <p class="keywords"><strong>Palavras-chave:</strong> gestão de projetos; Laravel; React; segurança; relatórios financeiros; análise de portfólio.</p>
+  </section>
+
+  <section class="new-page">
+    <h1 class="center">ABSTRACT</h1>
+    <p class="abstract">This document records the development of Spot, a web platform for organizing, planning, executing, and financially monitoring projects. The system uses Laravel 13 on the server, React 18 on the user interface, Vite for asset building, SQLite in the local environment, and a Python/Pandas routine for analytical consolidation. The solution includes Sanctum-protected session authentication, JWT compatibility, social login, user administration, account security, project and task management, work logs, expenses, invitations, calendar, inbox, integrations, and financial reporting. The assessment was based on the source code, migrations, routes, automated tests, and Git history available on September 4, 2026. Three versioned functional milestones and one unversioned local work set were identified. During verification, all 52 automated tests passed, totaling 262 assertions, and the production frontend build completed successfully.</p>
+    <p class="keywords"><strong>Keywords:</strong> project management; Laravel; React; security; financial reports; portfolio analytics.</p>
+  </section>
+
+  <section class="new-page toc">
+    <h1 class="center">SUMÁRIO</h1>
+    <p>1 INTRODUÇÃO</p>
+    <p>2 METODOLOGIA E DELIMITAÇÃO</p>
+    <p>3 VISÃO GERAL DO SISTEMA</p>
+    <p>4 ARQUITETURA E TECNOLOGIAS</p>
+    <p>5 FUNCIONALIDADES IMPLEMENTADAS</p>
+    <p>6 SEGURANÇA, IDENTIDADE E AUTORIZAÇÃO</p>
+    <p>7 MODELO DE DADOS</p>
+    <p>8 INTERFACES E CONTRATOS DE API</p>
+    <p>9 PROCESSAMENTO ANALÍTICO DE PORTFÓLIO</p>
+    <p>10 INSTALAÇÃO, CONFIGURAÇÃO E OPERAÇÃO</p>
+    <p>11 QUALIDADE E VERIFICAÇÃO</p>
+    <p>12 HISTÓRICO DE DESENVOLVIMENTO</p>
+    <p>13 LIMITAÇÕES E PENDÊNCIAS</p>
+    <p>14 CONCLUSÃO</p>
+    <p>REFERÊNCIAS</p>
+    <p>APÊNDICE A — INVENTÁRIO RESUMIDO DAS ROTAS</p>
+    <p>APÊNDICE B — RASTREABILIDADE DOS ARTEFATOS</p>
+  </section>
+
+  <h1 class="new-page">1 INTRODUÇÃO</h1>
+  <p>O Spot é uma aplicação de gestão integrada de projetos desenvolvida para centralizar informações de execução, responsáveis, prazos, tarefas, horas, despesas, comunicação operacional e resultados financeiros. Sua interface principal é uma aplicação de página única, enquanto o servidor expõe serviços HTTP responsáveis por autenticação, regras de negócio, persistência e autorização.</p>
+  <p>Esta documentação tem como objetivo consolidar o que foi produzido no repositório até a data de corte, tornar explícitas as decisões técnicas observáveis e oferecer uma referência para manutenção, auditoria, implantação e continuidade do desenvolvimento.</p>
+  <p>O texto não substitui especificações contratuais, políticas internas de segurança nem manuais de infraestrutura. Descreve o comportamento verificável no código disponível e separa funcionalidades versionadas de alterações locais ainda não incorporadas ao ramo principal.</p>
+
+  <h1 class="chapter">2 METODOLOGIA E DELIMITAÇÃO</h1>
+  <p>O levantamento foi realizado por inspeção do histórico Git, árvore de arquivos, configurações de dependências, rotas registradas pelo framework, migrações, modelos, controladores, ações de domínio, componentes de interface, testes e alterações locais. Foram também executados a suíte automatizada, o processo de construção do frontend e uma chamada direta ao processador analítico.</p>
+  <p>A data de corte é 4 de setembro de 2026, no ramo <code>main</code>, a partir do commit <code>8c0412a</code>, acrescido das modificações locais existentes no diretório de trabalho. A expressão “implementado” designa comportamento presente no código; “versionado” designa conteúdo registrado em commit; e “em andamento” designa conteúdo presente somente na árvore local.</p>
+  <p class="note"><strong>Nota editorial:</strong> a composição segue, de forma adaptada a relatório técnico de software, os princípios de apresentação da ABNT NBR 14724, de numeração da ABNT NBR 6024, de sumário da ABNT NBR 6027, de resumo da ABNT NBR 6028, de citações da ABNT NBR 10520 e de referências da ABNT NBR 6023. Os campos de autoria, instituição e cidade permanecem marcados porque esses dados não constam de forma inequívoca no repositório.</p>
+
+  <h1 class="chapter">3 VISÃO GERAL DO SISTEMA</h1>
+  <h2>3.1 Finalidade</h2>
+  <p>A aplicação atende o ciclo operacional de projetos: cadastro, atribuição de equipe, definição de tarifas e tributos, acompanhamento de tarefas, registro de trabalho, controle de despesas, finalização ou reabertura governada e análise dos resultados. Recursos transversais incluem identidade, preferências, notificações, agenda, caixa de entrada e integrações com serviços Google e Microsoft.</p>
+
+  <h2>3.2 Perfis e atores</h2>
+  <p>O modelo de autorização utiliza perfis e permissões vinculados ao contexto empresarial. Os perfis administrativos observados são <code>administrador</code> e <code>gestor-administrador</code>. O segundo combina atribuições administrativas e operacionais. Gestores, analistas e convidados participam do fluxo conforme permissões e associação ao projeto. A aplicação impede a desativação ou o rebaixamento do último administrador ativo.</p>
+
+  <h2>3.3 Escopo funcional consolidado</h2>
+  <table>
+    <caption>Quadro 1 — Macrofunções do Spot</caption>
+    <thead><tr><th>Área</th><th>Capacidades observadas</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Identidade</td><td>Login local, Google, Microsoft, primeiro acesso, recuperação de senha e perfil.</td><td>Versionado</td></tr>
+      <tr><td>Segurança</td><td>Sessões, CSRF, 2FA, provedores vinculados, preferências e permissões.</td><td>Versionado</td></tr>
+      <tr><td>Projetos</td><td>CRUD, membros, tarifas, impostos, ciclo de vida e exclusão lógica.</td><td>Versionado</td></tr>
+      <tr><td>Execução</td><td>Tarefas, apontamentos de horas, agenda, painel inicial e caixa de entrada.</td><td>Versionado</td></tr>
+      <tr><td>Finanças</td><td>Despesas, aprovação, resultado por projeto e consolidado de carteira.</td><td>Versionado</td></tr>
+      <tr><td>Estoque</td><td>Categorias, produtos, movimentações atômicas e painel legado.</td><td>Versionado/compatibilidade</td></tr>
+      <tr><td>Portfólios</td><td>Indicadores, filtros, gráficos e detalhamento individual via Pandas.</td><td>Alteração local em andamento</td></tr>
+    </tbody>
+  </table>
+  <p class="source">Fonte: elaborado a partir do repositório Spot (2026).</p>
+
+  <h1 class="chapter">4 ARQUITETURA E TECNOLOGIAS</h1>
+  <h2>4.1 Organização arquitetural</h2>
+  <p>A solução combina uma aplicação Laravel e uma interface React no mesmo repositório. O Laravel entrega a página base Blade, mantém as rotas web e de API, acessa o banco de dados e executa regras de domínio. O React mantém navegação, formulários, painéis e interação do usuário. O Vite compila JavaScript e CSS para distribuição.</p>
+  <p>Regras sensíveis foram extraídas para classes de ação em <code>app/Domain</code>, entre elas auditoria, movimentação de estoque, revisão de despesas, cálculo financeiro, convites, apontamentos e transições do projeto. Essa divisão reduz a concentração de regras nos controladores e facilita testes.</p>
+
+  <h2>4.2 Componentes tecnológicos</h2>
+  <table>
+    <caption>Quadro 2 — Componentes da solução</caption>
+    <thead><tr><th>Componente</th><th>Versão/faixa</th><th>Responsabilidade</th></tr></thead>
+    <tbody>
+      <tr><td>PHP</td><td>8.3 ou superior compatível</td><td>Execução da aplicação de servidor.</td></tr>
+      <tr><td>Laravel</td><td>13.8 ou compatível</td><td>API, persistência, validação, autorização e serviços web.</td></tr>
+      <tr><td>Laravel Sanctum</td><td>4.3 ou compatível</td><td>Autenticação da aplicação web por sessão e proteção CSRF.</td></tr>
+      <tr><td>JWT Auth</td><td>2.3 ou compatível</td><td>Compatibilidade da API anterior baseada em token.</td></tr>
+      <tr><td>Socialite</td><td>5.29 ou compatível</td><td>Autenticação social Google e Microsoft.</td></tr>
+      <tr><td>React</td><td>18.3.1</td><td>Interface de usuário em página única.</td></tr>
+      <tr><td>Vite</td><td>8.x</td><td>Servidor de desenvolvimento e construção dos ativos.</td></tr>
+      <tr><td>SQLite</td><td>Banco local</td><td>Persistência padrão do ambiente de desenvolvimento.</td></tr>
+      <tr><td>Python/Pandas</td><td>Python 3; Pandas ≥ 2.2 e &lt; 3.0</td><td>Consolidação dos indicadores de portfólio.</td></tr>
+      <tr><td>PHPUnit</td><td>12.5 ou compatível</td><td>Testes automatizados.</td></tr>
+    </tbody>
+  </table>
+  <p class="source">Fonte: arquivos <code>composer.json</code>, <code>package.json</code> e <code>requirements.txt</code> (2026).</p>
+
+  <h2>4.3 Fluxo de requisição</h2>
+  <p>O navegador carrega a página Blade e os ativos compilados pelo Vite. A aplicação React consulta rotas sob <code>/api/v1</code>. Nas operações mutáveis, o cliente inicializa o cookie CSRF por <code>/sanctum/csrf-cookie</code> e envia a sessão de modo credenciado. O middleware autentica o usuário; o controlador valida os dados; autorizações e regras de domínio são aplicadas; e modelos Eloquent persistem ou consultam o banco. As respostas seguem o formato JSON.</p>
+
+  <h1 class="chapter">5 FUNCIONALIDADES IMPLEMENTADAS</h1>
+  <h2>5.1 Autenticação e primeiro acesso</h2>
+  <p>Não há cadastro público. O administrador provisiona a conta e gera um link de ativação de uso único. O usuário confirma os dados e define a senha. O reenvio do primeiro acesso é protegido para não revelar indevidamente a existência de contas. Google e Microsoft autenticam apenas usuários previamente autorizados, e cada conta pode manter, no máximo, uma identidade vinculada por provedor.</p>
+
+  <h2>5.2 Administração e segurança de conta</h2>
+  <p>A área administrativa permite criar usuários, alterar perfis e controlar o estado da conta. A área de segurança contempla alteração de senha, preferências, gerenciamento de sessões, desvinculação de provedores e configuração ou remoção de autenticação em dois fatores. Operações são condicionadas às regras de autorização.</p>
+
+  <h2>5.3 Gestão de projetos</h2>
+  <p>O CRUD da API principal exige número da proposta, status, situação e valor contratado. Clientes e gestores são validados no contexto da empresa Computécnica, conforme a regra presente. Dados financeiros são omitidos da resposta para usuários sem a permissão <code>financial.view</code>, permanecendo preservados no banco.</p>
+  <p>O ciclo de vida possui ações explícitas de finalização, reabertura e exclusão lógica. As ações exigem permissão, justificativa e registro de auditoria. Projetos finalizados rejeitam alterações e novas despesas, protegendo o estado consolidado.</p>
+
+  <h2>5.4 Configuração, equipe, tarifas e tributos</h2>
+  <p>A configuração reúne membros, funções, tarifas por analista e composição tributária. Tarifas possuem vigência e não podem se sobrepor. O lançamento de trabalho exige que o analista esteja atribuído ao projeto e possua tarifa vigente na data informada.</p>
+
+  <h2>5.5 Horas, despesas e resultado financeiro</h2>
+  <p>Ao registrar horas, o sistema armazena uma fotografia das tarifas de custo e venda, impedindo que reajustes futuros modifiquem resultados históricos. Horas extras podem adotar valores distintos para custo e faturamento. Despesas seguem fluxo de aprovação ou rejeição e somente itens aprovados compõem o resultado realizado.</p>
+  <p>O cálculo financeiro utiliza aritmética decimal. A receita realizada inclui horas extras faturáveis; os custos consideram as tarifas fotografadas; e a comissão pode incidir sobre o valor bruto ou sobre a receita líquida de impostos, conforme configuração.</p>
+
+  <h2>5.6 Convites de projeto</h2>
+  <p>Convites têm escopo restrito ao projeto, validade máxima de sete dias e uso único. O token completo é apresentado somente na criação; no banco é armazenado apenas o resumo SHA-256. Convites não utilizados podem ser revogados. Quando o e-mail já pertence a uma conta, o aceite exige autenticação nessa mesma conta.</p>
+
+  <h2>5.7 Painel inicial, tarefas, agenda e caixa de entrada</h2>
+  <p>O painel inicial reúne informações operacionais e tarefas. A aplicação permite criar, editar, alternar e remover tarefas. A agenda fornece listagem e criação de eventos. A caixa de entrada permite listar itens, marcar um item ou todos como lidos e arquivar registros. Preferências de notificação podem ser consultadas, substituídas ou restauradas.</p>
+
+  <h2>5.8 Integrações e interface</h2>
+  <p>A interface possui catálogo visual de aplicações Google e Microsoft, navegação lateral, menu superior, busca, filtros e perfil. Os arquivos de ícones foram organizados em <code>public/apps/integrations</code>. Alterações locais recentes ajustam a escala de ícones específicos, incluem favicon, centralizam a busca, acrescentam seletor de páginas e criam as telas de novo projeto e portfólios.</p>
+
+  <h2>5.9 Estoque em camada de compatibilidade</h2>
+  <p>A API de estoque oferece categorias, produtos, movimentos e dashboard. A quantidade de um produto não pode ser alterada diretamente pelo endpoint de atualização. O saldo muda somente por movimentação registrada na mesma transação do histórico; uma saída com saldo insuficiente recebe resposta HTTP 422. Essa camada utiliza JWT e permanece para compatibilidade.</p>
+
+  <h1 class="chapter">6 SEGURANÇA, IDENTIDADE E AUTORIZAÇÃO</h1>
+  <p>A SPA utiliza Laravel Sanctum, sessão e CSRF, evitando o armazenamento do token de autenticação em <code>localStorage</code>. A API principal aplica permissões por meio de gates. O isolamento empresarial é realizado com <code>current_company_id</code> nas consultas relevantes. Ações críticas geram trilha em <code>audit_logs</code>.</p>
+  <p>Os controles observados incluem validação de entrada, expiração e hash de convites, uso único de ativação, verificação de associação ao projeto, ocultação de campos financeiros, proteção do último administrador, autenticação em dois fatores e revogação de sessões. Para produção, são necessários HTTPS, cookies seguros, depuração desativada e armazenamento de sessão compartilhado quando houver mais de uma instância.</p>
+  <p>Permissões e testes reduzem riscos, mas não eliminam a necessidade de revisão periódica, gestão de segredos, limitação de requisições, monitoramento, cópias de segurança, atualização de dependências e teste de invasão no ambiente real.</p>
+
+  <h1 class="chapter">7 MODELO DE DADOS</h1>
+  <p>As migrações representam usuários, empresas, pessoas, clientes, perfis, permissões, projetos, tarefas, categorias, produtos, movimentos, membros, tarifas, tributos, despesas, apontamentos, convites, auditorias, tokens de ativação, sessões, agenda, caixa de entrada e integrações. O banco local é <code>database/database.sqlite</code>.</p>
+  <table>
+    <caption>Quadro 3 — Entidades centrais e relações</caption>
+    <thead><tr><th>Entidade</th><th>Relações ou responsabilidade principal</th></tr></thead>
+    <tbody>
+      <tr><td>User</td><td>Empresa atual, perfis, identidades sociais, segurança, projetos e preferências.</td></tr>
+      <tr><td>Project</td><td>Empresa, proprietário, gerente do projeto, tarefas, membros, horas, despesas, tributos e convites.</td></tr>
+      <tr><td>ProjectMember</td><td>Vínculo do usuário com projeto e função operacional.</td></tr>
+      <tr><td>AnalystProjectRate</td><td>Tarifas de custo e venda com vigência.</td></tr>
+      <tr><td>WorkLog</td><td>Horas, extras e fotografia dos valores aplicáveis.</td></tr>
+      <tr><td>ProjectExpense</td><td>Despesa, estado de revisão e participação no resultado.</td></tr>
+      <tr><td>ProjectTax/TaxType</td><td>Composição tributária do projeto.</td></tr>
+      <tr><td>ProjectInvitation</td><td>Convite temporário, escopo, resumo do token, aceite e revogação.</td></tr>
+      <tr><td>AuditLog</td><td>Registro de operações críticas e justificativas.</td></tr>
+      <tr><td>Product/StockMovement</td><td>Saldo de estoque e histórico transacional.</td></tr>
+    </tbody>
+  </table>
+  <p class="source">Fonte: modelos e migrações do projeto Spot (2026).</p>
+
+  <h1 class="chapter">8 INTERFACES E CONTRATOS DE API</h1>
+  <h2>8.1 API principal</h2>
+  <p>A API principal utiliza o prefixo <code>/api/v1</code>. Rotas autenticadas cobrem sessão, projetos, tarefas, despesas, horas, convites, relatórios, parâmetros, usuários administrativos, segurança, notificações, agenda e caixa de entrada. O comando de inventário do Laravel registrou 105 rotas de aplicação na data de corte, incluindo rotas web e as duas famílias de API.</p>
+
+  <h2>8.2 API legada</h2>
+  <p>As rotas sem o prefixo <code>/v1</code> mantêm autenticação JWT e não devem ser escolhidas para novas integrações. Elas existem para evitar interrupção imediata de consumidores já implementados.</p>
+
+  <h2>8.3 Convenções de resposta</h2>
+  <p>A API retorna JSON e utiliza códigos HTTP compatíveis com o resultado da operação. Falhas de validação produzem respostas de entidade não processável; falhas de autenticação e autorização são tratadas pelos mecanismos do framework; indisponibilidade do processador analítico resulta em HTTP 503 com mensagem operacional e detalhe somente no ambiente local.</p>
+
+  <h1 class="chapter">9 PROCESSAMENTO ANALÍTICO DE PORTFÓLIO</h1>
+  <h2>9.1 Estado da implementação</h2>
+  <p>O painel analítico está presente como alteração local ainda não commitada. Ele inclui controlador invocável, rota protegida, relação com gerente do projeto, dependência Pandas, script de consolidação, teste funcional, componentes React, estilos, navegação e documentação de instalação no README.</p>
+
+  <h2>9.2 Fluxo de processamento</h2>
+  <p>O endpoint <code>GET /api/v1/reports/project-analytics</code> exige <code>financial.view</code> e aceita os filtros opcionais <code>from</code>, <code>to</code> e <code>project_id</code>. A consulta é limitada à empresa atual. O Laravel carrega os projetos e calcula o resultado financeiro com a mesma classe já utilizada pelos relatórios. Em seguida, envia um documento JSON pela entrada padrão a <code>scripts/project_analytics.py</code>.</p>
+  <p>O processo Python não acessa o banco. Com Pandas, normaliza números e datas, classifica projetos, agrega status, clientes e gerentes, cria série mensal, soma contrato, receita, custo e lucro e devolve o levantamento individual. O processo possui limite de 30 segundos e o executável pode ser configurado por <code>PYTHON_BINARY</code>.</p>
+
+  <h2>9.3 Indicadores</h2>
+  <p>O resumo apresenta total, em andamento, concluídos, no prazo, atrasados, congelados, quantidade de clientes e gerentes, valor contratado, receita, custo e lucro. A interface gera gráfico de situação, evolução mensal, quantidade por cliente, quantidade por gerente, consolidado financeiro e painéis individuais com progresso, horas e resultado.</p>
+
+  <h1 class="chapter">10 INSTALAÇÃO, CONFIGURAÇÃO E OPERAÇÃO</h1>
+  <h2>10.1 Execução local simplificada</h2>
+  <p>O repositório inclui runtimes locais e o script <code>iniciar.sh</code>. Em Linux, a inicialização é feita por:</p>
+  <p class="mono">./iniciar.sh</p>
+  <p>O FrankenPHP atende a porta 8000 e o Vite a porta 5173. A aplicação é acessada em <code>http://localhost:8000</code>. A interrupção dos processos ocorre com <code>Ctrl+C</code>.</p>
+
+  <h2>10.2 Preparação</h2>
+  <p class="mono">./composer install
+./php artisan migrate --seed
+export PATH="$PWD/.runtime/bin:$PATH"
+npm install
+npm run build
+python3 -m pip install --user -r requirements.txt</p>
+  <p>O uso de <code>--user</code> é adequado ao ambiente local descrito. Em produção, recomenda-se ambiente virtual isolado e definição explícita de <code>PYTHON_BINARY</code>.</p>
+
+  <h2>10.3 Variáveis essenciais de produção</h2>
+  <p class="mono">APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://spot.seudominio.com
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=lax</p>
+  <p>Credenciais de banco, e-mail e provedores sociais devem ser configuradas fora do controle de versão. O arquivo <code>.env</code> não deve ser publicado.</p>
+
+  <h1 class="chapter">11 QUALIDADE E VERIFICAÇÃO</h1>
+  <h2>11.1 Testes automatizados</h2>
+  <p>A suíte cobre autenticação social, sessão, logout, recuperação de senha, perfil, avatar, segurança de conta, provisionamento administrativo, permissões, projetos, governança, configurações, convites, apontamentos, despesas, finanças, estoque, agenda, caixa de entrada, notificações e dashboard.</p>
+  <table>
+    <caption>Quadro 4 — Resultado da verificação em 4 de setembro de 2026</caption>
+    <thead><tr><th>Verificação</th><th>Resultado</th><th>Evidência</th></tr></thead>
+    <tbody>
+      <tr><td>PHPUnit</td><td>Aprovado</td><td>52 testes; 52 aprovados; 262 asserções.</td></tr>
+      <tr><td>Build Vite</td><td>Aprovado</td><td>1.564 módulos transformados; CSS e JavaScript gerados.</td></tr>
+      <tr><td>Processador Pandas vazio</td><td>Aprovado</td><td>Retorno JSON válido com totais zerados; Pandas 2.3.3.</td></tr>
+      <tr><td>Inventário de rotas</td><td>Aprovado</td><td>105 rotas registradas.</td></tr>
+    </tbody>
+  </table>
+  <p class="source">Fonte: execução local dos comandos do projeto (2026).</p>
+
+  <h2>11.2 Limites da verificação</h2>
+  <p>Os resultados confirmam o comportamento coberto pelos testes e a capacidade de compilar o frontend no ambiente disponível. Não constituem homologação completa de usabilidade, desempenho, acessibilidade, segurança ofensiva, provedores OAuth reais, entrega de e-mail ou implantação distribuída.</p>
+
+  <h1 class="chapter">12 HISTÓRICO DE DESENVOLVIMENTO</h1>
+  <table>
+    <caption>Quadro 5 — Marcos registrados no Git</caption>
+    <thead><tr><th>Data</th><th>Identificador</th><th>Conteúdo</th></tr></thead>
+    <tbody>
+      <tr><td>9 jun. 2026</td><td><code>16bb9fa</code></td><td>Estrutura inicial Laravel, autenticação, interface, configurações, banco e protótipo desktop.</td></tr>
+      <tr><td>9 jun. 2026</td><td><code>1aaa0cf</code></td><td>Ajustes para retirar dependências geradas do versionamento.</td></tr>
+      <tr><td>9 jun. 2026</td><td><code>225a2a3</code></td><td>Remoção do projeto duplicado <code>spot-desktop</code> do repositório.</td></tr>
+      <tr><td>9 jun. 2026</td><td><code>2c1b8aa</code></td><td>Exclusão lógica de arquivos automaticamente gerados por regras de ignore.</td></tr>
+      <tr><td>20 ago. 2026</td><td><code>7400ff7</code></td><td>Arquitetura API JWT, estoque, projetos, tarefas, autenticação social, redefinição de senha, perfil e nova SPA.</td></tr>
+      <tr><td>23 ago. 2026</td><td><code>8c0412a</code></td><td>Governança de projetos, segurança por sessão, administração, finanças, horas, despesas, convites, parâmetros, agenda, caixa de entrada, notificações e integrações.</td></tr>
+      <tr><td>4 set. 2026</td><td>Árvore local</td><td>Painel de portfólios com Pandas, cadastro de projeto, menu de páginas, ajustes visuais e favicon; conteúdo ainda não versionado.</td></tr>
+    </tbody>
+  </table>
+  <p class="source">Fonte: histórico Git e estado do diretório de trabalho do Spot (2026).</p>
+
+  <h1 class="chapter">13 LIMITAÇÕES E PENDÊNCIAS</h1>
+  <p>Na data de corte, devem ser considerados os seguintes pontos:</p>
+  <ul>
+    <li>as alterações de analytics, interface, ícones e favicon ainda não estavam registradas em commit;</li>
+    <li>a execução do painel de portfólios depende da disponibilidade do Python e do Pandas no servidor;</li>
+    <li>a API JWT antiga aumenta a superfície de manutenção enquanto permanecer ativa;</li>
+    <li>os campos de autoria, instituição e cidade deste documento requerem preenchimento;</li>
+    <li>o sumário do PDF é editorial e deve ser atualizado caso haja paginação ou conteúdo acrescentado;</li>
+    <li>homologações de acessibilidade, carga, integração OAuth e e-mail não foram comprovadas nesta rodada;</li>
+    <li>o banco SQLite é apropriado ao ambiente local, mas a escolha de produção deve observar concorrência, backup e disponibilidade.</li>
+  </ul>
+
+  <h1 class="chapter">14 CONCLUSÃO</h1>
+  <p>O repositório registra a evolução de um protótipo Laravel para uma plataforma integrada com API versionada, SPA React, controles de segurança, governança de projetos e apuração financeira. O uso de ações de domínio, auditoria, permissões e testes evidencia preocupação com consistência e rastreabilidade.</p>
+  <p>As verificações desta edição foram concluídas sem falhas. O principal trabalho ainda pendente de versionamento é o módulo analítico de portfólios e seus ajustes associados. Antes de uma liberação, recomenda-se revisar e agrupar essas alterações em commit próprio, instalar a dependência Python no ambiente-alvo e executar homologação funcional e de segurança.</p>
+
+  <section class="references">
+    <h1 class="new-page">REFERÊNCIAS</h1>
+    <p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>ABNT NBR 14724: informação e documentação — trabalhos acadêmicos — apresentação</strong>. Rio de Janeiro: ABNT, 2024.</p>
+    <p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>ABNT NBR 6023: informação e documentação — referências — elaboração</strong>. Rio de Janeiro: ABNT, 2018.</p>
+    <p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>ABNT NBR 6024: informação e documentação — numeração progressiva das seções de um documento — apresentação</strong>. Rio de Janeiro: ABNT, 2012.</p>
+    <p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>ABNT NBR 6027: informação e documentação — sumário — apresentação</strong>. Rio de Janeiro: ABNT, 2012.</p>
+    <p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>ABNT NBR 6028: informação e documentação — resumo, resenha e recensão — apresentação</strong>. Rio de Janeiro: ABNT, 2021.</p>
+    <p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>ABNT NBR 10520: informação e documentação — citações em documentos — apresentação</strong>. Rio de Janeiro: ABNT, 2023.</p>
+    <p>LARAVEL. <strong>Laravel documentation</strong>. [S. l.], 2026. Disponível em: &lt;https://laravel.com/docs&gt;. Acesso em: 4 set. 2026.</p>
+    <p>META PLATFORMS. <strong>React documentation</strong>. [S. l.], 2026. Disponível em: &lt;https://react.dev/&gt;. Acesso em: 4 set. 2026.</p>
+    <p>OPENJS FOUNDATION. <strong>Vite guide</strong>. [S. l.], 2026. Disponível em: &lt;https://vite.dev/guide/&gt;. Acesso em: 4 set. 2026.</p>
+    <p>THE PANDAS DEVELOPMENT TEAM. <strong>Pandas documentation</strong>. [S. l.], 2026. Disponível em: &lt;https://pandas.pydata.org/docs/&gt;. Acesso em: 4 set. 2026.</p>
+    <p>SPOT. <strong>Repositório local do sistema Spot</strong>: código-fonte, histórico Git, testes e arquivos de configuração. Versão consultada: commit 8c0412a e alterações locais. [S. l.], 2026.</p>
+  </section>
+
+  <h1 class="new-page">APÊNDICE A — INVENTÁRIO RESUMIDO DAS ROTAS</h1>
+  <table>
+    <caption>Quadro 6 — Grupos de endpoints da API principal</caption>
+    <thead><tr><th>Grupo</th><th>Operações principais</th></tr></thead>
+    <tbody>
+      <tr><td>Autenticação</td><td><code>POST /api/v1/auth/login</code>; <code>POST /api/v1/auth/logout</code>; <code>GET /api/v1/auth/me</code>; projetos do usuário; fusos horários.</td></tr>
+      <tr><td>Projetos</td><td>Listar, criar, exibir, alterar, excluir logicamente, finalizar, reabrir e consultar configuração.</td></tr>
+      <tr><td>Equipe e finanças</td><td>Membros, tarifas, tributos, despesas, revisão, apontamentos e resultado financeiro.</td></tr>
+      <tr><td>Convites</td><td>Criar, aceitar e revogar.</td></tr>
+      <tr><td>Relatórios</td><td><code>GET /api/v1/reports/portfolio</code> e <code>GET /api/v1/reports/project-analytics</code>.</td></tr>
+      <tr><td>Administração</td><td>Provisionar usuário e alterar perfil/estado.</td></tr>
+      <tr><td>Segurança</td><td>Senha, preferências, provedores, sessões e autenticação em dois fatores.</td></tr>
+      <tr><td>Operação</td><td>Dashboard, tarefas, agenda, caixa de entrada, notificações e parâmetros.</td></tr>
+      <tr><td>Estoque v1</td><td>Categorias, produtos, movimentos e dashboard sob <code>/api/v1</code>.</td></tr>
+    </tbody>
+  </table>
+  <p class="source">Fonte: <code>routes/api.php</code> e inventário do Laravel (2026).</p>
+
+  <h1 class="new-page">APÊNDICE B — RASTREABILIDADE DOS ARTEFATOS</h1>
+  <table>
+    <caption>Quadro 7 — Localização dos principais artefatos</caption>
+    <thead><tr><th>Finalidade</th><th>Localização</th></tr></thead>
+    <tbody>
+      <tr><td>Regras de domínio</td><td><code>app/Domain/</code></td></tr>
+      <tr><td>Controladores HTTP</td><td><code>app/Http/Controllers/</code></td></tr>
+      <tr><td>Validação de projetos e estoque</td><td><code>app/Http/Requests/</code></td></tr>
+      <tr><td>Modelos de persistência</td><td><code>app/Models/</code></td></tr>
+      <tr><td>Esquema e evolução do banco</td><td><code>database/migrations/</code></td></tr>
+      <tr><td>Dados iniciais e demonstração</td><td><code>database/seeders/</code></td></tr>
+      <tr><td>Rotas</td><td><code>routes/api.php</code> e <code>routes/web.php</code></td></tr>
+      <tr><td>Aplicação React</td><td><code>resources/js/App.jsx</code></td></tr>
+      <tr><td>Estilos</td><td><code>resources/css/app.css</code></td></tr>
+      <tr><td>Página base</td><td><code>resources/views/app.blade.php</code></td></tr>
+      <tr><td>Analytics</td><td><code>app/Http/Controllers/Api/ProjectAnalyticsController.php</code> e <code>scripts/project_analytics.py</code></td></tr>
+      <tr><td>Testes</td><td><code>tests/Feature/</code> e <code>tests/Unit/</code></td></tr>
+      <tr><td>Operação local</td><td><code>README.md</code>, <code>iniciar.sh</code>, <code>composer.json</code>, <code>package.json</code> e <code>requirements.txt</code></td></tr>
+    </tbody>
+  </table>
+  <p class="source">Fonte: repositório Spot (2026).</p>
+</body>
+</html>

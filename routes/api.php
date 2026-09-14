@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\MovementController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectWorkflowController;
+use App\Http\Controllers\Api\ProjectAnalyticsController;
 use App\Http\Controllers\Api\ProjectExpenseController;
 use App\Http\Controllers\Api\ProjectInvitationController;
 use App\Http\Controllers\Api\TaskController;
@@ -20,6 +21,8 @@ use App\Http\Controllers\Api\NotificationPreferenceController;
 use App\Http\Controllers\Api\HomeDashboardController;
 use App\Http\Controllers\Api\InboxController;
 use App\Http\Controllers\Api\CalendarController;
+use App\Http\Controllers\Api\ProjectDocumentController;
+use App\Http\Controllers\Api\HistoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -59,8 +62,10 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:60,1'])->group(fu
         Route::post('projects/{project}/invitations', [ProjectInvitationController::class, 'store'])->name('projects.invitations.store');
         Route::post('invitations/{invitation}/revoke', [ProjectInvitationController::class, 'revoke'])->name('invitations.revoke');
         Route::get('reports/portfolio', [FinancialReportController::class, 'portfolio'])->name('reports.portfolio');
+        Route::get('reports/project-analytics', ProjectAnalyticsController::class)->name('reports.project-analytics');
         Route::get('projects/{project}/financial-result', [FinancialReportController::class, 'show'])->name('projects.financial-result');
         Route::get('parameters', [ParameterController::class, 'index'])->name('parameters.index');
+        Route::get('admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
         Route::post('admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
         Route::patch('admin/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
         Route::get('projects/{project}/configuration', [ProjectConfigurationController::class, 'show'])->name('projects.configuration.show');
@@ -91,6 +96,11 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:60,1'])->group(fu
         Route::delete('inbox/{inboxItem}', [InboxController::class, 'archive']);
         Route::get('calendar', [CalendarController::class, 'index']);
         Route::post('calendar/events', [CalendarController::class, 'store']);
+        Route::get('documents', [ProjectDocumentController::class, 'index']);
+        Route::post('documents', [ProjectDocumentController::class, 'store']);
+        Route::get('documents/{document}/download', [ProjectDocumentController::class, 'download']);
+        Route::delete('documents/{document}', [ProjectDocumentController::class, 'destroy']);
+        Route::get('history', [HistoryController::class, 'index']);
     });
 });
 

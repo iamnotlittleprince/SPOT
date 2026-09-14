@@ -25,6 +25,7 @@ class Project extends Model
     }
 
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function projectManager(): BelongsTo { return $this->belongsTo(User::class, 'project_manager_id'); }
     public function tasks(): HasMany { return $this->hasMany(Task::class); }
     public function members(): HasMany { return $this->hasMany(ProjectMember::class); }
     public function workLogs(): HasMany { return $this->hasMany(WorkLog::class); }

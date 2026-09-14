@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Throwable;
@@ -16,8 +17,12 @@ class MicrosoftAuthController extends Controller
         return Socialite::driver('microsoft')->scopes(['offline_access', 'Calendars.ReadWrite'])->redirect();
     }
 
-    public function callback(): RedirectResponse
+    public function callback(Request $request): RedirectResponse
     {
+        if ($request->filled('error')) {
+            return redirect('/?auth_error=microsoft_denied');
+        }
+
         try {
             $microsoftUser = Socialite::driver('microsoft')->user();
         } catch (Throwable $exception) {

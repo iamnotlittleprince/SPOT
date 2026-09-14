@@ -38,6 +38,15 @@ npm install
 npm run build
 ```
 
+O levantamento gráfico de projetos é consolidado por Python e Pandas. Instale a
+dependência antes de abrir a página **Portfólios**:
+
+```bash
+python3 -m pip install --user -r requirements.txt
+```
+
+Em produção, `PYTHON_BINARY` pode apontar para o executável de um ambiente virtual.
+
 ## Estrutura principal
 
 - `app/`, `config/`, `database/` e `routes/`: aplicação Laravel.
@@ -83,6 +92,7 @@ Fluxos governados disponíveis na API principal:
 | POST | `/api/v1/invitations/{id}/revoke` | Revoga convite ainda não utilizado |
 | GET | `/api/v1/projects/{id}/financial-result` | Resultado planejado e realizado do projeto |
 | GET | `/api/v1/reports/portfolio` | Totais financeiros e projetos da carteira |
+| GET | `/api/v1/reports/project-analytics` | Indicadores gráficos consolidados com Pandas |
 | GET | `/api/v1/parameters` | Opções ativas para os formulários |
 | POST | `/api/v1/admin/users` | Provisiona usuário e gera link de primeiro acesso |
 | PATCH | `/api/v1/admin/users/{id}` | Altera perfil e estado da conta |
