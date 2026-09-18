@@ -25,7 +25,9 @@ class ProfileController extends Controller
             $updates['job_title'] = $validated['job_title'] ?? null;
             $updates['department'] = $validated['department'] ?? null;
         }
+        $old=$request->user()->only(array_keys($updates));
         $request->user()->update($updates);
+        app(\App\Domain\Audit\AuditRecorder::class)->record('user.profile_updated',$request->user(),$request->user(),$old,$updates);
 
         return response()->json([
             'name' => $name,
@@ -34,7 +36,11 @@ class ProfileController extends Controller
             'timezone' => $validated['timezone'],
             'job_title' => $request->user()->job_title,
             'department' => $request->user()->department,
+            'can_view_parameters' => $request->user()->can('parameters.view'),
+            'spot_role' => $request->user()->spotRoleLabel(),
             'can_manage_identity' => $request->user()->can('security.manage'),
+            'can_create_projects' => $request->user()->can('projects.create'),
+            'can_view_financial' => $request->user()->can('financial.view'),
         ]);
     }
 }

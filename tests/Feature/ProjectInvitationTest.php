@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendAccessEmail;
+use Illuminate\Support\Facades\Queue;
 use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\User;
@@ -19,6 +21,7 @@ class ProjectInvitationTest extends TestCase
     {
         $this->seed();
         Mail::fake();
+        Queue::fake();
         $admin = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
         $project = Project::create(['company_id' => $admin->current_company_id, 'user_id' => $admin->id, 'name' => 'Projeto compartilhado', 'status' => 'in_progress', 'progress' => 10]);
 
@@ -29,6 +32,10 @@ class ProjectInvitationTest extends TestCase
             'project_role' => 'guest',
             'relationship_type' => 'guest_client',
         ])->assertCreated();
+
+        Queue::assertPushed(SendAccessEmail::class, fn ($job) => $job->type === 'invitation');
+        Mail::assertNothingSent();
+        Queue::pushed(SendAccessEmail::class)->first()->handle();
 
         $token = basename($response->json('accept_url'));
         $invitation = ProjectInvitation::firstOrFail();
@@ -59,6 +66,7 @@ class ProjectInvitationTest extends TestCase
     {
         $this->seed();
         Mail::fake();
+        Queue::fake();
         $admin = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
         $project = Project::create(['company_id' => $admin->current_company_id, 'user_id' => $admin->id, 'name' => 'Projeto', 'status' => 'planning', 'progress' => 0]);
         $invitation = $this->actingAs($admin)->postJson("/api/v1/projects/{$project->id}/invitations", [

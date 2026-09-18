@@ -41,8 +41,31 @@ class User extends Authenticatable implements JWTSubject
             ->withPivot('company_id')->withTimestamps();
     }
 
+    public function spotRoleLabel(): string
+    {
+        $roles = $this->profiles()->wherePivot('company_id', $this->current_company_id)->pluck('slug');
+        foreach (['administrador' => 'Administrador', 'gestor-administrador' => 'Administrador', 'gestor' => 'Gestor', 'analista' => 'Analista', 'convidado' => 'Convidado'] as $slug => $label) {
+            if ($roles->contains($slug)) {
+                return $label;
+            }
+        }
+
+        return 'Perfil não definido';
+    }
+
+    public function canCreateTasks(): bool
+    {
+        $profiles = $this->profiles()->wherePivot('company_id', $this->current_company_id);
+
+        return $this->active
+            && (clone $profiles)->exists()
+            && ! (clone $profiles)->where('slug', 'convidado')->exists();
+    }
+
     public function hasPermission(string $permission): bool
     {
+        if ($this->active && $this->profiles()->wherePivot('company_id', $this->current_company_id)->whereIn('slug', ['administrador', 'gestor-administrador'])->exists()) return true;
+
         $override = $this->belongsToMany(Permission::class, 'user_permission_overrides')
             ->withPivot('allowed')->where('slug', $permission)->first();
 

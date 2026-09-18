@@ -17,6 +17,7 @@ class ParameterController extends Controller
         $parameters = fn (string $table) => DB::table($table)->where('company_id', $companyId)->where('active', true)->orderBy('name')->get();
 
         return response()->json([
+            'field_access' => \App\Domain\Projects\ProjectFields::access($request->user()),
             'project_statuses' => $parameters('project_statuses'),
             'project_situations' => $parameters('project_situations'),
             'tax_types' => $parameters('tax_types'),

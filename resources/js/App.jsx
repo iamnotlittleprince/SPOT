@@ -1,5 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import { ProjectWorkspace, ParametersWorkspace, FinancialResult } from './Management';
+import { message, translateText, observeTranslations, getLanguage, getFormatLocale, setLanguage } from "./i18n";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import InventoryApp from "./InventoryApp";
+import TasksPage from "./TasksPage";
+import SpotTutorial from "./tutorial/SpotTutorial";
+import { sessionRequest } from "./api";
 import {
   Archive,
   AppWindow,
@@ -7,7 +12,6 @@ import {
   BarChart3,
   Bell,
   CalendarDays,
-  CalendarRange,
   Camera,
   Check,
   CheckCheck,
@@ -18,14 +22,12 @@ import {
   CircleUserRound,
   Clock3,
   ClipboardList,
-  Columns3,
   Eye,
   EyeOff,
   Download,
   FilePlus2,
   Files,
   Filter,
-  Flag,
   FolderClock,
   FolderKanban,
   History,
@@ -34,7 +36,6 @@ import {
   ListChecks,
   LogOut,
   LockKeyhole,
-  MapPin,
   Trash2,
   Upload,
   KeyRound,
@@ -43,15 +44,12 @@ import {
   Mail,
   Menu,
   MoreHorizontal,
-  MessageCircle,
-  Paperclip,
   Plus,
   Search,
   Settings,
   ShieldCheck,
   SlidersHorizontal,
   Sun,
-  Table2,
   TrendingUp,
   Users,
   Video,
@@ -60,128 +58,8 @@ import {
   X,
 } from "lucide-react";
 
-function xsrfToken() {
-  return decodeURIComponent(document.cookie.split("; ").find((item) => item.startsWith("XSRF-TOKEN="))?.split("=").slice(1).join("=") || "");
-}
-
-async function sessionRequest(path, options = {}) {
-  const method = (options.method || "GET").toUpperCase();
-  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) await fetch('/sanctum/csrf-cookie', { credentials: 'same-origin' });
-  return fetch(`/api/v1${path}`, {
-    ...options,
-    credentials: 'same-origin',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(!['GET', 'HEAD', 'OPTIONS'].includes(method) ? { 'X-XSRF-TOKEN': xsrfToken() } : {}),
-      ...options.headers,
-    },
-  });
-}
-
-const interfaceTranslations = {
-  en: {
-    "Home": "Home", "Caixa de entrada": "Inbox", "Portfólios": "Portfolios", "Agenda": "Calendar",
-    "Área de trabalho": "Workspace", "Meus Projetos": "My Projects", "Novo Projeto": "New Project",
-    "Minhas tarefas": "My tasks", "Meus documentos": "My documents", "Histórico": "History",
-    "Acesso rápido": "Quick access", "Mostrar menos": "Show less", "Mostrar mais": "Show more",
-    "Painel": "Dashboard", "status": "status", "tarefas": "tasks", "Times ativos": "Active teams",
-    "Nenhuma tarefa encontrada.": "No tasks found.", "Nenhum time ativo.": "No active teams.",
-    "Nenhum projeto encontrado.": "No projects found.", "tarefas incompletas": "incomplete tasks",
-    "todas as tarefas": "all tasks", "filtrar": "filter", "prioridade alta": "high priority",
-    "atrasadas": "overdue", "apps": "apps", "Pesquisar...": "Search...", "Configurações": "Settings",
-    "Notificações": "Notifications", "Meu perfil": "My profile", "Usuários e acessos": "Users and access",
-    "Privacidade e segurança": "Privacy and security", "Sair da conta": "Sign out", "Disponível": "Available",
-    "Projetos": "Projects", "Tarefas": "Tasks", "Equipes": "Teams", "Perfil completo": "Profile completion",
-    "Minha conta": "My account", "Gerencie seus dados pessoais e preferências da conta.": "Manage your personal data and account preferences.",
-    "Convidar pessoa": "Invite person", "Informações pessoais": "Personal information", "Segurança": "Security",
-    "Preferências": "Preferences", "Nome": "First name", "Sobrenome": "Last name", "Cargo": "Job title",
-    "Departamento": "Department", "Fuso horário": "Time zone", "Salvar alterações": "Save changes",
-    "Novo usuário": "New user", "Fechar cadastro": "Close form", "Cadastrar usuário": "Register user",
-    "E-mail principal": "Primary email", "Perfil": "Role", "Organização": "Organization",
-    "Selecione": "Select", "Administrador": "Administrator", "Gestor": "Manager", "Analista": "Analyst",
-    "Ativo": "Active", "Suspenso": "Suspended", "Desativado": "Disabled",
-    "Aguardando ativação": "Awaiting activation", "Usuários cadastrados": "Registered users",
-    "Carregando usuários...": "Loading users...", "Nenhum usuário cadastrado.": "No registered users.",
-    "Copiar link": "Copy link", "Link de primeiro acesso": "First-access link", "Cadastrar e gerar acesso": "Register and generate access",
-    "Cancelar": "Cancel", "Gerar convite": "Generate invitation", "Projeto": "Project",
-    "E-mail da pessoa": "Person's email", "Papel no projeto": "Project role", "Vínculo": "Relationship",
-    "Validade do convite": "Invitation validity", "Permissões no projeto": "Project permissions",
-    "Visualizar tarefas": "View tasks", "Comentar nas tarefas": "Comment on tasks",
-    "Visualizar arquivos": "View files", "Enviar arquivos": "Upload files", "Quadro": "Board",
-    "Lista": "List", "Calendário": "Calendar", "Calendário de prazos": "Due-date calendar",
-    "Modo claro": "Light mode", "Modo escuro": "Dark mode",
-  },
-  es: {
-    "Home": "Inicio", "Caixa de entrada": "Bandeja de entrada", "Portfólios": "Portafolios", "Agenda": "Agenda",
-    "Área de trabalho": "Área de trabajo", "Meus Projetos": "Mis proyectos", "Novo Projeto": "Nuevo proyecto",
-    "Minhas tarefas": "Mis tareas", "Meus documentos": "Mis documentos", "Histórico": "Historial",
-    "Acesso rápido": "Acceso rápido", "Mostrar menos": "Mostrar menos", "Mostrar mais": "Mostrar más",
-    "Painel": "Panel", "status": "estado", "tarefas": "tareas", "Times ativos": "Equipos activos",
-    "Nenhuma tarefa encontrada.": "No se encontraron tareas.", "Nenhum time ativo.": "No hay equipos activos.",
-    "Nenhum projeto encontrado.": "No se encontraron proyectos.", "tarefas incompletas": "tareas incompletas",
-    "todas as tarefas": "todas las tareas", "filtrar": "filtrar", "prioridade alta": "prioridad alta",
-    "atrasadas": "atrasadas", "apps": "apps", "Pesquisar...": "Buscar...", "Configurações": "Configuración",
-    "Notificações": "Notificaciones", "Meu perfil": "Mi perfil", "Usuários e acessos": "Usuarios y accesos",
-    "Privacidade e segurança": "Privacidad y seguridad", "Sair da conta": "Cerrar sesión", "Disponível": "Disponible",
-    "Projetos": "Proyectos", "Tarefas": "Tareas", "Equipes": "Equipos", "Perfil completo": "Perfil completo",
-    "Minha conta": "Mi cuenta", "Gerencie seus dados pessoais e preferências da conta.": "Administra tus datos personales y preferencias de la cuenta.",
-    "Convidar pessoa": "Invitar persona", "Informações pessoais": "Información personal", "Segurança": "Seguridad",
-    "Preferências": "Preferencias", "Nome": "Nombre", "Sobrenome": "Apellido", "Cargo": "Cargo",
-    "Departamento": "Departamento", "Fuso horário": "Zona horaria", "Salvar alterações": "Guardar cambios",
-    "Novo usuário": "Nuevo usuario", "Fechar cadastro": "Cerrar formulario", "Cadastrar usuário": "Registrar usuario",
-    "E-mail principal": "Correo principal", "Perfil": "Perfil", "Organização": "Organización",
-    "Selecione": "Seleccionar", "Administrador": "Administrador", "Gestor": "Gestor", "Analista": "Analista",
-    "Ativo": "Activo", "Suspenso": "Suspendido", "Desativado": "Desactivado",
-    "Aguardando ativação": "Esperando activación", "Usuários cadastrados": "Usuarios registrados",
-    "Carregando usuários...": "Cargando usuarios...", "Nenhum usuário cadastrado.": "No hay usuarios registrados.",
-    "Copiar link": "Copiar enlace", "Link de primeiro acesso": "Enlace de primer acceso", "Cadastrar e gerar acesso": "Registrar y generar acceso",
-    "Cancelar": "Cancelar", "Gerar convite": "Generar invitación", "Projeto": "Proyecto",
-    "E-mail da pessoa": "Correo de la persona", "Papel no projeto": "Rol en el proyecto", "Vínculo": "Relación",
-    "Validade do convite": "Validez de la invitación", "Permissões no projeto": "Permisos del proyecto",
-    "Visualizar tarefas": "Ver tareas", "Comentar nas tarefas": "Comentar tareas",
-    "Visualizar arquivos": "Ver archivos", "Enviar arquivos": "Subir archivos", "Quadro": "Tablero",
-    "Lista": "Lista", "Calendário": "Calendario", "Calendário de prazos": "Calendario de plazos",
-    "Modo claro": "Modo claro", "Modo escuro": "Modo oscuro",
-  },
-};
-
-const originalInterfaceText = new WeakMap();
-
-function translateInterface(locale) {
-  const dictionary = interfaceTranslations[locale] || {};
-  const root = document.getElementById("root");
-  if (!root) return;
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  let node;
-  while ((node = walker.nextNode())) {
-    if (!node.textContent.trim()) continue;
-    const current = node.textContent;
-    let stored = originalInterfaceText.get(node);
-    // React pode reutilizar o mesmo nó ao trocar de página. Nesse caso, o novo
-    // conteúdo passa a ser a origem da tradução em vez de restaurar o texto antigo.
-    if (!stored || current !== stored.rendered) {
-      stored = { original: current, rendered: current };
-    }
-    const original = stored.original;
-    const trimmed = original.trim();
-    const translated = locale === "pt" ? trimmed : dictionary[trimmed] || trimmed;
-    const rendered = original.replace(trimmed, translated);
-    node.textContent = rendered;
-    originalInterfaceText.set(node, { original, rendered });
-  }
-  root.querySelectorAll("[placeholder],[title],[aria-label]").forEach((element) => {
-    ["placeholder", "title", "aria-label"].forEach((attribute) => {
-      if (!element.hasAttribute(attribute)) return;
-      const storageKey = "i18n" + attribute.replace("-", "");
-      if (!element.dataset[storageKey]) element.dataset[storageKey] = element.getAttribute(attribute);
-      const original = element.dataset[storageKey];
-      element.setAttribute(attribute, locale === "pt" ? original : dictionary[original] || original);
-    });
-  });
-  document.documentElement.lang = locale === "pt" ? "pt-BR" : locale;
-}
-
+// Fonte única da navegação lateral. O segundo item de cada entrada é também
+// usado pelo catálogo de traduções; altere os dois em conjunto ao renomeá-lo.
 const navGroups = [
   {
     items: [
@@ -201,24 +79,6 @@ const navGroups = [
       [History, "Histórico"],
     ],
   },
-];
-
-const projects = [
-  ["Projeto - Google", "Feito", "done"],
-  ["Projeto - Microsoft", "Andamento", "progress"],
-  ["Projeto - Apple", "Parado", "stopped"],
-];
-
-const tasks = [
-  ["Alinhar com cliente - Proposta Final", "10 de maio", "orange"],
-  ["Desenvolver proposta", "12 de maio", "green"],
-  ["Fechar Projeto", "12 de maio", "red"],
-];
-
-const teams = [
-  ["Time - Projeto Google", 3],
-  ["Time - Projeto Microsoft", 2],
-  ["Time - Projeto Apple", 4],
 ];
 
 function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxLeave, inboxPinned }) {
@@ -356,11 +216,11 @@ function InboxPopover({ placement, onMouseEnter, onMouseLeave, onOpenInbox }) {
     const difference = Math.max(0, Date.now() - new Date(value).getTime());
     const minutes = Math.floor(difference / 60000);
     if (minutes < 1) return "Agora";
-    if (minutes < 60) return `Há ${minutes} minuto${minutes === 1 ? "" : "s"}`;
+    if (minutes < 60) return message(minutes === 1 ? "Há {count} minuto" : "Há {count} minutos", { count: minutes });
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `Há ${hours} hora${hours === 1 ? "" : "s"}`;
+    if (hours < 24) return message(hours === 1 ? "Há {count} hora" : "Há {count} horas", { count: hours });
     const days = Math.floor(hours / 24);
-    return `Há ${days} dia${days === 1 ? "" : "s"}`;
+    return message(days === 1 ? "Há {count} dia" : "Há {count} dias", { count: days });
   }
 
   return (
@@ -384,7 +244,7 @@ function InboxPopover({ placement, onMouseEnter, onMouseLeave, onOpenInbox }) {
         {!loading && !visibleItems.length && <p className="inbox-preview-empty">{filter === "unread" ? "Nenhuma mensagem não lida." : "Sua caixa de entrada está vazia."}</p>}
         {visibleItems.map((item) => { const TypeIcon = typeIcons[item.type] || Bell; return <React.Fragment key={item.id}><article className={`inbox-item ${!item.read_at ? "unread" : ""}`} onClick={() => markRead(item)}>
           <div className={`inbox-item-icon ${item.type}`}><TypeIcon size={18} /></div>
-          <div className="inbox-item-content"><strong>{item.title}</strong><span><CircleUserRound size={24} fill="#d3d9de" stroke="#fff" /> {item.project?.name || item.body || "Spot"}</span></div>
+          <div className="inbox-item-content"><strong translate="no">{item.title}</strong><span><CircleUserRound size={24} fill="#d3d9de" stroke="#fff" /> {item.project?.name || item.body || "Spot"}</span></div>
           <div className="inbox-item-actions"><button type="button" aria-label={`Opções de ${item.title}`} aria-expanded={itemMenu === item.id} onClick={(event) => { event.stopPropagation(); setItemMenu((current) => current === item.id ? null : item.id); }}><MoreHorizontal size={18} /></button>{itemMenu === item.id && <div className="inbox-item-menu">{!item.read_at && <button type="button" onClick={(event) => { event.stopPropagation(); markRead(item); }}><Check size={15} /> Marcar como lida</button>}<button type="button" onClick={(event) => { event.stopPropagation(); archivePreview(item); }}><Archive size={15} /> Arquivar</button></div>}</div>
         </article><small className="inbox-time">{relativeTime(item.created_at)}</small></React.Fragment>; })}
       </div>
@@ -439,10 +299,10 @@ function InboxPage() {
   return <div className="inbox-page workspace-page">
     <header className="inbox-page-heading"><div><span className="workspace-eyebrow">COMUNICAÇÃO</span><h1>Caixa de entrada</h1><p>Acompanhe tarefas, menções, documentos e atualizações dos seus projetos.</p></div><button className="secondary-button" type="button" disabled={!unread} onClick={markAllRead}><CheckCheck size={17} /> Marcar todas como lidas</button></header>
     {error && <p className="home-state error">{error}</p>}
-    <div className="inbox-page-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar mensagens..." /></label><div>{[["all", "Todas"], ["unread", `Não lidas (${unread})`], ["tasks", "Tarefas"], ["documents", "Documentos"], ["mentions", "Menções"]].map(([key, label]) => <button className={filter === key ? "active" : ""} type="button" key={key} onClick={() => setFilter(key)}>{label}</button>)}</div></div>
+    <div className="inbox-page-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar mensagens..." /></label><div>{[["all", "Todas"], ["unread", message("Não lidas ({count})", { count: unread })], ["tasks", "Tarefas"], ["documents", "Documentos"], ["mentions", "Menções"]].map(([key, label]) => <button className={filter === key ? "active" : ""} type="button" key={key} onClick={() => setFilter(key)}>{label}</button>)}</div></div>
     <div className="inbox-page-layout">
-      <section className="inbox-message-list" aria-label="Mensagens">{loading && <p className="inbox-page-empty">Carregando mensagens...</p>}{!loading && !filtered.length && <p className="inbox-page-empty">Nenhuma mensagem encontrada.</p>}{filtered.map((item) => { const [TypeIcon, typeLabel] = typeMeta[item.type] || typeMeta.update; return <button className={`${selectedId === item.id ? "selected" : ""} ${!item.read_at ? "unread" : ""}`} type="button" key={item.id} onClick={() => markRead(item)}><span className={`inbox-type-icon ${item.type}`}><TypeIcon size={18} /></span><span><strong>{item.title}</strong><small>{item.project?.name || typeLabel}</small><em>{item.body}</em></span><time>{new Date(item.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</time></button>; })}</section>
-      <section className="inbox-message-detail">{!selected ? <div className="inbox-detail-empty"><Mail size={35} /><strong>Selecione uma mensagem</strong><span>Os detalhes aparecerão aqui.</span></div> : (() => { const [TypeIcon, typeLabel] = typeMeta[selected.type] || typeMeta.update; return <><header><span className={`inbox-type-icon ${selected.type}`}><TypeIcon size={19} /></span><span><small>{typeLabel}</small><h2>{selected.title}</h2></span><button type="button" title="Arquivar" aria-label="Arquivar mensagem" onClick={() => archive(selected)}><Archive size={19} /></button></header><div className="inbox-detail-body"><p>{selected.body || "Sem informações adicionais."}</p><dl><div><dt>Projeto</dt><dd>{selected.project?.name || "Geral"}</dd></div><div><dt>Enviado por</dt><dd>{selected.actor_name || "Spot"}</dd></div><div><dt>Recebido em</dt><dd>{new Date(selected.created_at).toLocaleString("pt-BR")}</dd></div></dl></div></>; })()}</section>
+      <section className="inbox-message-list" aria-label="Mensagens">{loading && <p className="inbox-page-empty">Carregando mensagens...</p>}{!loading && !filtered.length && <p className="inbox-page-empty">Nenhuma mensagem encontrada.</p>}{filtered.map((item) => { const [TypeIcon, typeLabel] = typeMeta[item.type] || typeMeta.update; return <button className={`${selectedId === item.id ? "selected" : ""} ${!item.read_at ? "unread" : ""}`} type="button" key={item.id} onClick={() => markRead(item)}><span className={`inbox-type-icon ${item.type}`}><TypeIcon size={18} /></span><span><strong translate="no">{item.title}</strong><small>{item.project?.name || typeLabel}</small><em translate="no">{item.body}</em></span><time>{new Date(item.created_at).toLocaleDateString(getFormatLocale(), { day: "2-digit", month: "short" })}</time></button>; })}</section>
+      <section className="inbox-message-detail">{!selected ? <div className="inbox-detail-empty"><Mail size={35} /><strong>Selecione uma mensagem</strong><span>Os detalhes aparecerão aqui.</span></div> : (() => { const [TypeIcon, typeLabel] = typeMeta[selected.type] || typeMeta.update; return <><header><span className={`inbox-type-icon ${selected.type}`}><TypeIcon size={19} /></span><span><small>{typeLabel}</small><h2 translate="no">{selected.title}</h2></span><button type="button" title="Arquivar" aria-label="Arquivar mensagem" onClick={() => archive(selected)}><Archive size={19} /></button></header><div className="inbox-detail-body"><p>{selected.body || "Sem informações adicionais."}</p><dl><div><dt>Projeto</dt><dd>{selected.project?.name || "Geral"}</dd></div><div><dt>Enviado por</dt><dd>{selected.actor_name || "Spot"}</dd></div><div><dt>Recebido em</dt><dd>{new Date(selected.created_at).toLocaleString(getFormatLocale())}</dd></div></dl></div></>; })()}</section>
     </div>
   </div>;
 }
@@ -474,8 +334,8 @@ function CalendarPage() {
     <header className="calendar-heading"><div><span className="workspace-eyebrow">PLANEJAMENTO</span><h1>Agenda</h1><p>Seus compromissos do Spot, Google Calendar, Outlook e Teams em um só lugar.</p></div><button className="primary-action" type="button" onClick={() => setCreating(true)}><Plus size={17} /> Novo evento</button></header>
     <div className="calendar-connections"><span><i className="spot" /> Spot</span><span className={data.providers.google ? 'connected' : ''}><i className="google" /> Google Calendar {data.providers.google ? 'conectado' : 'desconectado'}</span><span className={data.providers.microsoft ? 'connected' : ''}><i className="microsoft" /> Microsoft/Teams {data.providers.microsoft ? 'conectado' : 'desconectado'}</span>{(!data.providers.google || !data.providers.microsoft) && <button type="button" onClick={() => window.scrollTo(0,0)}>Conectar em Apps</button>}</div>
     {(error || data.errors?.length > 0) && <p className="home-state error">{error || data.errors.join(' ')}</p>}
-    <section className="calendar-shell"><header><div><button type="button" onClick={() => setMonth(new Date())}>Hoje</button><button type="button" aria-label="Mês anterior" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()-1,1))}><ChevronLeft size={18}/></button><button type="button" aria-label="Próximo mês" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()+1,1))}><ChevronRight size={18}/></button></div><h2>{month.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</h2><span>{data.events.length} eventos</span></header><div className="calendar-weekdays">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><span key={day}>{day}</span>)}</div><div className="calendar-grid">{days.map(day=><div className={`${day.getMonth()!==month.getMonth()?'outside ':''}${day.toDateString()===new Date().toDateString()?'today':''}`} key={day.toISOString()}><strong>{day.getDate()}</strong><div>{eventsFor(day).slice(0,3).map(event=><button className={event.provider} type="button" key={event.id} onClick={()=>setSelected(event)} title={event.title}><time>{new Date(event.start).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</time>{event.title}</button>)}{eventsFor(day).length>3&&<small>+{eventsFor(day).length-3} eventos</small>}</div></div>)}</div></section>
-    {selected && <div className="calendar-event-popover"><button type="button" onClick={()=>setSelected(null)}><X size={18}/></button><em className={selected.provider}>{providerLabel[selected.provider]}</em><h3>{selected.title}</h3><p>{selected.description||'Sem descrição.'}</p><span><CalendarDays size={16}/>{new Date(selected.start).toLocaleString('pt-BR')} – {new Date(selected.end).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>{selected.url&&<a href={selected.url} target="_blank" rel="noreferrer"><Video size={16}/> Abrir reunião ou evento</a>}</div>}
+    <section className="calendar-shell"><header><div><button type="button" onClick={() => setMonth(new Date())}>Hoje</button><button type="button" aria-label="Mês anterior" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()-1,1))}><ChevronLeft size={18}/></button><button type="button" aria-label="Próximo mês" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()+1,1))}><ChevronRight size={18}/></button></div><h2>{month.toLocaleDateString(getFormatLocale(),{month:'long',year:'numeric'})}</h2><span>{data.events.length} eventos</span></header><div className="calendar-weekdays">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><span key={day}>{day}</span>)}</div><div className="calendar-grid">{days.map(day=><div className={`${day.getMonth()!==month.getMonth()?'outside ':''}${day.toDateString()===new Date().toDateString()?'today':''}`} key={day.toISOString()}><strong>{day.getDate()}</strong><div>{eventsFor(day).slice(0,3).map(event=><button className={event.provider} type="button" key={event.id} onClick={()=>setSelected(event)} title={event.title}><time>{new Date(event.start).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</time><span translate="no">{event.title}</span></button>)}{eventsFor(day).length>3&&<small>+{eventsFor(day).length-3} eventos</small>}</div></div>)}</div></section>
+    {selected && <div className="calendar-event-popover"><button type="button" onClick={()=>setSelected(null)}><X size={18}/></button><em className={selected.provider}>{providerLabel[selected.provider]}</em><h3 translate="no">{selected.title}</h3><p>{selected.description||'Sem descrição.'}</p><span><CalendarDays size={16}/>{new Date(selected.start).toLocaleString(getFormatLocale())} – {new Date(selected.end).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</span>{selected.url&&<a href={selected.url} target="_blank" rel="noreferrer"><Video size={16}/> Abrir reunião ou evento</a>}</div>}
     {creating && <div className="calendar-modal" onMouseDown={event=>event.target===event.currentTarget&&setCreating(false)}><form onSubmit={createEvent}><header><div><h2>Novo evento</h2><p>Escolha em qual agenda o compromisso será criado.</p></div><button type="button" onClick={()=>setCreating(false)}><X size={19}/></button></header><label>Título<input name="title" required maxLength="150" /></label><div><label>Início<input name="starts_at" type="datetime-local" required /></label><label>Fim<input name="ends_at" type="datetime-local" required /></label></div><label>Agenda<select name="provider" required><option value="spot">Spot</option><option value="google" disabled={!data.providers.google}>Google Calendar{!data.providers.google?' — conecte a conta':''}</option><option value="microsoft" disabled={!data.providers.microsoft}>Outlook{!data.providers.microsoft?' — conecte a conta':''}</option><option value="teams" disabled={!data.providers.microsoft}>Reunião do Teams{!data.providers.microsoft?' — conecte a conta':''}</option></select></label><label>Local<input name="location" placeholder="Sala ou endereço" /></label><label>Descrição<textarea name="description" rows="4" /></label><footer><button className="secondary-button" type="button" onClick={()=>setCreating(false)}>Cancelar</button><button className="primary-action" type="submit">Criar evento</button></footer></form></div>}
   </div>;
 }
@@ -557,7 +417,7 @@ function IntegrationsModal({ onClose }) {
   }, [onClose]);
 
   async function disconnect(provider) {
-    if (!window.confirm(`Desconectar sua conta ${providerMeta[provider].name}?`)) return;
+    if (!window.confirm(message("Desconectar sua conta {provider}?", { provider: providerMeta[provider].name }))) return;
     setBusy(provider); setError("");
     try {
       const response = await sessionRequest(`/security/providers/${provider}`, { method: "DELETE", body: "{}" });
@@ -580,9 +440,9 @@ function IntegrationsModal({ onClose }) {
           const provider = providers?.[key];
           const connected = Boolean(provider?.connected);
           return <article className="integration-provider" key={key}>
-            <div className="integration-provider-main"><img src={meta.logo} alt="" /><span><strong>{meta.name}</strong><small>{meta.description}</small></span><em className={connected ? "connected" : ""}>{connected ? "Conectada" : "Não conectada"}</em></div>
+            <div className="integration-provider-main"><img src={meta.logo} alt="" /><span><strong translate="no">{meta.name}</strong><small>{meta.description}</small></span><em className={connected ? "connected" : ""}>{connected ? "Conectada" : "Não conectada"}</em></div>
             <div className="integration-services">{meta.services.map((service) => <span key={service}>{service}</span>)}</div>
-            <footer><span>{connected ? <>Conta: <strong>{provider.email}</strong></> : "Conecte sua conta para ativar os aplicativos."}</span>{connected ? <button className="disconnect-integration" type="button" disabled={busy === key} onClick={() => disconnect(key)}>{busy === key ? "Desconectando..." : "Desconectar"}</button> : <button className="connect-integration" type="button" onClick={() => window.location.assign(meta.auth)}>Conectar conta</button>}</footer>
+            <footer><span>{connected ? <>Conta: <strong translate="no">{provider.email}</strong></> : "Conecte sua conta para ativar os aplicativos."}</span>{connected ? <button className="disconnect-integration" type="button" disabled={busy === key} onClick={() => disconnect(key)}>{busy === key ? "Desconectando..." : "Desconectar"}</button> : <button className="connect-integration" type="button" onClick={() => window.location.assign(meta.auth)}>Conectar conta</button>}</footer>
           </article>;
         })}
       </div>
@@ -591,44 +451,7 @@ function IntegrationsModal({ onClose }) {
   </div>;
 }
 
-const managedProjects = [
-  { name: "Website Institucional", client: "Google Brasil", status: "Em andamento", tone: "blue", progress: 72, due: "18 mai", team: 4, tasks: "18/25" },
-  { name: "Migração para Cloud", client: "Microsoft", status: "Em revisão", tone: "purple", progress: 88, due: "22 mai", team: 3, tasks: "31/36" },
-  { name: "Aplicativo Mobile", client: "Apple", status: "Planejamento", tone: "yellow", progress: 24, due: "05 jun", team: 5, tasks: "7/29" },
-  { name: "Portal do Colaborador", client: "Computécnica", status: "Concluído", tone: "green", progress: 100, due: "10 mai", team: 3, tasks: "42/42" },
-];
 
-const taskColumns = [
-  {
-    title: "A fazer", tone: "slate",
-    cards: [
-      { title: "Mapear jornada do usuário", project: "Website Institucional", priority: "Alta", due: "Hoje", comments: 4, files: 2 },
-      { title: "Definir arquitetura da API", project: "Aplicativo Mobile", priority: "Média", due: "16 mai", comments: 2, files: 1 },
-      { title: "Revisar escopo com cliente", project: "Migração para Cloud", priority: "Alta", due: "17 mai", comments: 6, files: 0 },
-    ],
-  },
-  {
-    title: "Em andamento", tone: "blue",
-    cards: [
-      { title: "Criar protótipo navegável", project: "Website Institucional", priority: "Alta", due: "Hoje", comments: 8, files: 3 },
-      { title: "Configurar ambiente staging", project: "Migração para Cloud", priority: "Média", due: "18 mai", comments: 3, files: 2 },
-    ],
-  },
-  {
-    title: "Em revisão", tone: "yellow",
-    cards: [
-      { title: "Validar identidade visual", project: "Website Institucional", priority: "Baixa", due: "19 mai", comments: 5, files: 4 },
-      { title: "Testes de segurança", project: "Portal do Colaborador", priority: "Alta", due: "20 mai", comments: 7, files: 1 },
-    ],
-  },
-  {
-    title: "Concluído", tone: "green",
-    cards: [
-      { title: "Kickoff do projeto", project: "Aplicativo Mobile", priority: "Média", due: "12 mai", comments: 2, files: 3 },
-      { title: "Aprovar proposta comercial", project: "Migração para Cloud", priority: "Baixa", due: "10 mai", comments: 1, files: 1 },
-    ],
-  },
-];
 
 function PageHeading({ eyebrow, title, description, action, onAction }) {
   return (
@@ -648,7 +471,7 @@ const analyticsColors = ["#168ff0", "#65b9f7", "#0b5f9d", "#9bd4fb", "#f2a640", 
 function AnalyticsBars({ items, horizontal = false, money = false }) {
   const max = Math.max(...items.map((item) => Number(item.value)), 1);
   if (!items.length) return <p className="analytics-empty">Sem dados no período.</p>;
-  if (horizontal) return <div className="analytics-horizontal-bars">{items.map((item) => <div key={item.label}><span title={item.label}>{item.label}</span><i><b style={{ width: `${Math.max((Number(item.value) / max) * 100, 3)}%` }} /></i><strong>{money ? Number(item.value).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) : item.value}</strong></div>)}</div>;
+  if (horizontal) return <div className="analytics-horizontal-bars">{items.map((item) => <div key={item.label}><span title={item.label}>{item.label}</span><i><b style={{ width: `${Math.max((Number(item.value) / max) * 100, 3)}%` }} /></i><strong>{money ? Number(item.value).toLocaleString(getFormatLocale(), { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) : item.value}</strong></div>)}</div>;
   return <div className="analytics-columns">{items.map((item) => <div key={item.label}><strong>{item.value}</strong><i style={{ height: `${Math.max((Number(item.value) / max) * 100, 5)}%` }} /><span title={item.label}>{item.label}</span></div>)}</div>;
 }
 
@@ -660,17 +483,24 @@ function AnalyticsLine({ items }) {
 }
 
 function ProjectAnalyticsPage() {
+  const [financialDetail,setFinancialDetail]=useState(null);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState("");
   const [range, setRange] = useState({ from: "", to: "" });
 
   async function load() {
-    setLoading(true); setError("");
+    setLoading(true); setError(""); setRestricted(false);
     try {
       const query = new URLSearchParams(Object.entries(range).filter(([, value]) => value));
       const response = await sessionRequest(`/reports/project-analytics${query.size ? `?${query}` : ""}`);
+      if (response.status === 403) {
+        setData(null);
+        setRestricted(true);
+        return;
+      }
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Não foi possível carregar os gráficos.");
       setData(result);
@@ -680,24 +510,31 @@ function ProjectAnalyticsPage() {
   }
 
   useEffect(() => { load(); }, []);
+  useEffect(()=>{let active=true;setFinancialDetail(null);if(selectedProject)sessionRequest(`/projects/${selectedProject}/financial-result`).then(async r=>{const result=await r.json();if(!r.ok)throw new Error(result.message);if(active)setFinancialDetail(result);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[selectedProject,data]);
   const detail = data?.projects.find((project) => String(project.id) === selectedProject);
   const projectsForCharts = detail ? [detail] : data?.projects || [];
   const summary = data?.summary;
-  const currency = (value) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  const currency = (value) => Number(value || 0).toLocaleString(getFormatLocale(), { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
   const statusTotal = data?.status.reduce((sum, item) => sum + item.value, 0) || 1;
   let statusCursor = 0;
   const statusGradient = data?.status.map((item, index) => { const start = statusCursor; statusCursor += item.value / statusTotal * 100; return `${analyticsColors[index % analyticsColors.length]} ${start}% ${statusCursor}%`; }).join(", ");
 
   return <div className="analytics-page">
     <header className="analytics-heading"><div><span>LEVANTAMENTO DE PROJETOS</span><h1>{detail ? detail.name : "Visão de portfólio"}</h1><p>{detail ? `${detail.client} · ${detail.manager}` : "Indicadores consolidados de prazo, clientes, responsáveis e resultado financeiro."}</p></div><small><BarChart3 size={17} /> {data?.processor || "Python + Pandas"}</small></header>
-    <div className="analytics-filters"><label>Data inicial<input type="date" value={range.from} onChange={(event) => setRange({ ...range, from: event.target.value })} /></label><label>Data final<input type="date" value={range.to} onChange={(event) => setRange({ ...range, to: event.target.value })} /></label><label className="analytics-project-filter">Projeto<select value={selectedProject} onChange={(event) => setSelectedProject(event.target.value)}><option value="">Todos os projetos</option>{data?.projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label><button type="button" onClick={load} disabled={loading}>{loading ? "Atualizando..." : "Aplicar período"}</button></div>
+    <div className="analytics-filters"><label>Data inicial<input type="date" value={range.from} onChange={(event) => setRange({ ...range, from: event.target.value })} /></label><label>Data final<input type="date" value={range.to} onChange={(event) => setRange({ ...range, to: event.target.value })} /></label><label className="analytics-project-filter">Projeto<select value={selectedProject} onChange={(event) => setSelectedProject(event.target.value)}><option value="">Todos os projetos</option>{data?.projects.map((project) => <option key={project.id} value={project.id} translate="no">{project.name}</option>)}</select></label><button type="button" onClick={load} disabled={loading}>{loading ? "Atualizando..." : "Aplicar período"}</button></div>
+    {restricted && <section className="analytics-error restricted-project-access" aria-labelledby="restricted-portfolio-title">
+      <LockKeyhole size={28} aria-hidden="true" />
+      <h2 id="restricted-portfolio-title">Área restrita</h2>
+      <p>Caso necessário acesso, falar com gerência</p>
+    </section>}
+    {financialDetail && <div className="management-workspace"><FinancialResult data={financialDetail}/></div>}
     {error && <p className="analytics-error">{error}</p>}
     {loading && !data && <p className="analytics-loading">Processando levantamento com Pandas...</p>}
     {data && <>
       {!detail && <>
-      <section className="analytics-kpis">{[['Em andamento', summary.in_progress, 'blue'], ['Concluídos', summary.completed, 'slate'], ['No prazo', summary.on_time, 'green'], ['Fora do prazo', summary.overdue, 'red'], ['Congelados', summary.frozen, 'purple'], ['Total de projetos', summary.total, 'strong']].map(([label, value, tone]) => <article className={tone} key={label}><span>{label}</span><strong>{value}</strong></article>)}</section>
+      <section className="analytics-kpis">{[['Em andamento', summary.in_progress, 'blue'], ['Concluídos', summary.completed, 'slate'], ['Cancelados', summary.cancelled || 0, 'red'], ['No prazo', summary.on_time, 'green'], ['Fora do prazo', summary.overdue, 'red'], ['Congelados', summary.frozen, 'purple'], ['Total de projetos', summary.total, 'strong']].map(([label, value, tone]) => <article className={tone} key={label}><span>{label}</span><strong>{value}</strong></article>)}</section>
       <section className="analytics-grid top-row"><article className="analytics-panel status-panel"><header><h2>Situação dos projetos</h2><small>{summary.total} projetos</small></header><div className="status-chart"><div className="status-donut" style={{ background: `conic-gradient(${statusGradient || "#e5edf2 0 100%"})` }}><span><strong>{summary.total}</strong><small>Total</small></span></div><div className="status-legend">{data.status.map((item, index) => <span key={item.label}><i style={{ background: analyticsColors[index % analyticsColors.length] }} />{item.label}<strong>{item.value}</strong></span>)}</div></div></article><article className="analytics-panel monthly-panel"><header><h2>Iniciados por mês</h2><small>Evolução no período</small></header><AnalyticsLine items={data.monthly} /></article></section>
-      <section className="analytics-grid bottom-row"><article className="analytics-panel"><header><h2>Quantidade por cliente</h2><small>{summary.clients} clientes</small></header><AnalyticsBars items={data.clients} /></article><article className="analytics-panel"><header><h2>Quantidade por gerente de contas</h2><small>{summary.managers} responsáveis</small></header><AnalyticsBars items={data.managers} /></article><article className="analytics-panel financial-panel"><header><h2>Resultado do portfólio</h2><small>Valores consolidados</small></header><AnalyticsBars horizontal money items={[{ label: "Contratos", value: summary.contract_value }, { label: "Receita", value: summary.revenue }, { label: "Custos", value: summary.cost }, { label: "Lucro", value: summary.profit }]} /></article></section>
+      {summary.unpriced_tasks > 0 && <p role="alert">Resultado parcial: existem atividades sem tarifa vigente. Cadastre o custo/hora dos analistas.</p>}<section className="analytics-grid bottom-row"><article className="analytics-panel"><header><h2>Quantidade por cliente</h2><small>{summary.clients} clientes</small></header><AnalyticsBars items={data.clients} /></article><article className="analytics-panel"><header><h2>Quantidade por gerente de contas</h2><small>{summary.managers} responsáveis</small></header><AnalyticsBars items={data.account_managers || data.managers} /></article><article className="analytics-panel"><header><h2>Quantidade por gerente de projetos</h2></header><AnalyticsBars items={data.managers} /></article><article className="analytics-panel financial-panel"><header><h2>Resultado do portfólio</h2><small>Valores consolidados</small></header><AnalyticsBars horizontal money items={[{ label: "Contratos", value: summary.contract_value }, { label: "Receita", value: summary.revenue }, { label: "Custos", value: summary.cost }, { label: "Lucro", value: summary.profit }]} /></article></section>
       <section className="project-survey">
         <header><div><span>LEVANTAMENTO INDIVIDUAL</span><h2>Todos os projetos</h2><p>Comparativo de execução, horas e resultado de cada projeto da carteira.</p></div><strong>{data.projects.length} {data.projects.length === 1 ? "projeto analisado" : "projetos analisados"}</strong></header>
         <div className="project-survey-head"><span>Projeto</span><span>Progresso</span><span>Horas</span><span>Receita</span><span>Custos</span><span>Resultado</span><span /></div>
@@ -705,7 +542,7 @@ function ProjectAnalyticsPage() {
           {data.projects.map((project) => {
             const hoursPercent = project.estimated_hours > 0 ? Math.min((project.worked_hours / project.estimated_hours) * 100, 100) : 0;
             return <button className={selectedProject === String(project.id) ? "active" : ""} type="button" key={project.id} onClick={() => setSelectedProject(String(project.id))}>
-              <span className="survey-project"><i><FolderKanban size={18} /></i><span><strong>{project.name}</strong><small>{project.client} · {project.manager}</small><em>{project.status}</em></span></span>
+              <span className="survey-project"><i><FolderKanban size={18} /></i><span><strong translate="no">{project.name}</strong><small>{project.client} · {project.manager}</small><em>{project.status}</em></span></span>
               <span className="survey-meter"><strong>{project.progress}%</strong><i><b style={{ width: `${project.progress}%` }} /></i></span>
               <span className="survey-meter"><strong>{project.worked_hours}h <small>/ {project.estimated_hours}h</small></strong><i><b className={project.worked_hours > project.estimated_hours ? "over" : ""} style={{ width: `${hoursPercent}%` }} /></i></span>
               <strong>{currency(project.actual_revenue)}</strong>
@@ -722,7 +559,7 @@ function ProjectAnalyticsPage() {
         <header><div><span>GRÁFICOS INDIVIDUAIS</span><h2>{detail ? "Levantamento do projeto" : "Levantamento de cada projeto"}</h2><p>{detail ? "Indicadores detalhados do projeto selecionado." : "Indicadores financeiros, horas e execução para todos os projetos da carteira."}</p></div><strong>{projectsForCharts.length} {projectsForCharts.length === 1 ? "painel" : "painéis"}</strong></header>
         <div className="project-charts-list">
           {projectsForCharts.map((project) => <article className="project-detail-analytics" key={project.id}>
-            <header><div><span>PROJETO #{project.id}</span><h2>{project.name}</h2><p>{project.client} · {project.manager}</p></div><em>{project.status}</em></header>
+            <header><div><span>PROJETO #{project.id}</span><h2 translate="no">{project.name}</h2><p>{project.client} · {project.manager}</p></div><em>{project.status}</em></header>
             <div className="detail-kpis"><article><TrendingUp size={20} /><span>Valor do projeto<strong>{currency(project.contract_value)}</strong></span></article><article><Clock3 size={20} /><span>Horas estimadas<strong>{project.estimated_hours}h</strong></span></article><article><Clock3 size={20} /><span>Horas realizadas<strong>{project.worked_hours}h</strong></span></article><article><BarChart3 size={20} /><span>Progresso<strong>{project.progress}%</strong></span></article></div>
             <div className="detail-comparison"><article><h3>Receita x custos</h3><AnalyticsBars horizontal money items={[{ label: "Receita", value: project.actual_revenue }, { label: "Custos", value: project.actual_cost }]} /></article><article><h3>Horas estimadas x realizadas</h3><AnalyticsBars horizontal items={[{ label: "Estimadas", value: project.estimated_hours }, { label: "Realizadas", value: project.worked_hours }]} /></article><article className="project-progress-chart"><h3>Execução do projeto</h3><div className="progress-ring" style={{ "--project-progress": `${Math.min(project.progress, 100) * 3.6}deg` }}><span><strong>{project.progress}%</strong><small>Concluído</small></span></div></article><article className={project.profit >= 0 ? "profit-positive" : "profit-negative"}><h3>Resultado</h3><strong>{currency(project.profit)}</strong><small>{project.profit >= 0 ? "Lucro apurado" : "Prejuízo apurado"}</small></article></div>
           </article>)}
@@ -734,166 +571,17 @@ function ProjectAnalyticsPage() {
 }
 
 function NewProjectPage({ onCreated, onCancel }) {
-  const [parameters, setParameters] = useState(null);
-  const [form, setForm] = useState({ name: "", proposal_number: "", project_status_id: "", project_situation_id: "", client_id: "", account_manager_id: "", project_manager_id: "", start_date: "", end_date: "", due_date: "", contract_value: "", estimated_minutes: "", cpt_scope: "" });
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    sessionRequest("/parameters").then(async (response) => {
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "Não foi possível carregar as opções do projeto.");
-      setParameters(result);
-      setForm((current) => ({ ...current, project_status_id: String(result.project_statuses[0]?.id || ""), project_situation_id: String(result.project_situations[0]?.id || "") }));
-    }).catch((requestError) => setError(requestError.message));
-  }, []);
-
-  function update(field, value) { setForm((current) => ({ ...current, [field]: value })); }
-  async function submit(event) {
-    event.preventDefault(); setSaving(true); setError("");
-    try {
-      const payload = Object.fromEntries(Object.entries({ ...form, contract_value: form.contract_value || 0, estimated_minutes: form.estimated_minutes ? Number(form.estimated_minutes) * 60 : 0 }).map(([key, value]) => [key, value === "" ? null : value]));
-      const response = await sessionRequest("/projects", { method: "POST", body: JSON.stringify(payload) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || Object.values(result.errors || {}).flat()[0] || "Não foi possível criar o projeto.");
-      onCreated();
-    } catch (requestError) { setError(requestError.message); }
-    finally { setSaving(false); }
-  }
-
-  return <div className="workspace-page new-project-page">
-    <PageHeading eyebrow="Área de trabalho" title="Novo projeto" description="Cadastre as informações gerais, responsáveis, prazo e planejamento financeiro." />
-    <form className="new-project-form" onSubmit={submit}>
-      <section><header><span>01</span><div><h2>Identificação</h2><p>Dados principais para identificar o projeto.</p></div></header><div className="new-project-fields"><label className="wide">Nome do projeto<input required maxLength="150" value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="Ex.: Implantação do portal" /></label><label>Número da proposta<input required maxLength="80" value={form.proposal_number} onChange={(event) => update("proposal_number", event.target.value)} placeholder="PROP-2026-001" /></label><label>Cliente<select value={form.client_id} onChange={(event) => update("client_id", event.target.value)}><option value="">Não informado</option>{parameters?.clients.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Status<select required value={form.project_status_id} onChange={(event) => update("project_status_id", event.target.value)}><option value="">Selecione</option>{parameters?.project_statuses.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Situação<select required value={form.project_situation_id} onChange={(event) => update("project_situation_id", event.target.value)}><option value="">Selecione</option>{parameters?.project_situations.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></div></section>
-      <section><header><span>02</span><div><h2>Responsáveis e período</h2><p>Defina a gestão e as datas planejadas.</p></div></header><div className="new-project-fields"><label>Gerente de contas<select value={form.account_manager_id} onChange={(event) => update("account_manager_id", event.target.value)}><option value="">Não atribuído</option>{parameters?.users.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Gerente do projeto<select value={form.project_manager_id} onChange={(event) => update("project_manager_id", event.target.value)}><option value="">Não atribuído</option>{parameters?.users.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Data de início<input type="date" value={form.start_date} onChange={(event) => update("start_date", event.target.value)} /></label><label>Data de término<input type="date" min={form.start_date} value={form.end_date} onChange={(event) => update("end_date", event.target.value)} /></label><label>Prazo de entrega<input type="date" value={form.due_date} onChange={(event) => update("due_date", event.target.value)} /></label></div></section>
-      <section><header><span>03</span><div><h2>Planejamento</h2><p>Informe orçamento, esforço e escopo inicial.</p></div></header><div className="new-project-fields"><label>Valor do contrato (R$)<input type="number" min="0" step="0.01" value={form.contract_value} onChange={(event) => update("contract_value", event.target.value)} placeholder="0,00" /></label><label>Horas estimadas<input type="number" min="0" step="1" value={form.estimated_minutes} onChange={(event) => update("estimated_minutes", event.target.value)} placeholder="0" /></label><label className="full">Escopo<textarea rows="5" maxLength="5000" value={form.cpt_scope} onChange={(event) => update("cpt_scope", event.target.value)} placeholder="Descreva os objetivos e as principais entregas..." /></label></div></section>
-      {error && <p className="new-project-error">{error}</p>}
-      <footer><button className="secondary-button" type="button" onClick={onCancel}>Cancelar</button><button className="primary-action" type="submit" disabled={saving || !parameters}>{saving ? "Criando projeto..." : "Criar projeto"}</button></footer>
-    </form>
-  </div>;
-}
-
-function ProjectsPage({ onNewProject }) {
-  const [view, setView] = useState("table");
-
-  return (
-    <div className="workspace-page">
-      <PageHeading eyebrow="Área de trabalho" title="Gestão de projetos" description="Acompanhe entregas, responsáveis e prazos em um só lugar." action="Novo projeto" onAction={onNewProject} />
-      <div className="workspace-toolbar">
-        <div className="view-switch">
-          <button className={view === "table" ? "active" : ""} onClick={() => setView("table")} type="button"><Table2 size={17} /> Tabela</button>
-          <button className={view === "cards" ? "active" : ""} onClick={() => setView("cards")} type="button"><Columns3 size={17} /> Cards</button>
-        </div>
-        <div className="toolbar-actions">
-          <button type="button"><Filter size={17} /> Filtrar</button>
-          <button type="button"><ArrowDownUp size={17} /> Ordenar</button>
-          <label><Search size={17} /><input placeholder="Buscar projeto..." /></label>
-        </div>
-      </div>
-
-      {view === "table" ? (
-        <div className="projects-table-wrap">
-          <div className="projects-table projects-table-head">
-            <span>Projeto</span><span>Status</span><span>Progresso</span><span>Responsáveis</span><span>Prazo</span><span>Tarefas</span><span />
-          </div>
-          {managedProjects.map((project) => (
-            <article className="projects-table project-table-row" key={project.name}>
-              <div className="project-identity"><span className={`project-icon ${project.tone}`}><FolderKanban size={18} /></span><span><strong>{project.name}</strong><small>{project.client}</small></span></div>
-              <span><em className={`status-pill ${project.tone}`}>{project.status}</em></span>
-              <div className="progress-cell"><div><i style={{ width: `${project.progress}%` }} /></div><strong>{project.progress}%</strong></div>
-              <AvatarStack count={project.team} />
-              <span className="due-cell"><CalendarDays size={16} />{project.due}</span>
-              <span className="task-count">{project.tasks}</span>
-              <button className="row-menu" type="button"><MoreHorizontal size={20} /></button>
-            </article>
-          ))}
-          <button className="add-row" type="button"><Plus size={17} /> Adicionar projeto</button>
-        </div>
-      ) : (
-        <div className="project-card-grid">
-          {managedProjects.map((project) => (
-            <article className="project-overview-card" key={project.name}>
-              <div className="project-card-top"><span className={`project-icon ${project.tone}`}><FolderKanban size={20} /></span><MoreHorizontal size={20} /></div>
-              <small>{project.client}</small><h2>{project.name}</h2>
-              <em className={`status-pill ${project.tone}`}>{project.status}</em>
-              <div className="project-card-progress"><span>Progresso <strong>{project.progress}%</strong></span><div><i style={{ width: `${project.progress}%` }} /></div></div>
-              <footer><AvatarStack count={project.team} /><span><CalendarDays size={15} /> {project.due}</span></footer>
-            </article>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function TasksPage() {
-  const [view, setView] = useState("board");
-  const allTasks = taskColumns.flatMap((column) => column.cards.map((card) => ({ ...card, status: column.title, tone: column.tone })));
-  const tasksByDueDate = allTasks.reduce((groups, task) => {
-    const due = task.due || "Sem prazo";
-    groups[due] = [...(groups[due] || []), task];
-    return groups;
-  }, {});
-
-  return (
-    <div className="workspace-page tasks-workspace">
-      <PageHeading eyebrow="Meu trabalho" title="Gestão de tarefas" description="Priorize, organize e mova o trabalho pelo seu fluxo." action="Nova tarefa" />
-      <div className="workspace-toolbar task-toolbar">
-        <div className="view-switch">
-          <button className={view === "board" ? "active" : ""} type="button" onClick={() => setView("board")}><Columns3 size={17} /> Quadro</button>
-          <button className={view === "list" ? "active" : ""} type="button" onClick={() => setView("list")}><Table2 size={17} /> Lista</button>
-          <button className={view === "calendar" ? "active" : ""} type="button" onClick={() => setView("calendar")}><CalendarRange size={17} /> Calendário</button>
-        </div>
-        <div className="toolbar-actions">
-          <button type="button"><Filter size={17} /> Filtrar</button>
-          <button type="button"><Users size={17} /> Pessoa</button>
-          <label><Search size={17} /><input placeholder="Buscar tarefa..." /></label>
-        </div>
-      </div>
-      {view === "board" && <div className="kanban-board">
-        {taskColumns.map((column) => (
-          <section className="kanban-column" key={column.title}>
-            <header>
-              <span><i className={column.tone} />{column.title}<b>{column.cards.length}</b></span>
-              <div><Plus size={18} /><MoreHorizontal size={19} /></div>
-            </header>
-            <div className="kanban-cards">
-              {column.cards.map((card) => (
-                <article className="kanban-card" key={card.title}>
-                  <div className="card-project"><span>{card.project}</span><MoreHorizontal size={18} /></div>
-                  <h2>{card.title}</h2>
-                  <div className="card-tags">
-                    <span className={`priority ${card.priority.toLowerCase().replace("é", "e")}`}><Flag size={12} />{card.priority}</span>
-                    <span className={card.due === "Hoje" ? "today" : ""}><CalendarDays size={13} />{card.due}</span>
-                  </div>
-                  <div className="card-footer">
-                    <CircleUserRound size={29} fill="#d9e2ea" stroke="#8795a1" />
-                    <div><span><MessageCircle size={14} />{card.comments}</span>{card.files > 0 && <span><Paperclip size={14} />{card.files}</span>}</div>
-                  </div>
-                </article>
-              ))}
-              <button className="add-task-card" type="button"><Plus size={17} /> Adicionar tarefa</button>
-            </div>
-          </section>
-        ))}
-      </div>}
-      {view === "list" && <section className="task-list-view">
-        <header><span>Tarefa</span><span>Projeto</span><span>Status</span><span>Prioridade</span><span>Prazo</span><span>Atividade</span></header>
-        {allTasks.map((task) => <article key={task.title}>
-          <strong>{task.title}</strong>
-          <span>{task.project}</span>
-          <span className="task-list-status"><i className={task.tone} />{task.status}</span>
-          <span className={"task-list-priority " + task.priority.toLowerCase().replace("é", "e")}>{task.priority}</span>
-          <span><CalendarDays size={14} />{task.due}</span>
-          <span><MessageCircle size={14} />{task.comments} {task.files > 0 && <><Paperclip size={14} />{task.files}</>}</span>
-        </article>)}
-      </section>}
-      {view === "calendar" && <section className="task-calendar-view">
-        <header><div><CalendarRange size={19} /><span><strong>Calendário de prazos</strong><small>Tarefas organizadas pela data de entrega</small></span></div><em>{allTasks.length} tarefas</em></header>
-        <div>{Object.entries(tasksByDueDate).map(([due, dueTasks]) => <section key={due}><header><CalendarDays size={16} /><strong>{due}</strong><span>{dueTasks.length}</span></header><div>{dueTasks.map((task) => <article key={task.title}><i className={task.tone} /><span><strong>{task.title}</strong><small>{task.project} · {task.status}</small></span><em className={"task-list-priority " + task.priority.toLowerCase().replace("é", "e")}>{task.priority}</em></article>)}</div></section>)}</div>
-      </section>}
-    </div>
-  );
+  const [parameters,setParameters]=useState(null),[form,setForm]=useState({name:'',proposal_number:'',project_status_id:'',project_situation_id:'',client_id:'',account_manager_id:'',project_manager_id:'',proposal_date:'',start_date:'',end_date:'',billing_date:'',contract_value:0,commission_rate:0,estimated_labor_cost:0,estimated_additional_cost:0,estimated_hours:0,estimated_extra_minutes:0,cpt_scope:'',tax_type_id:'',tax_rate:0,tax_fixed:0,tax_mode:'percentage'}),[error,setError]=useState(''),[saving,setSaving]=useState(false);
+  useEffect(()=>{sessionRequest('/parameters').then(async r=>{const data=await r.json();if(!r.ok)throw new Error(data.message);setParameters(data);setForm(f=>({...f,project_status_id:data.project_statuses[0]?.id||'',project_situation_id:data.project_situations[0]?.id||''}));}).catch(e=>setError(e.message));},[]);
+  const access=key=>parameters?.field_access?.[key]||{view:true,edit:true};
+  function field(key,label,type='text',options=null,required=false,max){const permissionKey=key.startsWith('estimated_')&&['estimated_hours','estimated_extra_minutes'].includes(key)?'estimated_minutes':key;const rights=access(permissionKey);if(!rights.view)return null;return <label key={key}><span>{label}</span>{options?<select aria-label={label} disabled={!rights.edit} required={required} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}><option value="">Selecione</option>{options.map(o=><option key={o.id} value={o.id} translate="no">{o.name}</option>)}</select>:<input aria-label={label} disabled={!rights.edit} required={required} type={type} min={type==='number'?0:undefined} max={max} step={type==='number'?(permissionKey==='estimated_minutes'?'1':'0.01'):undefined} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/>}</label>;}
+  async function submit(e){e.preventDefault();setSaving(true);setError('');try{const payload={...form,estimated_minutes:Number(form.estimated_hours)*60+Number(form.estimated_extra_minutes)};if(form.tax_type_id&&access('taxes').edit)payload.taxes=[{tax_type_id:Number(form.tax_type_id),calculation_type:form.tax_mode,rate:Number(form.tax_rate),fixed_amount:Number(form.tax_fixed),calculation_basis:'contract_value'}];for(const [key,value] of Object.entries(payload)){if(!access(key).edit)delete payload[key];else if(value==='')payload[key]=null;}const r=await sessionRequest('/projects',{method:'POST',body:JSON.stringify(payload)});const result=await r.json();if(!r.ok)throw new Error(Object.values(result.errors||{}).flat()[0]||result.message);onCreated();}catch(e){setError(e.message);}finally{setSaving(false);}}
+  return <div className="workspace-page new-project-page"><PageHeading eyebrow="Área de trabalho" title="Novo projeto" description="Cadastre as informações gerais, responsáveis, prazo e planejamento financeiro."/><form className="new-project-form" onSubmit={submit}>
+    <section><header><span>01</span><div><h2>Identificação</h2><p>Dados principais para identificar o projeto.</p></div></header><div className="new-project-fields">{field('name','Nome do projeto','text',null,true)}{field('proposal_number','Número da proposta','text',null,true)}{field('client_id','Cliente','text',parameters?.clients||[])}{field('project_status_id','Status','text',parameters?.project_statuses||[],true)}{field('project_situation_id','Situação','text',parameters?.project_situations||[],true)}</div></section>
+    <section><header><span>02</span><div><h2>Responsáveis e período</h2><p>Defina a gestão e as datas planejadas.</p></div></header><div className="new-project-fields">{field('account_manager_id','Gerente de contas','text',parameters?.users||[])}{field('project_manager_id','Gerente do projeto','text',parameters?.users||[])}{field('proposal_date','Data da proposta','date')}{field('start_date','Data de início','date')}{field('end_date','Data de término','date')}{field('billing_date','Data de faturamento','date')}</div></section>
+    <section><header><span>03</span><div><h2>Planejamento</h2><p>Informe orçamento, esforço e escopo inicial.</p></div></header><div className="new-project-fields">{field('contract_value','Valor do contrato (R$)','number',null,true)}{field('commission_rate','Comissão (%)','number',null,false,100)}{field('estimated_labor_cost','Custo estimado do analista','number')}{field('estimated_additional_cost','Custo adicional estimado','number')}{field('estimated_hours','Horas estimadas','number')}{field('estimated_extra_minutes','Minutos estimados','number',null,false,59)}{access('taxes').view&&<><label>Imposto<select disabled={!access('taxes').edit} value={form.tax_type_id} onChange={e=>setForm({...form,tax_type_id:e.target.value})}><option value="">Sem imposto</option>{parameters?.tax_types?.map(t=><option key={t.id} value={t.id} translate="no">{t.name}</option>)}</select></label><label>Cálculo do imposto<select disabled={!access('taxes').edit} value={form.tax_mode} onChange={e=>setForm({...form,tax_mode:e.target.value})}><option value="percentage">Percentual</option><option value="fixed">Valor fixo</option></select></label>{field(form.tax_mode==='fixed'?'tax_fixed':'tax_rate',form.tax_mode==='fixed'?'Valor do imposto':'Imposto (%)','number',null,false,form.tax_mode==='percentage'?100:undefined)}</>}<label className="full">Escopo<textarea value={form.cpt_scope} rows={4} maxLength={5000} onChange={e=>setForm({...form,cpt_scope:e.target.value})}/></label></div></section>
+    {error&&<p role="alert" className="new-project-error">{error}</p>}<footer><button type="button" className="secondary-button" onClick={onCancel}>Cancelar</button><button className="primary-action" disabled={saving||!parameters}>{saving?'Criando projeto...':'Criar projeto'}</button></footer>
+  </form></div>;
 }
 
 function UserAvatar({ user, size, className }) {
@@ -1007,14 +695,14 @@ function ProjectInvitationModal({ onClose, canManageIdentity }) {
         <header><div><h2 id="invitation-title">Convidar pessoa para um projeto</h2><p>O acesso ficará limitado ao projeto e às permissões selecionadas.</p></div><button type="button" onClick={onClose} aria-label="Fechar"><X size={20} /></button></header>
         {acceptUrl ? (
           <div className="invitation-result">
-            <span className="invitation-success"><CheckCircle2 size={19} /> Convite enviado por e-mail</span>
-            <p>O convite foi enviado para <strong>{form.email}</strong>. Como alternativa, você também pode copiar o link abaixo. Ele expira no prazo definido e pode ser utilizado uma única vez.</p>
+            <span className="invitation-success"><CheckCircle2 size={19} /> Convite criado</span>
+            <p>O convite será enviado em breve para <strong translate="no">{form.email}</strong>. Como alternativa, você também pode copiar o link abaixo. Ele expira no prazo definido e pode ser utilizado uma única vez.</p>
             <div className="invitation-link"><input readOnly value={acceptUrl} /><button type="button" onClick={copyInvitation}>{copied ? "Copiado" : "Copiar link"}</button></div>
           </div>
         ) : (
           <form onSubmit={submitInvitation}>
             {loading ? <p className="invitation-loading">Carregando projetos...</p> : <>
-              <label>Projeto<select required value={form.project_id} onChange={(event) => setForm({ ...form, project_id: event.target.value })}><option value="">Selecione um projeto</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
+              <label>Projeto<select required value={form.project_id} onChange={(event) => setForm({ ...form, project_id: event.target.value })}><option value="">Selecione um projeto</option>{projects.map((project) => <option key={project.id} value={project.id} translate="no">{project.name}</option>)}</select></label>
               {!projects.length && <p className="invitation-warning">Nenhum projeto disponível. Cadastre um projeto antes de criar o convite.</p>}
               <label>E-mail da pessoa<input required type="email" placeholder="pessoa@empresa.com" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
               {canManageIdentity && form.project_role !== "guest" && <div className="invitation-grid"><label>Cargo<input maxLength={120} placeholder="Ex.: Analista de projetos" value={form.job_title} onChange={(event) => setForm({ ...form, job_title: event.target.value })} /></label><label>Departamento<input maxLength={120} placeholder="Ex.: Projetos" value={form.department} onChange={(event) => setForm({ ...form, department: event.target.value })} /></label></div>}
@@ -1081,7 +769,7 @@ function SecurityPanel() {
   }
 
   async function disableTwoFactor() {
-    const password = window.prompt("Confirme sua senha para desativar o 2FA:");
+    const password = window.prompt(translateText("Confirme sua senha para desativar o 2FA:"));
     if (!password) return;
     try { const data = await request("/security/two-factor", { method: "DELETE", body: JSON.stringify({ password }) }); setMessage(data.message); await loadSecurity(); }
     catch (requestError) { setError(requestError.message); }
@@ -1105,9 +793,9 @@ function SecurityPanel() {
     <section className="security-card"><header><span><KeyRound size={18} /><strong>Alterar senha</strong></span></header><form className="security-password-form" onSubmit={changePassword}><input name="current_password" type="password" required placeholder="Senha atual" autoComplete="current-password" /><input name="password" type="password" required minLength={10} placeholder="Nova senha" autoComplete="new-password" /><input name="password_confirmation" type="password" required minLength={10} placeholder="Confirmar nova senha" autoComplete="new-password" /><button className="primary-action" type="submit">Atualizar senha</button></form><small>Mínimo de 10 caracteres, com letras maiúsculas, minúsculas e números.</small></section>
     <section className="security-card"><header><span><ShieldCheck size={18} /><strong>Autenticação em dois fatores</strong></span><em className={security.two_factor_enabled ? "enabled" : ""}>{security.two_factor_enabled ? "Ativa" : "Desativada"}</em></header>{!security.two_factor_enabled && !twoFactor && <><p>Use um aplicativo autenticador para gerar um código adicional no login.</p><button className="secondary-button" type="button" onClick={beginTwoFactor}>Configurar 2FA</button></>}{twoFactor && <div className="two-factor-setup"><img src={twoFactor.qr_code} alt="QR Code para configurar autenticação em dois fatores" /><div><p>Escaneie o QR Code ou informe esta chave:</p><code>{twoFactor.secret}</code><form onSubmit={confirmTwoFactor}><input name="code" inputMode="numeric" pattern="[0-9]{6}" required placeholder="Código de 6 dígitos" /><button className="primary-action" type="submit">Confirmar ativação</button></form></div></div>}{security.two_factor_enabled && <button className="secondary-button danger" type="button" onClick={disableTwoFactor}>Desativar 2FA</button>}{!!recoveryCodes.length && <div className="recovery-codes"><strong>Salve estes códigos de recuperação agora:</strong>{recoveryCodes.map((code) => <code key={code}>{code}</code>)}</div>}</section>
     <section className="security-card"><header><span><Link2 size={18} /><strong>Contas conectadas</strong></span></header><div className="provider-list"><div><img src="/google-logo.svg" alt="" /><span><strong>Google</strong><small>{security.providers.google.email || "Nenhuma conta vinculada"}</small></span><em>{security.providers.google.connected ? "Conectada" : "Não conectada"}</em></div><div><img src="/microsoft-logo.png" alt="" /><span><strong>Microsoft</strong><small>{security.providers.microsoft.email || "Nenhuma conta vinculada"}</small></span><em>{security.providers.microsoft.connected ? "Conectada" : "Não conectada"}</em></div></div></section>
-    <section className="security-card"><header><span><Laptop size={18} /><strong>Sessões ativas</strong></span><button className="text-button" type="button" onClick={async () => { try { await request("/security/sessions", { method: "DELETE", body: "{}" }); await loadSecurity(); } catch (requestError) { setError(requestError.message); } }}>Encerrar outras</button></header><div className="session-list">{security.sessions.map((session) => <div key={session.id}><Laptop size={18} /><span><strong>{session.current ? "Esta sessão" : "Navegador conectado"}</strong><small>{session.ip_address || "IP não identificado"} · {new Date(session.last_activity).toLocaleString("pt-BR")}</small></span>{!session.current && <button type="button" onClick={() => revokeSession(session.id)}>Encerrar</button>}</div>)}</div></section>
+    <section className="security-card"><header><span><Laptop size={18} /><strong>Sessões ativas</strong></span><button className="text-button" type="button" onClick={async () => { try { await request("/security/sessions", { method: "DELETE", body: "{}" }); await loadSecurity(); } catch (requestError) { setError(requestError.message); } }}>Encerrar outras</button></header><div className="session-list">{security.sessions.map((session) => <div key={session.id}><Laptop size={18} /><span><strong>{session.current ? "Esta sessão" : "Navegador conectado"}</strong><small>{session.ip_address || "IP não identificado"} · {new Date(session.last_activity).toLocaleString(getFormatLocale())}</small></span>{!session.current && <button type="button" onClick={() => revokeSession(session.id)}>Encerrar</button>}</div>)}</div></section>
     <section className="security-card"><header><span><Bell size={18} /><strong>Alertas de segurança</strong></span></header><div className="security-preferences">{[["notify_new_login", "Novo login"], ["notify_password_change", "Alteração de senha"], ["notify_provider_link", "Nova conta conectada"]].map(([key, label]) => <label key={key}><span>{label}</span><input type="checkbox" checked={Boolean(security.preferences[key])} onChange={(event) => savePreferences({ ...security.preferences, [key]: event.target.checked })} /></label>)}</div></section>
-    <section className="security-card"><header><span><History size={18} /><strong>Histórico de segurança</strong></span></header>{!security.events.length ? <p>Nenhuma alteração de segurança registrada.</p> : <div className="session-list">{security.events.map((event) => <div key={event.id}><ShieldCheck size={18} /><span><strong>{{ "security.password_changed": "Senha alterada", "security.2fa_enabled": "2FA ativado", "security.2fa_disabled": "2FA desativado", "security.sessions_revoked": "Sessões encerradas", "security.provider_disconnected.google": "Conta Google desconectada", "security.provider_disconnected.microsoft": "Conta Microsoft desconectada" }[event.action] || event.action}</strong><small>{event.ip_address || "IP não identificado"} · {new Date(event.created_at).toLocaleString("pt-BR")}</small></span></div>)}</div>}</section>
+    <section className="security-card"><header><span><History size={18} /><strong>Histórico de segurança</strong></span></header>{!security.events.length ? <p>Nenhuma alteração de segurança registrada.</p> : <div className="session-list">{security.events.map((event) => <div key={event.id}><ShieldCheck size={18} /><span><strong>{{ "security.password_changed": "Senha alterada", "security.2fa_enabled": "2FA ativado", "security.2fa_disabled": "2FA desativado", "security.sessions_revoked": "Sessões encerradas", "security.provider_disconnected.google": "Conta Google desconectada", "security.provider_disconnected.microsoft": "Conta Microsoft desconectada" }[event.action] || event.action}</strong><small>{event.ip_address || "IP não identificado"} · {new Date(event.created_at).toLocaleString(getFormatLocale())}</small></span></div>)}</div>}</section>
   </div>;
 }
 
@@ -1153,13 +841,13 @@ function NotificationPanel() {
   return <div className="notification-panel">
     <div className="form-section-heading"><div><h2>Preferências de notificações</h2><p>Escolha quais eventos receber no Spot e por e-mail.</p></div><span>Fuso: {data.timezone}</span></div>
     {error && <p className="security-feedback error">{error}</p>}
-    <section className="notification-matrix"><header><strong>Evento</strong><span>Spot</span><span>E-mail</span></header>{Object.entries(groups).map(([group, events]) => <div className="notification-group" key={group}><h3>{group}</h3>{events.map((event) => <div className="notification-row" key={event.key}><span>{event.label}</span><input aria-label={`${event.label} no Spot`} type="checkbox" checked={Boolean(data.preferences.events[event.key]?.in_app)} onChange={(e) => setPreference(["events", event.key, "in_app"], e.target.checked)} /><input aria-label={`${event.label} por e-mail`} type="checkbox" checked={Boolean(data.preferences.events[event.key]?.email)} onChange={(e) => setPreference(["events", event.key, "email"], e.target.checked)} /></div>)}</div>)}</section>
+    <section className="notification-matrix"><header><strong>Evento</strong><span>Spot</span><span>E-mail</span></header>{Object.entries(groups).map(([group, events]) => <div className="notification-group" key={group}><h3>{group}</h3>{events.map((event) => <div className="notification-row" key={event.key}><span>{event.label}</span><input aria-label={message("{event} no Spot", { event: translateText(event.label) })} type="checkbox" checked={Boolean(data.preferences.events[event.key]?.in_app)} onChange={(e) => setPreference(["events", event.key, "in_app"], e.target.checked)} /><input aria-label={message("{event} por e-mail", { event: translateText(event.label) })} type="checkbox" checked={Boolean(data.preferences.events[event.key]?.email)} onChange={(e) => setPreference(["events", event.key, "email"], e.target.checked)} /></div>)}</div>)}</section>
     <div className="notification-settings-grid"><section className="security-card"><header><span><Mail size={18} /><strong>Resumo de atividades</strong></span></header><label>Frequência<select value={data.preferences.digest.frequency} onChange={(e) => setPreference(["digest", "frequency"], e.target.value)}><option value="none">Não enviar</option><option value="daily">Diário</option><option value="weekly">Semanal</option></select></label><label>Horário<input type="time" value={data.preferences.digest.time} onChange={(e) => setPreference(["digest", "time"], e.target.value)} /></label></section><section className="security-card"><header><span><Bell size={18} /><strong>Horário silencioso</strong></span><label className="inline-switch"><input type="checkbox" checked={data.preferences.quiet_hours.enabled} onChange={(e) => setPreference(["quiet_hours", "enabled"], e.target.checked)} /> Ativar</label></header><label>Início<input type="time" value={data.preferences.quiet_hours.start} onChange={(e) => setPreference(["quiet_hours", "start"], e.target.value)} /></label><label>Fim<input type="time" value={data.preferences.quiet_hours.end} onChange={(e) => setPreference(["quiet_hours", "end"], e.target.value)} /></label></section></div>
     <div className="notification-actions">{saved && <span><CheckCircle2 size={16} /> Preferências salvas</span>}<button className="secondary-button" type="button" onClick={reset}>Restaurar padrões</button><button className="primary-action" type="button" onClick={save}>Salvar preferências</button></div>
   </div>;
 }
 
-function ProfilePage({ user, onUserUpdate }) {
+function ProfilePage({ user, onUserUpdate, tutorialTab }) {
   const [saved, setSaved] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
@@ -1167,6 +855,7 @@ function ProfilePage({ user, onUserUpdate }) {
   const [cameraError, setCameraError] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [activeProfileTab, setActiveProfileTab] = useState("personal");
+  useEffect(() => { if (tutorialTab?.tab) setActiveProfileTab(tutorialTab.tab); }, [tutorialTab]);
   const [assignedProjects, setAssignedProjects] = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [projectsError, setProjectsError] = useState("");
@@ -1366,8 +1055,8 @@ function ProfilePage({ user, onUserUpdate }) {
               </div>
             )}
           </div>
-          <h2>{user?.name || "Alexandre Silva"}</h2>
-          <p>{user?.job_title || "Cargo não informado"}</p>
+          <h2 translate="no">{user?.name || user?.email || "—"}</h2>
+          <p className="profile-role">{user?.spot_role || "Perfil não definido"}</p>
           <span className="online-badge"><i /> Disponível</span>
           <div className="profile-stats">
             <span><strong>12</strong>Projetos</span>
@@ -1407,7 +1096,7 @@ function ProfilePage({ user, onUserUpdate }) {
                 {!projectsLoading && !projectsError && !assignedProjects.length && <p className="assigned-projects-state">Nenhum projeto atribuído a este perfil.</p>}
                 {!!assignedProjects.length && <div className="assigned-project-list">{assignedProjects.map((project) => {
                   const progress = Math.min(100, Math.max(0, Number(project.progress) || 0));
-                  return <article className="assigned-project-row" key={project.id}><div className="assigned-project-info"><span className="project-icon blue"><FolderKanban size={16} /></span><span><strong>{project.name}</strong><small>{project.finalized_at ? "Finalizado" : project.status === "in_progress" || project.status === "in-progress" ? "Em andamento" : project.status || "Planejamento"}</small></span></div><div className="assigned-project-progress"><span><small>Progresso</small><strong>{progress}%</strong></span><div><i style={{ width: `${progress}%` }} /></div></div></article>;
+                  return <article className="assigned-project-row" key={project.id}><div className="assigned-project-info"><span className="project-icon blue"><FolderKanban size={16} /></span><span><strong translate="no">{project.name}</strong><small>{project.finalized_at ? "Finalizado" : project.status === "in_progress" || project.status === "in-progress" ? "Em andamento" : project.status || "Planejamento"}</small></span></div><div className="assigned-project-progress"><span><small>Progresso</small><strong>{progress}%</strong></span><div><i style={{ width: `${progress}%` }} /></div></div></article>;
                 })}</div>}
               </section>
             </div>
@@ -1460,7 +1149,7 @@ const accountStatusLabels = {
 };
 
 function AdminUsersPage() {
-  const emptyForm = { name: "", email: "", google_email: "", microsoft_email: "", profile: "analista", organization_id: "", job_title: "", department: "" };
+  const emptyForm = { first_name: "", last_name: "", email: "", profile: "analista", organization_id: "", job_title: "", department: "" };
   const [users, setUsers] = useState([]);
   const [organizations, setOrganizations] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -1469,6 +1158,8 @@ function AdminUsersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [activationUrl, setActivationUrl] = useState("");
+  const [permissionUser, setPermissionUser] = useState(null);
+  const [permissionDraft, setPermissionDraft] = useState(false);
 
   async function loadUsers() {
     setLoading(true);
@@ -1487,7 +1178,9 @@ function AdminUsersPage() {
     event.preventDefault();
     setSubmitting(true); setFeedback(null); setActivationUrl("");
     try {
-      const payload = { ...form, organization_id: Number(form.organization_id), google_email: form.google_email || null, microsoft_email: form.microsoft_email || null };
+      const payload = { ...form, name: `${form.first_name} ${form.last_name}`.trim(), organization_id: Number(form.organization_id) };
+      delete payload.first_name;
+      delete payload.last_name;
       const response = await sessionRequest("/admin/users", { method: "POST", body: JSON.stringify(payload) });
       const data = await response.json();
       if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || "Não foi possível cadastrar o usuário.");
@@ -1506,14 +1199,49 @@ function AdminUsersPage() {
       account_status: changes.account_status || user.account_status,
       job_title: user.job_title,
       department: user.department,
+      ...(changes.can_create_projects !== undefined ? { can_create_projects: changes.can_create_projects } : {}),
     };
     try {
       const response = await sessionRequest("/admin/users/" + user.id, { method: "PATCH", body: JSON.stringify(payload) });
       const data = await response.json();
       if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || "Não foi possível atualizar o acesso.");
-      setFeedback({ type: "success", text: "Acesso de " + user.name + " atualizado." });
+      setFeedback({ type: "success", text: message("Acesso de {name} atualizado.", { name: user.name }) });
       await loadUsers();
-    } catch (error) { setFeedback({ type: "error", text: error.message }); }
+      return true;
+    } catch (error) { setFeedback({ type: "error", text: error.message }); return false; }
+  }
+
+  async function deactivateUser(user) {
+    if (!window.confirm(`Desativar o acesso de ${user.name}? O histórico será preservado.`)) return;
+    await updateAccess(user, { account_status: "disabled" });
+  }
+
+  async function deletePendingUser(user) {
+    if (!window.confirm(`Excluir definitivamente o cadastro pendente de ${user.name}?`)) return;
+    setFeedback(null);
+    try {
+      const response = await sessionRequest(`/admin/users/${user.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || "Não foi possível excluir o cadastro.");
+      }
+      setActivationUrl("");
+      setFeedback({ type: "success", text: `Cadastro de ${user.name} excluído.` });
+      await loadUsers();
+    } catch (error) {
+      setFeedback({ type: "error", text: error.message });
+    }
+  }
+
+  function openPermissions(user) {
+    setPermissionUser(user);
+    setPermissionDraft(Boolean(user.can_create_projects));
+  }
+
+  async function savePermissions() {
+    if (!permissionUser) return;
+    const updated = await updateAccess(permissionUser, { can_create_projects: permissionDraft });
+    if (updated) setPermissionUser(null);
   }
 
   async function copyActivationLink() {
@@ -1528,28 +1256,50 @@ function AdminUsersPage() {
     {showForm && <form className="admin-user-form" onSubmit={createUser}>
       <header><div><h2>Cadastrar usuário</h2><p>O acesso ficará pendente até a criação da senha.</p></div></header>
       <div className="admin-user-form-grid">
-        <label><span>Nome e sobrenome</span><input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+        <label><span>Nome</span><input required autoComplete="given-name" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></label>
+        <label><span>Sobrenome</span><input required autoComplete="family-name" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></label>
         <label><span>E-mail principal</span><input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
         <label><span>Perfil</span><select value={form.profile} onChange={(e) => setForm({ ...form, profile: e.target.value })}>{Object.entries(administrativeProfileLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-        <label><span>Organização</span><select required value={form.organization_id} onChange={(e) => setForm({ ...form, organization_id: e.target.value })}><option value="">Selecione</option>{organizations.map((organization) => <option value={organization.id} key={organization.id}>{organization.name}</option>)}</select></label>
+        <label><span>Organização</span><select required value={form.organization_id} onChange={(e) => setForm({ ...form, organization_id: e.target.value })}><option value="">Selecione</option>{organizations.map((organization) => <option value={organization.id} key={organization.id} translate="no">{organization.name}</option>)}</select></label>
         <label><span>Cargo</span><input required value={form.job_title} onChange={(e) => setForm({ ...form, job_title: e.target.value })} /></label>
         <label><span>Departamento</span><input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></label>
-        <label><span>E-mail Google (opcional)</span><input type="email" value={form.google_email} onChange={(e) => setForm({ ...form, google_email: e.target.value })} /></label>
-        <label><span>E-mail Microsoft (opcional)</span><input type="email" value={form.microsoft_email} onChange={(e) => setForm({ ...form, microsoft_email: e.target.value })} /></label>
       </div>
       <footer><button className="primary-action" disabled={submitting} type="submit">{submitting ? "Cadastrando..." : "Cadastrar e gerar acesso"}</button></footer>
     </form>}
     <section className="admin-users-panel">
-      <header><div><h2>Usuários cadastrados</h2><p>{users.length} conta{users.length === 1 ? "" : "s"} encontrada{users.length === 1 ? "" : "s"}</p></div></header>
+      <header className="admin-users-panel-header">
+        <div className="admin-users-panel-title"><span className="admin-users-panel-icon"><Users size={19} /></span><div><h2>Usuários cadastrados</h2><p>{message(users.length === 1 ? "{count} conta encontrada" : "{count} contas encontradas", { count: users.length })}</p></div></div>
+        {!loading && users.length > 0 && <span className="admin-users-total">{users.length}</span>}
+      </header>
       {loading ? <p className="admin-empty">Carregando usuários...</p> : !users.length ? <p className="admin-empty">Nenhum usuário cadastrado.</p> : <div className="admin-users-list">
         {users.map((listedUser) => <article className="admin-user-row" key={listedUser.id}>
-          <UserAvatar user={listedUser} size={42} />
-          <div className="admin-user-identity"><strong>{listedUser.name}</strong><small>{listedUser.email}</small><span>{listedUser.job_title || "Cargo não informado"} · {listedUser.department || "Departamento não informado"}</span></div>
-          <label><span>Perfil</span><select value={listedUser.profiles?.[0]?.slug || "analista"} onChange={(e) => updateAccess(listedUser, { profile: e.target.value })}>{Object.entries(administrativeProfileLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-          <label><span>Situação</span><select value={listedUser.account_status} onChange={(e) => updateAccess(listedUser, { account_status: e.target.value })}>{Object.entries(accountStatusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+          <div className="admin-user-person">
+            <UserAvatar user={listedUser} size={44} />
+            <div className="admin-user-identity"><div className="admin-user-name-line"><strong translate="no">{listedUser.name}</strong><span className={"admin-user-status " + listedUser.account_status}>{accountStatusLabels[listedUser.account_status] || listedUser.account_status}</span></div><small translate="no">{listedUser.email}</small><span>{listedUser.job_title || "Cargo não informado"} · {listedUser.department || "Departamento não informado"}</span></div>
+          </div>
+          <div className="admin-user-controls">
+            <label><span><ShieldCheck size={13} /> Perfil</span><select value={listedUser.profiles?.[0]?.slug || "analista"} onChange={(e) => updateAccess(listedUser, { profile: e.target.value })}>{Object.entries(administrativeProfileLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+            <label><span><CheckCircle2 size={13} /> Situação</span><select value={listedUser.account_status} onChange={(e) => updateAccess(listedUser, { account_status: e.target.value })}>{Object.entries(accountStatusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+            {listedUser.profiles?.[0]?.slug === "analista" && <div className="manage-permissions-field"><span><KeyRound size={13} /> Permissões</span><button type="button" onClick={() => openPermissions(listedUser)}><SlidersHorizontal size={15} /> Gerenciar permissões</button></div>}
+            <div className="admin-user-actions">
+              <span><Trash2 size={13} /> Ações</span>
+              {listedUser.account_status === "pending_activation"
+                ? <button className="danger" type="button" onClick={() => deletePendingUser(listedUser)}><Trash2 size={15} /> Excluir cadastro</button>
+                : listedUser.account_status !== "disabled" && <button className="danger" type="button" onClick={() => deactivateUser(listedUser)}><LockKeyhole size={15} /> Desativar usuário</button>}
+            </div>
+          </div>
         </article>)}
       </div>}
     </section>
+    {permissionUser && <div className="permissions-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setPermissionUser(null)}>
+      <section className="permissions-modal" role="dialog" aria-modal="true" aria-labelledby="permissions-modal-title">
+        <header><div className="permissions-modal-heading"><span><KeyRound size={19} /></span><div><h2 id="permissions-modal-title">Gerenciar permissões</h2><p translate="no">{permissionUser.name} · {permissionUser.email}</p></div></div><button className="permissions-modal-close" type="button" aria-label="Fechar" onClick={() => setPermissionUser(null)}><X size={19} /></button></header>
+        <div className="permissions-modal-body">
+          <div className="permission-setting"><div><span className="permission-setting-icon"><FolderKanban size={18} /></span><div><strong>Criar projetos</strong><small>Permite cadastrar e configurar novos projetos no Spot.</small></div></div><label className="permission-switch"><input type="checkbox" checked={permissionDraft} onChange={(event) => setPermissionDraft(event.target.checked)} /><span aria-hidden="true" /></label></div>
+        </div>
+        <footer><button className="secondary-button" type="button" onClick={() => setPermissionUser(null)}>Cancelar</button><button className="primary-action" type="button" onClick={savePermissions}>Salvar permissões</button></footer>
+      </section>
+    </div>}
   </div>;
 }
 
@@ -1592,15 +1342,15 @@ function HomeDashboard({ search, incompleteOnly, filterMode, sortAscending, onNa
     .filter((task) => filterMode === "high" ? task.priority === "high" : filterMode === "overdue" ? task.due_date && task.status !== "done" && new Date(`${task.due_date}T23:59:59`) < new Date() : true)
     .sort((a, b) => (sortAscending ? 1 : -1) * a.title.localeCompare(b.title, "pt-BR"));
   const teams = data.teams.filter((team) => matches(team.name)).sort(sorter);
-  const formatDate = (date) => date ? new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(`${date}T12:00:00`)) : "Sem prazo";
+  const formatDate = (date) => date ? new Intl.DateTimeFormat(getFormatLocale(), { day: "2-digit", month: "short" }).format(new Date(`${date}T12:00:00`)) : "Sem prazo";
 
   return <div className="dashboard-main">
     <div className="home-heading"><h1>Painel</h1></div>
     {error && <p className="home-state error">{error}</p>}
     <div className="dashboard-grid">
-      <section className="board-column status-column"><div className="column-title"><span><SlidersHorizontal size={20} /> status</span><span className="column-count">{projects.length}</span></div><div className="column-surface">{projects.map((project) => { const [label, tone] = project.finalized ? ["Feito", "done"] : statusPresentation[project.status] || [project.status || "Planejamento", "progress"]; return <button className="project-row" type="button" key={project.id} onClick={() => onNavigate("projects")}><ClipboardList size={31} strokeWidth={1.4} /><span>{project.name}<small>{project.progress}% concluído</small></span><strong className={tone}>{label}</strong></button>; })}{!projects.length && <p className="column-empty">Nenhum projeto encontrado.</p>}</div></section>
-      <section className="board-column tasks-column"><div className="column-title"><span><ListChecks size={20} /> tarefas</span><span className="column-count">{tasks.length}</span></div><div className={`task-list ${!tasks.length ? "empty-surface" : ""}`}>{tasks.map((task) => <article className={`task-card ${task.status === "done" ? "is-done" : ""}`} key={task.id}><button className="task-name" type="button" disabled={!task.mutable} onClick={() => toggleTask(task)} title={task.mutable ? "Alternar conclusão" : "Tarefa somente para visualização"}><Check size={17} /><span>{task.title}<small>{task.project_name}</small></span></button><div className="task-meta"><span><CircleUserRound size={31} fill="#c9c9c9" stroke="#fff" />{formatDate(task.due_date)}</span><span><i className={`priority-dot ${task.priority}`} /><MoreHorizontal size={24} /></span></div></article>)}{!tasks.length && <p className="column-empty">Nenhuma tarefa encontrada.</p>}</div></section>
-      <section className="board-column teams-column"><div className="column-title"><span><Users size={20} /> Times ativos</span><span className="column-count">{teams.length}</span></div><div className="column-surface team-surface">{teams.map((team) => <button className="team-row" type="button" key={team.project_id} onClick={() => onNavigate("projects")}><Users size={32} fill="#000" /><AvatarStack count={Math.min(team.count, 5)} /><span><strong>{team.name}</strong><small>{team.count} {team.count === 1 ? "pessoa" : "pessoas"}</small></span></button>)}{!teams.length && <p className="column-empty">Nenhum time ativo.</p>}</div></section>
+      <section className="board-column status-column"><div className="column-title"><span><SlidersHorizontal size={20} /> status</span><span className="column-count">{projects.length}</span></div><div className="column-surface">{projects.map((project) => { const [label, tone] = project.finalized ? ["Feito", "done"] : statusPresentation[project.status] || [project.status || "Planejamento", "progress"]; return <button className="project-row" type="button" key={project.id} onClick={() => onNavigate("projects")}><ClipboardList size={31} strokeWidth={1.4} /><span><span translate="no">{project.name}</span><small>{message("{count}% concluído", { count: project.progress })}</small></span><strong className={tone}>{label}</strong></button>; })}{!projects.length && <p className="column-empty">Nenhum projeto encontrado.</p>}</div></section>
+      <section className="board-column tasks-column"><div className="column-title"><span><ListChecks size={20} /> tarefas</span><span className="column-count">{tasks.length}</span></div><div className={`task-list ${!tasks.length ? "empty-surface" : ""}`}>{tasks.map((task) => <article className={`task-card ${task.status === "done" ? "is-done" : ""}`} key={task.id}><button className="task-name" type="button" disabled={!task.mutable} onClick={() => toggleTask(task)} title={task.mutable ? "Alternar conclusão" : "Tarefa somente para visualização"}><Check size={17} /><span><span translate="no">{task.title}</span><small><span translate="no">{task.project_name}</span></small></span></button><div className="task-meta"><span><CircleUserRound size={31} fill="#c9c9c9" stroke="#fff" />{formatDate(task.due_date)}</span><span><i className={`priority-dot ${task.priority}`} /><MoreHorizontal size={24} /></span></div></article>)}{!tasks.length && <p className="column-empty">Nenhuma tarefa encontrada.</p>}</div></section>
+      <section className="board-column teams-column"><div className="column-title"><span><Users size={20} /> Times ativos</span><span className="column-count">{teams.length}</span></div><div className="column-surface team-surface">{teams.map((team) => <button className="team-row" type="button" key={team.project_id} onClick={() => onNavigate("projects")}><Users size={32} fill="#000" /><AvatarStack count={Math.min(team.count, 5)} /><span><strong translate="no">{team.name}</strong><small>{team.count} {team.count === 1 ? "pessoa" : "pessoas"}</small></span></button>)}{!teams.length && <p className="column-empty">Nenhum time ativo.</p>}</div></section>
     </div>
   </div>;
 }
@@ -1643,13 +1393,13 @@ function DocumentsPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || "Não foi possível enviar o arquivo.");
       setDocuments((current) => [data, ...current]);
-      setFeedback({ type: "success", text: `${file.name} foi enviado.` });
+      setFeedback({ type: "success", text: message("{name} foi enviado.", { name: file.name }) });
     } catch (error) { setFeedback({ type: "error", text: error.message }); }
     finally { setUploading(false); }
   }
 
   async function removeDocument(document) {
-    if (!window.confirm(`Excluir “${document.name}”?`)) return;
+    if (!window.confirm(message("Excluir “{name}”?", { name: document.name }))) return;
     const response = await sessionRequest(`/documents/${document.id}`, { method: "DELETE", body: "{}" });
     if (response.ok) setDocuments((current) => current.filter((item) => item.id !== document.id));
     else setFeedback({ type: "error", text: "Não foi possível excluir o documento." });
@@ -1661,12 +1411,12 @@ function DocumentsPage() {
   const extension = (name) => name.includes(".") ? name.split(".").pop().toUpperCase() : "ARQ";
 
   return <div className="documents-page workspace-page">
-    <div className="workspace-heading"><div><span className="workspace-eyebrow">ARQUIVOS</span><h1>Meus documentos</h1><p>Organize e encontre os arquivos vinculados aos seus projetos.</p></div><div className="documents-upload-actions"><select aria-label="Projeto do novo documento" value={uploadProject} onChange={(event) => setUploadProject(event.target.value)}><option value="">Sem projeto</option>{projects.map((project) => <option value={project.id} key={project.id}>{project.name}</option>)}</select><button className="primary-action" disabled={uploading} type="button" onClick={() => fileInput.current?.click()}><Upload size={17} /> {uploading ? "Enviando..." : "Enviar arquivo"}</button><input ref={fileInput} hidden type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.zip" onChange={uploadDocument} /></div></div>
+    <div className="workspace-heading"><div><span className="workspace-eyebrow">ARQUIVOS</span><h1>Meus documentos</h1><p>Organize e encontre os arquivos vinculados aos seus projetos.</p></div><div className="documents-upload-actions"><select aria-label="Projeto do novo documento" value={uploadProject} onChange={(event) => setUploadProject(event.target.value)}><option value="">Sem projeto</option>{projects.map((project) => <option value={project.id} key={project.id} translate="no">{project.name}</option>)}</select><button className="primary-action" disabled={uploading} type="button" onClick={() => fileInput.current?.click()}><Upload size={17} /> {uploading ? "Enviando..." : "Enviar arquivo"}</button><input ref={fileInput} hidden type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.zip" onChange={uploadDocument} /></div></div>
     {feedback && <p className={`documents-feedback ${feedback.type}`}>{feedback.text}</p>}
-    <div className="documents-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar documentos..." /></label><select value={projectFilter} onChange={(event) => setProjectFilter(event.target.value)}><option value="all">Todos os projetos</option><option value="none">Sem projeto</option>{projects.map((project) => <option value={project.id} key={project.id}>{project.name}</option>)}</select><span>{filtered.length} arquivo{filtered.length === 1 ? "" : "s"}</span></div>
+    <div className="documents-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar documentos..." /></label><select value={projectFilter} onChange={(event) => setProjectFilter(event.target.value)}><option value="all">Todos os projetos</option><option value="none">Sem projeto</option>{projects.map((project) => <option value={project.id} key={project.id} translate="no">{project.name}</option>)}</select><span>{filtered.length} arquivo{filtered.length === 1 ? "" : "s"}</span></div>
     <section className="documents-panel">
       <header><span>Nome</span><span>Projeto</span><span>Tamanho</span><span>Enviado em</span><span>Ações</span></header>
-      {loading ? <p className="documents-empty">Carregando documentos...</p> : !filtered.length ? <div className="documents-empty"><Files size={38} /><strong>Nenhum documento encontrado</strong><span>Envie um arquivo para começar.</span></div> : filtered.map((document) => <article key={document.id}><span className="document-name"><i>{extension(document.name)}</i><strong title={document.name}>{document.name}</strong></span><span>{document.project?.name || "Sem projeto"}</span><span>{formatSize(document.size)}</span><span>{new Date(document.created_at).toLocaleDateString("pt-BR")}</span><span className="document-actions"><a href={`/api/v1/documents/${document.id}/download`} title="Baixar documento"><Download size={18} /></a><button type="button" title="Excluir documento" onClick={() => removeDocument(document)}><Trash2 size={18} /></button></span></article>)}
+      {loading ? <p className="documents-empty">Carregando documentos...</p> : !filtered.length ? <div className="documents-empty"><Files size={38} /><strong>Nenhum documento encontrado</strong><span>Envie um arquivo para começar.</span></div> : filtered.map((document) => <article key={document.id}><span className="document-name"><i>{extension(document.name)}</i><strong title={document.name} translate="no">{document.name}</strong></span><span>{document.project?.name || "Sem projeto"}</span><span>{formatSize(document.size)}</span><span>{new Date(document.created_at).toLocaleDateString(getFormatLocale())}</span><span className="document-actions"><a href={`/api/v1/documents/${document.id}/download`} title="Baixar documento"><Download size={18} /></a><button type="button" title="Excluir documento" onClick={() => removeDocument(document)}><Trash2 size={18} /></button></span></article>)}
     </section>
     <small className="documents-hint">Arquivos permitidos: PDF, Office, texto, imagens e ZIP · limite de 10 MB.</small>
   </div>;
@@ -1678,7 +1428,12 @@ function HistoryPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [nextPage,setNextPage]=useState(null);
+  async function loadMore(){setError("");try{const response=await sessionRequest(`/history?before=${encodeURIComponent(nextPage)}`);const data=await response.json();if(!response.ok)throw new Error(data.message);setEvents(current=>[...current,...data.events]);setNextPage(data.next);}catch(e){setError(e.message);}}
   const actionMeta = {
+    "task.created": ["Tarefa criada.", "Uma tarefa foi cadastrada no projeto.", ListChecks, "work"],
+    "task.updated": ["Tarefa atualizada.", "Os dados de uma tarefa foram alterados.", ListChecks, "work"],
+    "task.deleted": ["Tarefa excluída.", "Uma tarefa foi removida do projeto.", ListChecks, "work"],
     "project.created": ["Projeto criado", "Um novo projeto foi cadastrado", FolderKanban, "project"],
     "project.updated": ["Projeto atualizado", "As informações do projeto foram alteradas", FolderKanban, "project"],
     "project.finalized": ["Projeto finalizado", "O projeto foi marcado como concluído", CheckCircle2, "project"],
@@ -1705,7 +1460,7 @@ function HistoryPage() {
     sessionRequest("/history").then(async (response) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Não foi possível carregar o histórico.");
-      setEvents(data.events || []);
+      setEvents(data.events || []);setNextPage(data.next);
     }).catch((requestError) => setError(requestError.message)).finally(() => setLoading(false));
   }, []);
 
@@ -1716,7 +1471,7 @@ function HistoryPage() {
     const date = new Date(event.created_at);
     const today = new Date();
     const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
-    const key = date.toDateString() === today.toDateString() ? "Hoje" : date.toDateString() === yesterday.toDateString() ? "Ontem" : date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+    const key = date.toDateString() === today.toDateString() ? "Hoje" : date.toDateString() === yesterday.toDateString() ? "Ontem" : date.toLocaleDateString(getFormatLocale(), { day: "2-digit", month: "long", year: "numeric" });
     (result[key] ||= []).push(event); return result;
   }, {});
 
@@ -1725,14 +1480,15 @@ function HistoryPage() {
     <div className="history-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar no histórico..." /></label><div>{[["all", "Tudo"], ["project", "Projetos"], ["work", "Trabalho"], ["access", "Acessos"], ["security", "Segurança"]].map(([value, label]) => <button className={filter === value ? "active" : ""} type="button" key={value} onClick={() => setFilter(value)}>{label}</button>)}</div></div>
     {error && <p className="home-state error">{error}</p>}
     <section className="history-panel">
-      {loading ? <p className="history-empty">Carregando atividades...</p> : !visible.length ? <div className="history-empty"><History size={40} /><strong>Nenhuma atividade encontrada</strong><span>Os acontecimentos importantes aparecerão aqui.</span></div> : Object.entries(grouped).map(([date, dateEvents]) => <div className="history-day" key={date}><h2>{date}</h2><div>{dateEvents.map((event) => { const [title, description, EventIcon, tone] = metadata(event); return <article key={event.id}><span className={`history-icon ${tone}`}><EventIcon size={18} /></span><span><strong>{title}</strong><p>{description}</p><small>{event.user?.name || "Spot"}{event.ip_address ? ` · IP ${event.ip_address}` : ""}</small></span><time>{new Date(event.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</time></article>; })}</div></div>)}
-    </section>
+      {loading ? <p className="history-empty">Carregando atividades...</p> : !visible.length ? <div className="history-empty"><History size={40} /><strong>Nenhuma atividade encontrada</strong><span>Os acontecimentos importantes aparecerão aqui.</span></div> : Object.entries(grouped).map(([date, dateEvents]) => <div className="history-day" key={date}><h2>{date}</h2><div>{dateEvents.map((event) => { const [title, description, EventIcon, tone] = metadata(event); return <article key={event.id}><span className={`history-icon ${tone}`}><EventIcon size={18} /></span><span><strong>{title}</strong><p>{description}</p>{event.new_values !== undefined && <details><summary>Detalhes da alteração</summary><pre translate="no">{JSON.stringify({antes:event.old_values,depois:event.new_values},null,2)}</pre></details>}<small>{event.user?.name || "Spot"}{event.ip_address ? ` · IP ${event.ip_address}` : ""}</small></span><time>{new Date(event.created_at).toLocaleTimeString(getFormatLocale(), { hour: "2-digit", minute: "2-digit" })}</time></article>; })}</div></div>)}
+    </section>{nextPage&&<button className="secondary-button" onClick={loadMore}>Carregar mais</button>}
   </div>;
 }
 
 function Dashboard({ onLogout, user, onUserUpdate }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
+  const [tutorialProfileTab, setTutorialProfileTab] = useState(null);
   const [pageMenuOpen, setPageMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [inboxPlacement, setInboxPlacement] = useState(null);
@@ -1753,7 +1509,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
     if (saved === "dark" || saved === "light") return saved;
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
-  const [locale, setLocale] = useState(() => window.localStorage.getItem("spot.locale") || "pt");
+  const [locale, setLocale] = useState(getLanguage);
   const inboxTimer = useRef(null);
   const appsTimer = useRef(null);
   const appsWrapRef = useRef(null);
@@ -1771,17 +1527,18 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
     analytics: [BarChart3, "Portfólios"],
     "new-project": [FilePlus2, "Novo projeto"],
     profile: [UserRound, "Meu perfil"],
+    ...(user?.can_view_parameters || user?.can_manage_identity ? { "parameters": [Settings, "Cadastros e configurações"] } : {}),
     ...(user?.can_manage_identity ? { "admin-users": [Users, "Usuários e acessos"] } : {}),
   };
-  const [PageIcon, pageLabel] = pageMeta[activePage];
+  const [PageIcon, pageLabel] = pageMeta[activePage] || pageMeta.home;
   const normalizedSearch = homeSearch.trim().toLocaleLowerCase("pt-BR");
   const pageSearchResults = normalizedSearch ? Object.entries(pageMeta)
-    .filter(([, [, label]]) => label.toLocaleLowerCase("pt-BR").includes(normalizedSearch))
+    .filter(([, [, label]]) => translateText(label, locale).toLocaleLowerCase(getFormatLocale()).includes(normalizedSearch))
     .map(([page, [Icon, label]]) => ({ id: `page-${page}`, type: "Página", label, page, Icon })) : [];
   const dataSearchResults = normalizedSearch && searchIndex ? [
-    ...(searchIndex.projects || []).filter((item) => item.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch)).map((item) => ({ id: `project-${item.id}`, type: "Projeto", label: item.name, detail: `${item.progress}% concluído`, page: "projects", Icon: FolderKanban })),
+    ...(searchIndex.projects || []).filter((item) => item.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch)).map((item) => ({ id: `project-${item.id}`, type: "Projeto", label: item.name, detail: message("{count}% concluído", { count: item.progress }), page: "projects", Icon: FolderKanban })),
     ...(searchIndex.tasks || []).filter((item) => `${item.title} ${item.project_name}`.toLocaleLowerCase("pt-BR").includes(normalizedSearch)).map((item) => ({ id: `task-${item.id}`, type: "Tarefa", label: item.title, detail: item.project_name, page: "tasks", Icon: ListChecks })),
-    ...(searchIndex.teams || []).filter((item) => item.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch)).map((item) => ({ id: `team-${item.project_id}`, type: "Time", label: item.name, detail: `${item.count} pessoa${item.count === 1 ? "" : "s"}`, page: "projects", Icon: Users })),
+    ...(searchIndex.teams || []).filter((item) => item.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch)).map((item) => ({ id: `team-${item.project_id}`, type: "Time", label: item.name, detail: message(item.count === 1 ? "{count} pessoa" : "{count} pessoas", { count: item.count }), page: "projects", Icon: Users })),
   ].slice(0, 8) : [];
   const globalSearchResults = [...pageSearchResults, ...dataSearchResults].slice(0, 8);
 
@@ -1814,18 +1571,10 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
   }, [theme]);
 
   useEffect(() => {
-    const translatedPageLabel = locale === "pt" ? pageLabel : interfaceTranslations[locale]?.[pageLabel] || pageLabel;
+    const translatedPageLabel = translateText(pageLabel, locale);
     document.title = `Spot · ${translatedPageLabel}`;
   }, [pageLabel, locale]);
 
-  useEffect(() => {
-    window.localStorage.setItem("spot.locale", locale);
-    translateInterface(locale);
-    const observer = new MutationObserver(() => translateInterface(locale));
-    const root = document.getElementById("root");
-    if (root) observer.observe(root, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [locale]);
 
   useEffect(() => {
     if (!pageMenuOpen) return undefined;
@@ -1869,6 +1618,27 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
       document.removeEventListener("keydown", closeQuickSettings);
     };
   }, [quickSettingsOpen]);
+
+  const navigateTutorial = useCallback((step) => {
+    setActivePage(step.page);
+    setTutorialProfileTab(step.tab ? { tab: step.tab, step: step.id } : null);
+    setMenuOpen(false);
+    setPageMenuOpen(false);
+    setProfileOpen(false);
+    setSearchOpen(false);
+    setHomeSearch("");
+    setInboxPlacement(null);
+    setQuickSettingsOpen(false);
+    setAppsOpen(false);
+    setAppsPinned(false);
+    setIntegrationsOpen(step.panel === 'integrations');
+    window.clearTimeout(inboxTimer.current);
+    window.clearTimeout(appsTimer.current);
+  }, []);
+  const exitTutorial = useCallback(() => {
+    setIntegrationsOpen(false);
+    setTutorialProfileTab(null);
+  }, []);
 
   function navigateFromPageMenu(page) {
     setActivePage(page);
@@ -1920,8 +1690,8 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
     const updated = new Date(lastUpdatedAt);
     const today = new Date();
     const sameDay = updated.toDateString() === today.toDateString();
-    const date = sameDay ? "hoje" : updated.toLocaleDateString("pt-BR");
-    return `Atualizado pela última vez ${date} às ${updated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+    const date = sameDay ? translateText("hoje") : updated.toLocaleDateString(getFormatLocale());
+    return message("Atualizado pela última vez {date} às {time}", { date, time: updated.toLocaleTimeString(getFormatLocale(), { hour: "2-digit", minute: "2-digit" }) });
   }
 
   return (
@@ -2010,6 +1780,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
           </div>
 
           <div className="account-tools">
+            <SpotTutorial key={user?.email || 'guest'} user={user} locale={locale} onNavigate={navigateTutorial} onExit={exitTutorial} onLanguageChange={(code) => { setLanguage(code); setLocale(code); }} />
             <div className="language-switcher" role="group" aria-label="Idioma">
               {[
                 ["pt", "🇧🇷", "Português"],
@@ -2023,7 +1794,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
                   title={label}
                   aria-label={label}
                   aria-pressed={locale === code}
-                  onClick={() => setLocale(code)}
+                  onClick={() => { setLanguage(code); setLocale(code); }}
                 >
                   <span aria-hidden="true">{flag}</span>
                 </button>
@@ -2095,13 +1866,23 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
         {activePage === "home" && <HomeDashboard search={homeSearch} incompleteOnly={incompleteOnly} filterMode={homeFilter} sortAscending={sortAscending} onNavigate={setActivePage} onUpdated={setLastUpdatedAt} />}
         {activePage === "inbox" && <InboxPage />}
         {activePage === "calendar" && <CalendarPage />}
-        {activePage === "projects" && <ProjectsPage onNewProject={() => setActivePage("new-project")} />}
-        {activePage === "new-project" && <NewProjectPage onCreated={() => setActivePage("projects")} onCancel={() => setActivePage("projects")} />}
-        {activePage === "tasks" && <TasksPage />}
+        {activePage === "projects" && <ProjectWorkspace request={sessionRequest} onNewProject={user?.can_create_projects ? () => setActivePage("new-project") : undefined} />}
+        {activePage === "new-project" && (user?.can_create_projects
+          ? <NewProjectPage onCreated={() => setActivePage("projects")} onCancel={() => setActivePage("projects")} />
+          : <div className="workspace-page new-project-page">
+              <PageHeading eyebrow="Área de trabalho" title="Novo projeto" description="Cadastro de projetos" />
+              <section className="analytics-error restricted-project-access" aria-labelledby="restricted-project-title">
+                <LockKeyhole size={28} aria-hidden="true" />
+                <h2 id="restricted-project-title">Área restrita</h2>
+                <p>Caso necessário acesso, falar com gerência</p>
+              </section>
+            </div>)}
+        {activePage === "tasks" && <TasksPage request={sessionRequest} />}
         {activePage === "documents" && <DocumentsPage />}
         {activePage === "history" && <HistoryPage />}
         {activePage === "analytics" && <ProjectAnalyticsPage />}
-        {activePage === "profile" && <ProfilePage user={user} onUserUpdate={onUserUpdate} />}
+        {activePage === "profile" && <ProfilePage user={user} onUserUpdate={onUserUpdate} tutorialTab={tutorialProfileTab} />}
+        {activePage === "parameters" && <ParametersWorkspace request={sessionRequest} onUsers={() => setActivePage("admin-users")} />}
         {activePage === "admin-users" && user?.can_manage_identity && <AdminUsersPage />}
       </section>
       {integrationsOpen && <IntegrationsModal onClose={() => setIntegrationsOpen(false)} />}
@@ -2303,6 +2084,13 @@ function LegacySpotApp() {
 // A V2 passa a ser a experiência principal do Spot. A implementação anterior
 // permanece isolada acima apenas para facilitar uma eventual consulta/migração.
 export default function App() {
+  const [language, updateLanguage] = useState(getLanguage);
+  useEffect(() => {
+    const refreshLanguage = () => updateLanguage(getLanguage());
+    window.addEventListener('spot:language', refreshLanguage);
+    return () => window.removeEventListener('spot:language', refreshLanguage);
+  }, []);
+  useEffect(() => observeTranslations(language), [language]);
   return <LegacySpotApp />;
 }
 

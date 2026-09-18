@@ -27,6 +27,7 @@ class ProjectExpenseController extends Controller
         $this->ensureProjectAccess($request, $project);
         abort_if($project->isFinalized(), 409, 'Projeto finalizado não aceita novas despesas.');
         $data = $request->validate([
+            'analyst_id' => ['sometimes','integer',Rule::exists('users','id')->where('current_company_id',$request->user()->current_company_id)->where('active',true)],
             'expense_type_id' => ['required', 'integer', Rule::exists('expense_types', 'id')->where('company_id', $request->user()->current_company_id)],
             'expense_date' => ['required', 'date'],
             'description' => ['required', 'string', 'max:1000'],
@@ -34,6 +35,11 @@ class ProjectExpenseController extends Controller
             'currency' => ['sometimes', 'string', 'size:3'],
             'receipt_path' => ['nullable', 'string', 'max:500'],
         ]);
+        if (($data['analyst_id'] ?? $request->user()->id) !== $request->user()->id) {
+            Gate::authorize('financial.manage');
+            abort_unless($project->members()->where('user_id',$data['analyst_id'])->where('active',true)->exists(),422,'Analista não atribuído ao projeto.');
+        }
+        $data['analyst_id'] = $data['analyst_id'] ?? $request->user()->id;
         $expense = $project->expenses()->create([...$data, 'submitted_by' => $request->user()->id, 'status' => 'pending']);
         $audit->record('expense.created', $expense, $request->user(), [], $expense->only(['project_id', 'expense_type_id', 'amount', 'status']));
 

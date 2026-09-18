@@ -21,7 +21,7 @@ class WorkLogController extends Controller
         }
 
         return response()->json($query->get()->map(fn ($log) => [
-            ...$log->toArray(),
+            ...collect($log->toArray())->except($request->user()->can('financial.view') ? [] : ['cost_rate_snapshot','sale_rate_snapshot'])->all(),
             'cost_amount' => $request->user()->can('financial.view') ? $log->costAmount() : null,
             'billable_amount' => $request->user()->can('financial.view') ? $log->billableAmount() : null,
         ]));

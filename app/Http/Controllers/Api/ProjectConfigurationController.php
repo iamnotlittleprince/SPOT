@@ -18,12 +18,16 @@ class ProjectConfigurationController extends Controller
 {
     public function show(Request $request, Project $project): JsonResponse
     {
-        Gate::authorize('projects.update');
+        abort_unless($request->user()->can('projects.update') || $request->user()->can('financial.view'),403);
         $this->ensureCompany($request, $project);
 
-        return response()->json($project->load([
-            'members', 'taxes.type',
-        ])->setRelation('rates', AnalystProjectRate::where('project_id', $project->id)->orderByDesc('effective_from')->get()));
+        $result=$project->load(['members']);
+        if ($request->user()->can('financial.view')) {
+            $result->load('taxes.type');
+            $result->setRelation('rates', AnalystProjectRate::where('project_id',$project->id)->orderByDesc('effective_from')->get());
+        } else $result->makeHidden(['contract_value','commission_rate','commission_basis','estimated_labor_cost','estimated_additional_cost']);
+        $result->makeHidden(array_keys(array_filter(\App\Domain\Projects\ProjectFields::access($request->user()),fn($rights)=>!$rights['view'])));
+        return response()->json($result);
     }
 
     public function addMember(Request $request, Project $project, AuditRecorder $audit): JsonResponse
@@ -69,11 +73,13 @@ class ProjectConfigurationController extends Controller
         $rate = AnalystProjectRate::create([...$data, 'project_id' => $project->id, 'created_by' => $request->user()->id]);
         $audit->record('project.rate_created', $rate, $request->user(), [], $rate->toArray());
 
+        app(ManagementController::class)->pricePendingTasks($rate);
         return response()->json($rate, 201);
     }
 
     public function replaceTaxes(Request $request, Project $project, AuditRecorder $audit): JsonResponse
     {
+        abort_unless(\App\Domain\Projects\ProjectFields::allowed($request->user(),'taxes','edit'),403);
         Gate::authorize('financial.manage');
         $this->mutable($request, $project);
         $data = $request->validate([

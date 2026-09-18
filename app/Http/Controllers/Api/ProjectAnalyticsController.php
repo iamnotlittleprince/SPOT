@@ -22,18 +22,20 @@ class ProjectAnalyticsController extends Controller
 
         $projects = Project::query()
             ->where('company_id', $request->user()->current_company_id)
-            ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('created_at', '>=', $date))
-            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('created_at', '<=', $date))
+            ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate(\Illuminate\Support\Facades\DB::raw('COALESCE(start_date, created_at)'), '>=', $date))
+            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate(\Illuminate\Support\Facades\DB::raw('COALESCE(start_date, created_at)'), '<=', $date))
             ->when($filters['project_id'] ?? null, fn ($query, $id) => $query->whereKey($id))
             ->with(['taxes.type', 'workLogs', 'expenses', 'projectManager:id,name'])
             ->get();
 
         $rows = $projects->map(function (Project $project) use ($calculator): array {
             $financial = $calculator->calculate($project);
+            $status = \Illuminate\Support\Facades\DB::table('project_statuses')->where('id',$project->project_status_id)->value('slug');
+            $situation = \Illuminate\Support\Facades\DB::table('project_situations')->where('id',$project->project_situation_id)->value('slug');
             return [
-                'id' => $project->id, 'name' => $project->name, 'client' => $project->client_name,
-                'manager' => $project->projectManager?->name, 'status' => $project->status,
-                'progress' => $project->progress, 'due_date' => $project->due_date?->toDateString(),
+                'id' => $project->id, 'name' => $project->name, 'client' => \Illuminate\Support\Facades\DB::table('clients')->where('id',$project->client_id)->value('name') ?? $project->client_name,
+                'account_manager' => \Illuminate\Support\Facades\DB::table('users')->where('id',$project->account_manager_id)->value('name'), 'unpriced_tasks' => $financial['unpriced_tasks'], 'manager' => $project->projectManager?->name, 'status' => $situation === 'frozen' ? 'frozen' : ($status ? str_replace('-', '_', $status) : $project->status),
+                'progress' => $project->progress, 'due_date' => ($project->due_date ?? $project->end_date)?->toDateString(),
                 'start_date' => $project->start_date?->toDateString(), 'end_date' => $project->end_date?->toDateString(),
                 'created_at' => $project->created_at?->toDateString(), 'finalized' => $project->isFinalized(),
                 'contract_value' => $project->contract_value, 'actual_revenue' => $financial['actual']['total_revenue'],

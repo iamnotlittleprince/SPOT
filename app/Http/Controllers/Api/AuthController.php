@@ -49,12 +49,14 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+        app(\App\Domain\Audit\AuditRecorder::class)->record('user.login',$user,$user,[],['provider'=>'password']);
 
         return response()->json(['user' => $this->sessionUser($request->user())]);
     }
 
     public function logoutSession(Request $request): JsonResponse
     {
+        if($request->user()) app(\App\Domain\Audit\AuditRecorder::class)->record('user.logout',$request->user(),$request->user());
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -147,7 +149,11 @@ class AuthController extends Controller
     {
         return [
             ...$user->only(['id', 'name', 'email', 'avatar_url', 'timezone', 'job_title', 'department']),
+            'can_view_parameters' => $user->can('parameters.view'),
+            'spot_role' => $user->spotRoleLabel(),
             'can_manage_identity' => $user->can('security.manage'),
+            'can_create_projects' => $user->can('projects.create'),
+            'can_view_financial' => $user->can('financial.view'),
         ];
     }
 }

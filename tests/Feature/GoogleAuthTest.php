@@ -26,9 +26,9 @@ class GoogleAuthTest extends TestCase
             ->assertRedirect('https://accounts.google.com/o/oauth2/auth');
     }
 
-    public function test_google_callback_creates_and_authenticates_user(): void
+    public function test_google_callback_updates_provider_name_and_authenticates_user(): void
     {
-        User::factory()->create(['name' => 'Pessoa Teste', 'email' => 'pessoa@example.com', 'active' => true, 'account_status' => 'active']);
+        User::factory()->create(['name' => 'pessoa@example.com', 'email' => 'pessoa@example.com', 'active' => true, 'account_status' => 'active']);
         $googleUser = (new SocialiteUser)->map([
             'id' => 'google-123',
             'name' => 'Pessoa Teste',
@@ -45,6 +45,7 @@ class GoogleAuthTest extends TestCase
 
         $user = User::where('email', 'pessoa@example.com')->firstOrFail();
         $this->assertAuthenticatedAs($user);
+        $this->assertSame('Pessoa Teste', $user->name);
         $this->assertSame('google-123', $user->google_id);
         $this->assertSame('pessoa@example.com', $user->google_email);
     }

@@ -14,7 +14,8 @@ class ProjectApiTest extends TestCase
 
     public function test_jwt_user_can_manage_only_their_projects_and_tasks(): void
     {
-        $user = User::factory()->create();
+        $this->seed();
+        $user = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
         $headers = ['Authorization' => 'Bearer '.JWTAuth::fromUser($user)];
 
         $project = $this->postJson('/api/projects', [
@@ -42,4 +43,12 @@ class ProjectApiTest extends TestCase
         ]);
         $this->getJson("/api/projects/{$foreignProject->id}", $headers)->assertForbidden();
     }
+    public function test_jwt_user_without_project_creation_permission_is_denied(): void
+    {
+        $user = User::factory()->create();
+        $this->postJson('/api/projects', [
+            'name' => 'Projeto indevido', 'status' => 'planning', 'progress' => 0,
+        ], ['Authorization' => 'Bearer '.JWTAuth::fromUser($user)])->assertForbidden();
+    }
+
 }

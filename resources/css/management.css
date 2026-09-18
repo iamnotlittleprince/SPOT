@@ -1,0 +1,100 @@
+.management-workspace { color: #263b49; }
+.management-workspace section { margin-top: 24px; padding: 20px; border: 1px solid #cbd5df; border-radius: 12px; }
+.management-workspace h2 { font-size: 20px; }
+.management-workspace h3 { font-size: 16px; margin-top: 24px; }
+.management-workspace input, .management-workspace select, .management-dialog input, .management-dialog select { color: inherit; background: #fff; border: 1px solid #9dacb9; border-radius: 6px; padding: 9px; min-width: 0; max-width: 100%; }
+.management-workspace label, .management-dialog label { display: grid; gap: 7px; font-size: 13px; }
+.management-workspace button, .management-dialog button { cursor: pointer; padding: 9px 12px; border: 1px solid #afc2d1; border-radius: 6px; color: inherit; background: transparent; margin: 3px; }
+.management-workspace .primary-action, .management-dialog .primary-action { background: #08659d; color: #fff; }
+.management-workspace button:disabled { opacity: .5; cursor: wait; }
+.management-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.management-workspace table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+.management-workspace th, .management-workspace td { text-align: left; padding: 12px; border-bottom: 1px solid #cbd5df; }
+.management-table { overflow-x: auto; }
+.management-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.management-dialog { width: min(760px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 22px; border: 1px solid #afc2d1; border-radius: 12px; color: #263b49; }
+.management-dialog::backdrop { background: #07131cb0; }
+.management-dialog header, .management-dialog footer, .management-project-detail > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.management-dialog footer { margin-top: 20px; }
+.management-workspace [role="alert"], .management-dialog [role="alert"] { padding: 12px; background: #ffe3df; color: #812724; border-radius: 8px; }
+.management-workspace .project-finalized { background: #ffe3df; color: #9e241e; }
+.management-permissions { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 10px; margin: 15px 0; }
+.management-permissions label { display: flex; align-items: center; }
+.management-bars > div { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 12px; align-items: center; margin: 8px 0; font-size: 12px; }
+.management-bars meter { width: 100%; }
+
+/* Project configuration */
+.management-project-detail { padding: 0 !important; overflow: hidden; background: #fff; }
+.project-detail-heading { padding: 22px 24px; border-bottom: 1px solid #dfe6eb; background: #f8fafb; }
+.project-detail-heading > div > span, .report-heading > div > span { color: #1975a8; font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.project-detail-heading h2 { margin: 5px 0 0; font-size: 22px; }
+.project-config-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px; }
+.management-workspace .project-config-card, .management-workspace .project-expenses { margin: 0; padding: 18px; border-color: #dde5ea; background: #fff; }
+.project-config-card.full-width { grid-column: 1 / -1; }
+.project-config-card > header, .project-expenses > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+.project-config-card h3, .project-expenses h3 { margin: 0 0 4px; color: #253844; font-size: 15px; }
+.project-config-card header p, .project-expenses header p { margin: 0; color: #7a8993; font-size: 11px; }
+.management-workspace .config-add-button { margin: 0; border-color: #b8d3e1; color: #08659d; background: #eef7fb; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.management-workspace .config-add-button:hover { border-color: #74afcd; background: #e2f2f9; }
+.project-member-list { display: grid; gap: 8px; }
+.project-member-list article { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #e4eaee; border-radius: 8px; background: #fafbfc; }
+.member-initials { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; color: #fff; background: #267ca9; font-size: 10px; font-weight: 800; }
+.project-member-list strong { overflow: hidden; color: #334650; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.project-member-list article button, .tax-list article button { padding: 6px 9px; border-color: transparent; color: #a04449; font-size: 10px; }
+.project-member-list article button:hover, .tax-list article button:hover { background: #fff0f1; }
+.tax-list { display: grid; gap: 8px; }
+.tax-list article { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid #e4eaee; border-radius: 8px; background: #fafbfc; }
+.tax-list article div { display: grid; gap: 2px; }
+.tax-list strong { color: #334650; font-size: 12px; }
+.tax-list span { color: #74838c; font-size: 10px; }
+.management-workspace .project-expenses { margin: 0 20px 20px; }
+.management-empty { display: grid; min-height: 96px; place-content: center; justify-items: center; gap: 5px; padding: 18px; border: 1px dashed #cad6dd; border-radius: 9px; color: #81909a; background: #fafcfd; text-align: center; }
+.management-empty strong { color: #556873; font-size: 12px; }
+.management-empty span { font-size: 10px; }
+.management-empty.compact { min-height: 58px; }
+
+/* Financial report */
+.management-workspace .management-report { margin: 0 20px 20px; padding: 22px; border-color: #d9e3e9; background: #fff; }
+.report-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+.report-heading h2 { margin: 5px 0 4px; color: #233641; }
+.report-heading p { margin: 0; color: #768791; font-size: 11px; }
+.activity-count { padding: 7px 11px; border-radius: 999px; color: #38647b; background: #eaf3f7; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.report-highlights { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+.report-highlights article { display: grid; gap: 7px; padding: 14px; border: 1px solid #e0e7eb; border-radius: 9px; background: #f8fafb; }
+.report-highlights span { color: #75858f; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.report-highlights strong { color: #213844; font-size: 18px; }
+.report-table { overflow: hidden; border: 1px solid #e0e7eb; border-radius: 9px; }
+.management-report .report-table table { margin: 0; }
+.management-report .report-table thead { background: #f1f5f7; }
+.management-report .report-table th, .management-report .report-table td { padding: 10px 12px; }
+.report-breakdowns, .report-footer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.management-workspace .report-breakdowns > section, .management-workspace .report-footer-grid > section { margin-top: 16px; padding: 17px; border-color: #e0e7eb; background: #fafbfc; }
+.report-breakdowns h3, .report-footer-grid h3 { margin: 0 0 12px; color: #344954; font-size: 13px; }
+.approved-expenses { display: grid; gap: 7px; }
+.approved-expenses p { display: flex; justify-content: space-between; gap: 12px; margin: 0; padding: 8px 0; border-bottom: 1px solid #e2e8eb; font-size: 11px; }
+.approved-expenses p:last-child { border-bottom: 0; }
+
+html[data-theme="dark"] .management-workspace, html[data-theme="dark"] .management-dialog { color: #e2e8f0; }
+html[data-theme="dark"] .management-dialog { background: #24282d; }
+html[data-theme="dark"] .management-workspace input, html[data-theme="dark"] .management-workspace select, html[data-theme="dark"] .management-dialog input, html[data-theme="dark"] .management-dialog select { background: #181818; color: #e2e8f0; border-color: #54606d; }
+html[data-theme="dark"] .management-workspace section, html[data-theme="dark"] .management-workspace td, html[data-theme="dark"] .management-workspace th { border-color: #45515a; }
+html[data-theme="dark"] .management-workspace .project-finalized { background: #44252a; color: #ffb0b5; }
+html[data-theme="dark"] .management-workspace [role="alert"], html[data-theme="dark"] .management-dialog [role="alert"] { background: #44252a; color: #ffb0b5; }
+html[data-theme="dark"] .management-project-detail, html[data-theme="dark"] .management-workspace .project-config-card, html[data-theme="dark"] .management-workspace .project-expenses, html[data-theme="dark"] .management-workspace .management-report { background: #1d1f20; }
+html[data-theme="dark"] .project-detail-heading { border-color: #373d41; background: #232628; }
+html[data-theme="dark"] .project-detail-heading > div > span, html[data-theme="dark"] .report-heading > div > span { color: #6fc3ee; }
+html[data-theme="dark"] .project-config-card h3, html[data-theme="dark"] .project-expenses h3, html[data-theme="dark"] .report-heading h2, html[data-theme="dark"] .report-highlights strong, html[data-theme="dark"] .report-breakdowns h3, html[data-theme="dark"] .report-footer-grid h3 { color: #f0f3f5; }
+html[data-theme="dark"] .project-config-card header p, html[data-theme="dark"] .project-expenses header p, html[data-theme="dark"] .report-heading p { color: #aab5bc; }
+html[data-theme="dark"] .project-member-list article, html[data-theme="dark"] .tax-list article, html[data-theme="dark"] .report-highlights article, html[data-theme="dark"] .management-workspace .report-breakdowns > section, html[data-theme="dark"] .management-workspace .report-footer-grid > section { border-color: #3b4246; background: #26292b; }
+html[data-theme="dark"] .project-member-list strong, html[data-theme="dark"] .tax-list strong { color: #e9edef; }
+html[data-theme="dark"] .tax-list span, html[data-theme="dark"] .report-highlights span { color: #a8b4ba; }
+html[data-theme="dark"] .management-empty { border-color: #485157; color: #a9b4ba; background: #242729; }
+html[data-theme="dark"] .management-empty strong { color: #dce2e5; }
+html[data-theme="dark"] .activity-count { color: #a9ddf7; background: #263c48; }
+html[data-theme="dark"] .report-table { border-color: #41494e; }
+html[data-theme="dark"] .management-report .report-table thead { background: #282c2e; }
+html[data-theme="dark"] .approved-expenses p { border-color: #3b4246; }
+@media(max-width:900px) { .project-config-grid, .report-breakdowns, .report-footer-grid { grid-template-columns: 1fr; } .project-config-card.full-width { grid-column: auto; } .report-highlights { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(max-width:600px) { .management-fields { grid-template-columns: 1fr; } .management-workspace section { padding: 12px; } .project-config-grid { padding: 12px; } .management-workspace .project-expenses, .management-workspace .management-report { margin: 0 12px 12px; } .project-config-card > header, .project-expenses > header, .report-heading { flex-direction: column; } .report-highlights { grid-template-columns: 1fr; } }
+.history-panel pre { max-width: min(800px, 65vw); overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+.analytics-page .management-report { padding: 20px; margin: 20px 0; border: 1px solid #71808b; border-radius: 12px; }

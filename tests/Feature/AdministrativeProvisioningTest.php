@@ -144,4 +144,81 @@ class AdministrativeProvisioningTest extends TestCase
             'user_id' => $admin->id,
         ]);
     }
+    public function test_administrator_can_grant_and_revoke_project_creation_for_an_analyst(): void
+    {
+        $this->seed();
+        $admin = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
+        $analyst = User::factory()->create(['current_company_id' => $admin->current_company_id, 'organization_id' => $admin->organization_id]);
+        $analyst->profiles()->attach(DB::table('profiles')->where('slug', 'analista')->value('id'), ['company_id' => $admin->current_company_id]);
+        $this->actingAs($analyst)->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('can_create_projects', false);
+        $this->postJson('/api/v1/projects', [])->assertForbidden();
+        $changes = ['profile' => 'analista', 'account_status' => 'active', 'can_create_projects' => true];
+        $this->patchJson('/api/v1/admin/users/'.$analyst->id, $changes)->assertForbidden();
+        $this->actingAs($admin)->patchJson('/api/v1/admin/users/'.$analyst->id, $changes)->assertOk();
+        $this->assertTrue($analyst->fresh()->can('projects.create'));
+        $this->actingAs($analyst)->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('can_create_projects', true);
+        $this->postJson('/api/v1/projects', [
+            'name' => 'Projeto autorizado', 'proposal_number' => 'AUT-001',
+            'project_status_id' => DB::table('project_statuses')->where('company_id', $admin->current_company_id)->value('id'),
+            'project_situation_id' => DB::table('project_situations')->where('company_id', $admin->current_company_id)->value('id'),
+            'contract_value' => 100,
+        ])->assertCreated();
+        $this->actingAs($admin)->patchJson('/api/v1/admin/users/'.$analyst->id, [...$changes, 'can_create_projects' => false])->assertOk();
+        $this->actingAs($analyst)->postJson('/api/v1/projects', [])->assertForbidden();
+        $this->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('can_create_projects', false);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'user.access_updated', 'auditable_id' => $analyst->id]);
+    }
+
+    public function test_administrator_cannot_grant_creation_to_user_in_another_company(): void
+    {
+        $this->seed();
+        $admin = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
+        $foreign = User::factory()->create(['current_company_id' => null]);
+        $this->actingAs($admin)->patchJson('/api/v1/admin/users/'.$foreign->id, [
+            'profile' => 'analista', 'account_status' => 'active', 'can_create_projects' => true,
+        ])->assertNotFound();
+    }
+
+    public function test_administrator_can_delete_a_pending_user(): void
+    {
+        $this->seed();
+        $admin = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
+        $pending = User::factory()->create([
+            'current_company_id' => $admin->current_company_id,
+            'organization_id' => $admin->organization_id,
+            'active' => false,
+            'account_status' => 'pending_activation',
+        ]);
+
+        $this->actingAs($admin)
+            ->deleteJson('/api/v1/admin/users/'.$pending->id)
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('users', ['id' => $pending->id]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'user.deleted',
+            'auditable_id' => $pending->id,
+            'user_id' => $admin->id,
+        ]);
+    }
+
+    public function test_activated_user_must_be_disabled_instead_of_deleted(): void
+    {
+        $this->seed();
+        $admin = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
+        $user = User::factory()->create([
+            'current_company_id' => $admin->current_company_id,
+            'organization_id' => $admin->organization_id,
+            'active' => true,
+            'account_status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->deleteJson('/api/v1/admin/users/'.$user->id)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('user');
+
+        $this->assertDatabaseHas('users', ['id' => $user->id]);
+    }
+
 }

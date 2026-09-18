@@ -17,7 +17,15 @@ fi
   --listen 0.0.0.0:8000 &
 BACKEND_PID=$!
 
+"$PROJECT_DIR/php" artisan queue:work --queue=emails,default --sleep=3 --tries=3 --timeout=60 &
+WORKER_PID=$!
+
+bash "$PROJECT_DIR/scripts/scheduler.sh" &
+SCHEDULER_PID=$!
+
 cleanup() {
+  kill "$SCHEDULER_PID" 2>/dev/null || true
+  kill "$WORKER_PID" 2>/dev/null || true
   kill "$BACKEND_PID" 2>/dev/null || true
 }
 

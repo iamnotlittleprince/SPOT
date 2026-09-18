@@ -42,6 +42,9 @@ class DatabaseSeeder extends Seeder
             'projects.restore' => ['Projetos', 'Restaurar projetos excluídos'],
             'financial.view' => ['Financeiro', 'Visualizar valores, custos, lucro e margem'],
             'financial.manage' => ['Financeiro', 'Alterar composição financeira'],
+            'tasks.view_others' => ['Tarefas', 'Ver atividades de outros analistas'],
+            'tasks.update_others' => ['Tarefas', 'Alterar atividades de outros analistas'],
+            'tasks.delete_others' => ['Tarefas', 'Excluir atividades de outros analistas'],
             'tasks.manage' => ['Tarefas', 'Criar e alterar tarefas'],
             'tasks.delete' => ['Tarefas', 'Excluir tarefas permitidas'],
             'tasks.view' => ['Tarefas', 'Visualizar tarefas permitidas'],
@@ -71,7 +74,7 @@ class DatabaseSeeder extends Seeder
         $profiles = [
             'administrador' => array_keys($permissions),
             'gestor-administrador' => array_keys($permissions),
-            'gestor' => ['users.view', 'projects.view_all', 'projects.create', 'projects.update', 'projects.finalize', 'projects.reopen', 'financial.view', 'financial.manage', 'tasks.manage', 'tasks.delete', 'work_logs.create_own', 'work_logs.manage_own', 'work_logs.view_others', 'work_logs.manage_others', 'work_logs.create_for_others', 'expenses.create', 'expenses.approve', 'invitations.create', 'parameters.view', 'audit.view'],
+            'gestor' => ['users.view', 'projects.view_all', 'projects.create', 'projects.update', 'projects.finalize', 'projects.reopen', 'financial.view', 'financial.manage', 'tasks.manage', 'tasks.delete', 'tasks.view_others', 'tasks.update_others', 'tasks.delete_others', 'work_logs.create_own', 'work_logs.manage_own', 'work_logs.view_others', 'work_logs.manage_others', 'work_logs.create_for_others', 'expenses.create', 'expenses.approve', 'invitations.create', 'parameters.view', 'audit.view'],
             'analista' => ['projects.view_assigned', 'tasks.manage', 'work_logs.create_own', 'work_logs.manage_own', 'expenses.create', 'parameters.view'],
             'convidado' => ['projects.view_assigned'],
         ];

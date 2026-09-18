@@ -11,7 +11,17 @@ final class ProjectFinancialSummary
     /** @return array<string, mixed> */
     public function calculate(Project $project): array
     {
-        $project->loadMissing(['taxes.type', 'workLogs', 'expenses']);
+        $project->loadMissing(['taxes.type', 'workLogs', 'expenses', 'tasks.user']);
+        $linkedTaskIds = $project->workLogs->pluck('task_id')->filter();
+        $taskRecords = $project->tasks->whereNotNull('worked_on')->reject(fn ($task) => $linkedTaskIds->contains($task->id));
+        $unpriced = $taskRecords->whereNull('cost_rate_snapshot')->count();
+        $logs = $project->workLogs->concat($taskRecords->map(fn ($task) => new \App\Models\WorkLog([
+            'analyst_id' => $task->user_id, 'activity_type_id' => $task->activity_type_id,
+            'duration_minutes' => $task->duration_minutes, 'is_overtime' => $task->is_overtime,
+            'cost_rate_snapshot' => $task->cost_rate_snapshot, 'sale_rate_snapshot' => $task->sale_rate_snapshot, 'status' => 'submitted',
+        ])));
+        $project = clone $project;
+        $project->setRelation('workLogs', $logs);
         $contract = $this->money($project->contract_value);
         $overtimeRevenue = $this->sumWorkLogs($project, 'sale_rate_snapshot', overtimeOnly: true);
         $revenue = $contract->plus($overtimeRevenue);
@@ -35,6 +45,12 @@ final class ProjectFinancialSummary
         return [
             'project_id' => $project->id,
             'currency' => $project->currency,
+            'complete' => $unpriced === 0,
+            'unpriced_tasks' => $unpriced,
+            'activities_count' => $logs->where('status', '!=', 'rejected')->count(),
+            'by_analyst' => $this->breakdown($logs, 'analyst_id', 'users'),
+            'by_activity_type' => $this->breakdown($logs, 'activity_type_id', 'activity_types'),
+            'expenses' => $project->expenses->where('status', 'approved')->map(fn ($expense) => ['description' => $expense->description, 'amount' => $expense->amount])->values(),
             'actual' => [
                 'contract_revenue' => $this->format($contract),
                 'overtime_revenue' => $this->format($overtimeRevenue),
@@ -58,6 +74,7 @@ final class ProjectFinancialSummary
                 'commission' => $this->format($estimatedCommission),
                 'labor_cost' => $this->format($this->money($project->estimated_labor_cost)),
                 'additional_cost' => $this->format($this->money($project->estimated_additional_cost)),
+                'operating_costs' => $this->format($estimatedCosts),
                 'profit' => $this->format($estimatedProfit),
                 'margin_percent' => $this->percentage($estimatedProfit, $contract),
                 'minutes' => $project->estimated_minutes,
@@ -95,6 +112,14 @@ final class ProjectFinancialSummary
             ->reduce(fn (BigDecimal $sum, $log) => $sum->plus(
                 $this->money($log->{$rateField})->multipliedBy($log->duration_minutes)->dividedBy(60, 2, RoundingMode::HalfUp)
             ), BigDecimal::zero());
+    }
+
+    private function breakdown($logs, string $field, string $table): array
+    {
+        return $logs->where('status', '!=', 'rejected')->groupBy($field)->map(function ($items, $id) use ($table) {
+            $cost = $items->reduce(fn (BigDecimal $sum, $log) => $sum->plus($this->money($log->cost_rate_snapshot)->multipliedBy($log->duration_minutes)->dividedBy(60, 2, RoundingMode::HalfUp)), BigDecimal::zero());
+            return ['name' => \Illuminate\Support\Facades\DB::table($table)->where('id', $id)->value('name') ?? 'Não informado', 'minutes' => $items->sum('duration_minutes'), 'cost' => $this->format($cost)];
+        })->values()->all();
     }
 
     private function money(mixed $value): BigDecimal { return BigDecimal::of($value ?? 0); }

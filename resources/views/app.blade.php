@@ -13,7 +13,11 @@
             'authenticated' => auth()->check(),
             'user' => auth()->user() ? [
                 ...auth()->user()->only(['name', 'email', 'avatar_url', 'timezone', 'job_title', 'department']),
-                'can_manage_identity' => auth()->user()->can('security.manage'),
+                'can_view_parameters' => auth()->user()->can('parameters.view'),
+            'spot_role' => auth()->user()->spotRoleLabel(),
+            'can_manage_identity' => auth()->user()->can('security.manage'),
+                'can_create_projects' => auth()->user()->can('projects.create'),
+                'can_view_financial' => auth()->user()->can('financial.view'),
             ] : null,
         ]) }};
     </script>

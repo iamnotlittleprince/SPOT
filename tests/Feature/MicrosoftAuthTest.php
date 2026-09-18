@@ -25,9 +25,9 @@ class MicrosoftAuthTest extends TestCase
             ->assertRedirect('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
     }
 
-    public function test_microsoft_callback_creates_and_authenticates_user(): void
+    public function test_microsoft_callback_updates_provider_name_and_authenticates_user(): void
     {
-        User::factory()->create(['name' => 'Pessoa Microsoft', 'email' => 'pessoa@example.com', 'active' => true, 'account_status' => 'active']);
+        User::factory()->create(['name' => 'pessoa@example.com', 'email' => 'pessoa@example.com', 'active' => true, 'account_status' => 'active']);
         $microsoftUser = (new SocialiteUser)->map([
             'id' => 'microsoft-123',
             'name' => 'Pessoa Microsoft',
@@ -44,6 +44,7 @@ class MicrosoftAuthTest extends TestCase
 
         $user = User::where('email', 'pessoa@example.com')->firstOrFail();
         $this->assertAuthenticatedAs($user);
+        $this->assertSame('Pessoa Microsoft', $user->name);
         $this->assertSame('microsoft-123', $user->microsoft_id);
         $this->assertSame('pessoa@example.com', $user->microsoft_email);
     }

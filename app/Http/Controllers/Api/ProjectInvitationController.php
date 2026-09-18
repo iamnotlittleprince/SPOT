@@ -8,12 +8,11 @@ use App\Domain\Invitations\Actions\CreateProjectInvitation;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectInvitation;
-use App\Mail\ProjectInvitationMail;
+use App\Jobs\SendAccessEmail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -68,12 +67,12 @@ class ProjectInvitationController extends Controller
         $defaultPermissions = $data['project_role'] === 'guest' ? ['tasks.view', 'files.view'] : self::MEMBER_PERMISSIONS;
         $result = $action->execute($project, $request->user(), $data['email'], $data['permissions'] ?? $defaultPermissions, $data['expires_in_hours'] ?? 72, $organizationId, $data['project_role'], $data['relationship_type'], $data['job_title'] ?? null, $data['department'] ?? null);
         $acceptUrl = url('/accept-invitation/'.$result['token']);
-        Mail::to($data['email'])->send(new ProjectInvitationMail($project, $acceptUrl, $request->user()->name, $data['expires_in_hours'] ?? 72));
+        SendAccessEmail::dispatch('invitation', $result['invitation']->id, $acceptUrl)->afterCommit();
 
         return response()->json([
             'invitation' => $result['invitation'],
             'accept_url' => $acceptUrl,
-            'message' => 'Convite enviado por e-mail.',
+            'message' => 'Convite criado. O e-mail será enviado em breve.',
         ], 201);
     }
 

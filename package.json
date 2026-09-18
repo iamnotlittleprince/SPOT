@@ -4,7 +4,11 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:languages": "npm run build && node scripts/test-languages.mjs",
+        "test:tutorial": "npm run build && node scripts/test-tutorial.mjs",
+        "test:tasks": "npm run build && node scripts/test-tasks.mjs",
+        "test:management": "npm run build && node scripts/test-management.mjs"
     },
     "devDependencies": {
         "@iconify-json/selfhst": "^1.2.16",
@@ -12,6 +16,7 @@
         "@vitejs/plugin-react": "^5.0.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^3.1",
+        "playwright": "^1.63.0",
         "vite": "^8.0.0"
     },
     "dependencies": {

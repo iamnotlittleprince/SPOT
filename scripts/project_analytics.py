@@ -19,6 +19,8 @@ STATUS_LABELS = {
     "completed": "Concluídos",
     "done": "Concluídos",
     "stopped": "Parados",
+    "cancelled": "Cancelados",
+    "paused": "Congelados",
     "frozen": "Congelados",
 }
 MONTH_LABELS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
@@ -43,13 +45,14 @@ def main() -> None:
     today = pd.Timestamp(payload.get("today")).normalize()
     completed = frame["status"].isin(["completed", "done"]) | frame["finalized"]
     frame.loc[frame["finalized"], "status"] = "completed"
-    frozen = frame["status"].isin(["stopped", "frozen"])
+    frozen = frame["status"].isin(["stopped", "frozen", "paused"])
     overdue = (~completed) & frame["due_date"].notna() & (frame["due_date"] < today)
     on_time = (~overdue) & (~frozen)
 
     statuses = frame["status"].map(STATUS_LABELS).fillna(frame["status"].str.replace("_", " ").str.title())
     by_status = statuses.value_counts(sort=False).sort_values(ascending=False)
     by_client = frame["client"].fillna("Sem cliente").replace("", "Sem cliente").value_counts().head(10)
+    by_account_manager = frame["account_manager"].fillna("Não atribuído").replace("", "Não atribuído").value_counts().head(10)
     by_manager = frame["manager"].fillna("Não atribuído").replace("", "Não atribuído").value_counts().head(10)
 
     starts = frame["start_date"].fillna(pd.to_datetime(frame["created_at"], errors="coerce"))
@@ -68,7 +71,7 @@ def main() -> None:
 
     result = {
         "summary": {
-            "total": int(len(frame)), "in_progress": int(((frame["status"] == "in_progress") & ~completed).sum()),
+            "unpriced_tasks": int(frame["unpriced_tasks"].sum()), "cancelled": int((frame["status"] == "cancelled").sum()), "total": int(len(frame)), "in_progress": int(((frame["status"] == "in_progress") & ~completed).sum()),
             "completed": int(completed.sum()), "on_time": int(on_time.sum()),
             "overdue": int(overdue.sum()), "frozen": int(frozen.sum()),
             "clients": int(frame["client"].replace("", pd.NA).nunique()),
@@ -81,6 +84,7 @@ def main() -> None:
         "status": records(by_status, "label"),
         "clients": records(by_client, "label"),
         "managers": records(by_manager, "label"),
+        "account_managers": records(by_account_manager, "label"),
         "monthly": [{"label": f"{MONTH_LABELS[period.month - 1]}/{str(period.year)[2:]}", "value": int(value)} for period, value in monthly.items()],
         "projects": project_rows,
     }

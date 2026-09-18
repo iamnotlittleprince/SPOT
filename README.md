@@ -159,3 +159,128 @@ apenas em `POST /api/movements`, que registra o histórico e ajusta o saldo na m
 transação; saídas com saldo insuficiente recebem resposta `422`.
 
 O cliente React da V2 é a aplicação principal, em [http://localhost:8000](http://localhost:8000).
+
+## Fila de e-mails
+
+Convites de projeto e reenvios de primeiro acesso são processados em segundo plano
+na fila `emails`, usando `QUEUE_CONNECTION=database` e o banco configurado no `.env`.
+O `./iniciar.sh` inicia também o worker e o encerra com os demais processos.
+Para iniciar somente o worker:
+
+```bash
+./php artisan queue:work --queue=emails,default --sleep=3 --tries=3 --timeout=60
+```
+
+Cada envio tem até três tentativas, com intervalos de 60 e 300 segundos após falhas.
+O SMTP tem timeout padrão de 30 segundos (`MAIL_TIMEOUT`), menor que o timeout do
+job (60 segundos) e o prazo de recuperação da fila (90 segundos). Preserve essa
+ordem ao ajustar os valores. Sem worker ativo, os e-mails ficam aguardando no banco.
+
+Os links são criptografados no payload da fila com `APP_KEY`. Preserve essa chave
+para processar tarefas pendentes. O worker verifica se o link ainda está válido
+antes de enviar e ignora registros expirados, revogados ou utilizados. O envio é
+agendado após a confirmação das transações. A confirmação na tela indica a criação
+do convite, e não a entrega do e-mail. O cadastro administrativo continua retornando
+seu link de ativação; o envio de primeiro acesso ocorre na solicitação de reenvio.
+
+### Acompanhar falhas
+
+```bash
+./php artisan queue:status
+./php artisan queue:failed
+# Após corrigir a causa, use o UUID mostrado em queue:failed:
+./php artisan queue:retry UUID
+```
+
+O status mostra tarefas aguardando, reservadas pelo worker e falhas definitivas.
+Consulte também `storage/logs/laravel.log`. Uma tarefa removida com sucesso significa
+que foi processada (ou ignorada por link inválido); não comprova entrega na caixa do
+destinatário. Falhas após a aceitação pelo SMTP podem causar reenvio: não há garantia
+de entrega exatamente uma vez. Os links continuam sendo de uso único.
+
+Em produção, mantenha o worker sob um gerenciador como systemd ou Supervisor, com
+reinício automático, mesmo usuário/permissões do aplicativo, diretório de trabalho
+do Spot e o comando acima. Após publicar alterações no código, execute
+`./php artisan queue:restart`; o gerenciador deve iniciar o novo processo. Acompanhe
+periodicamente `queue:status` e `queue:failed`; não há alerta externo automático.
+
+## Idiomas da interface
+
+O seletor alterna entre português, inglês e espanhol e mantém a escolha neste
+navegador. O catálogo está em `resources/js/translations.js`; o tratamento de texto,
+atributos e idioma está em `resources/js/i18n.js`. Datas e valores usam o formato do
+idioma escolhido, preservando a moeda BRL. Nomes e conteúdo fornecidos pelos usuários
+não devem ser traduzidos: marque esses elementos com `translate="no"`.
+
+Para verificar a interface em Chromium, com o Spot em execução:
+
+```bash
+export PATH="$PWD/.runtime/bin:$PATH"
+npx playwright install chromium
+npm run test:languages
+```
+
+O teste usa o build local e respostas simuladas de API, sem alterar cadastros ou
+enviar mensagens. Percorre as páginas principais nos três idiomas, com e sem
+permissão administrativa, incluindo avisos de restrição, abas do perfil, convites,
+datas, pesquisa, preservação dos campos e restauração do português. Também verifica
+textos e atributos atualizados após o carregamento. Use `SPOT_BASE_URL` para testar
+em outra porta local.
+
+## Tutorial guiado
+
+O botão **?** no topo abre o guia do Spot. Na primeira visita da conta neste
+navegador, um pop-up recomenda o tutorial e permite escolher **Agora não**. A cada
+nova abertura/recarregamento do Spot, outro aviso lembra que o botão **?** está
+disponível, inclusive depois da conclusão. Trocar de página não repete o aviso.
+
+O guia oferece até 35 etapas conforme as permissões da conta: navegação, painel,
+projetos, tarefas, mensagens, documentos, agenda, portfólio, histórico, perfil,
+segurança, notificações, integrações e administração. Permite voltar, avançar,
+escolher um assunto, pausar com Escape, retomar e reiniciar. O conteúdo acompanha
+português, inglês e espanhol, além dos temas claro e escuro e telas pequenas.
+
+O progresso é salvo por conta em `localStorage`, com a chave `spot.tutorial.v1:`.
+Ele não é sincronizado entre dispositivos; limpar os dados do navegador reinicia
+a apresentação de primeiro acesso. Sem armazenamento disponível, o guia continua
+funcionando e avisa que não conseguiu salvar o progresso.
+
+O tutorial navega pelas telas, mas não preenche nem envia formulários e não cria,
+altera ou exclui registros. Enquanto aberto, bloqueia a interação com os controles
+reais para evitar cliques acidentais. Oriente o usuário a salvar alterações antes
+de começar. As telas que ainda usam exemplos demonstrativos são identificadas nas
+explicações. Nenhuma API de IA é utilizada.
+
+Conteúdo e regras de seleção: `resources/js/tutorial/content.js`.
+Interface e progresso: `resources/js/tutorial/SpotTutorial.jsx`.
+
+Com o Spot em execução, verifique o fluxo no Chromium:
+
+```bash
+export PATH="$PWD/.runtime/bin:$PATH"
+npm run test:tutorial
+npm run test:languages
+```
+
+Os testes usam contas e respostas simuladas no navegador, sem alterar o banco.
+Cobrem as etapas de analista e administrador, permissão revogada, primeiro acesso,
+lembrete recorrente, pausa, retomada, conclusão, idiomas, navegação por teclado,
+telas pequenas, isolamento por conta e falhas de armazenamento ou carregamento.
+
+### Cadastro de tarefas
+
+A tela **Tarefas → Nova tarefa** cadastra projeto, analista, data da tarefa, duração em horas e minutos, tipo, descrição e indicação de hora extra no banco pela API de sessão `/api/v1/tasks`. O cadastro atribui a tarefa ao usuário conectado; a permissão `work_logs.create_for_others` permite selecionar outro analista ativo do projeto. Quadro, lista e calendário exibem esses registros, com busca e filtros.
+
+Todos os perfis ativos da empresa, exceto convidados, podem criar tarefas nos projetos a que têm acesso. O analista pode editar e excluir os próprios registros; gestores com `tasks.manage` e `tasks.delete` podem administrar os demais. A exclusão exige confirmação na interface. O acesso respeita a empresa e os projetos atribuídos ao usuário; projetos finalizados ficam somente para leitura. As alterações ficam no histórico de auditoria.
+
+Validação: `./php vendor/bin/phpunit tests/Feature/TaskV1CrudTest.php` testa persistência e permissões no banco de testes. `npm run test:tasks` testa o fluxo da interface com API simulada, sem alterar dados reais.
+
+### Adequação ao memorial descritivo
+
+O levantamento por página e o estado das entregas estão em [docs/memorial/levantamento.md](docs/memorial/levantamento.md).
+
+- **Projetos → Detalhes:** equipe, custo/hora, impostos, despesas e resultado planejado × realizado.
+- **Cadastros e configurações** (menu superior): clientes, parâmetros, permissões por operação/campo, retenção de auditoria e diretório Microsoft.
+- O custo das tarefas entra no relatório; atividades sem tarifa vigente deixam o resultado marcado como parcial.
+- `iniciar.sh` também inicia o agendador. `./php artisan audit:prune --dry-run` mostra quantos registros venceram a retenção, sem apagá-los.
+- A importação AAD exige credenciais da aplicação e consentimento Microsoft Graph `User.Read.All` do tipo Application. O segredo fica criptografado e não é retornado pela API.
