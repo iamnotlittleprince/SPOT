@@ -60,7 +60,10 @@ try {
         await page.keyboard.press('Escape');
         check((await saved(page, user.email)).stepId === step.id, 'Escape pauses and saves current lesson');
         await help(page);
-        await dialog(page).getByRole('button', { name: 'Continuar tutorial', exact: true }).click();
+        await ensureStep(page, step);
+        await dialog(page).getByRole('button', { name: 'Começar do início', exact: true }).click();
+        check((await page.locator('#spot-tutorial-title').innerText()) === 'Quer começar o tutorial do início?', 'Restart asks for confirmation');
+        await dialog(page).getByRole('button', { name: 'Não, continuar de onde parei', exact: true }).click();
         await ensureStep(page, step);
         await dialog(page).getByRole('button', { name: 'Voltar', exact: true }).click();
         await ensureStep(page, steps[index - 1]);
@@ -111,6 +114,7 @@ try {
   check(helpBounds.x >= 0 && helpBounds.x + helpBounds.width <= 390, 'Mobile help button fits viewport');
   await help(page);
   await dialog(page).getByRole('button', { name: 'Empezar desde el principio', exact: true }).click();
+  await dialog(page).getByRole('button', { name: 'Sí, empezar desde el principio', exact: true }).click();
   await ensureStep(page, steps[0]);
   await context.close();
 

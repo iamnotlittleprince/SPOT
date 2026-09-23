@@ -11,6 +11,7 @@ import {
   ArrowDownUp,
   BarChart3,
   Bell,
+  Building2,
   CalendarDays,
   Camera,
   Check,
@@ -73,6 +74,8 @@ const navGroups = [
     title: "Área de trabalho",
     items: [
       [FolderKanban, "Meus Projetos"],
+      [Users, "Equipes"],
+      [Building2, "Clientes"],
       [FilePlus2, "Novo Projeto"],
       [ListChecks, "Minhas tarefas"],
       [Files, "Meus documentos"],
@@ -81,7 +84,7 @@ const navGroups = [
   },
 ];
 
-function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxLeave, inboxPinned }) {
+function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxLeave, inboxPinned, canViewParameters }) {
   const [expandedGroups, setExpandedGroups] = useState(() => navGroups.map(() => true));
   const [quickExpanded, setQuickExpanded] = useState(false);
   const [recentItems, setRecentItems] = useState(() => {
@@ -94,6 +97,8 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
     "Portfólios": "analytics",
     Agenda: "calendar",
     "Meus Projetos": "projects",
+    "Equipes": "teams",
+    "Clientes": "clients",
     "Novo Projeto": "new-project",
     "Minhas tarefas": "tasks",
     "Meus documentos": "documents",
@@ -128,7 +133,7 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
         {navGroups.map((group, groupIndex) => (
           <nav className="nav-group" key={group.title || "principal"}>
             {group.title && <h3>{group.title}</h3>}
-            {(expandedGroups[groupIndex] ? group.items : group.items.slice(0, 3)).map(([Icon, label]) => {
+            {(expandedGroups[groupIndex] ? group.items.filter(([, label]) => label !== "Clientes" || canViewParameters) : group.items.filter(([, label]) => label !== "Clientes" || canViewParameters).slice(0, 3)).map(([Icon, label]) => {
               const page = pageByLabel[label];
               return (
               <button
@@ -156,7 +161,7 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
           <nav className="quick-access-list" aria-label="Acessos recentes">
             {(quickExpanded ? recentItems : recentItems.slice(0, 3)).map((label) => {
               const item = itemByLabel[label];
-              if (!item) return null;
+              if (!item || (label === "Clientes" && !canViewParameters)) return null;
               const [Icon] = item;
               return <button type="button" key={label} onClick={() => activate(label)} title={label}><Icon size={18} strokeWidth={1.6} /><span>{label}</span></button>;
             })}
@@ -260,19 +265,23 @@ function InboxPage() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [trashCount, setTrashCount] = useState(0);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const trashMode = filter === "trash";
 
   async function load() {
     setLoading(true); setError("");
-    const response = await sessionRequest("/inbox");
+    const response = await sessionRequest(trashMode ? "/inbox?filter=trash" : "/inbox");
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Não foi possível carregar a caixa de entrada.");
     setItems(data.items);
+    setTrashCount(data.trash_count || 0);
     setSelectedId((current) => current && data.items.some((item) => item.id === current) ? current : data.items[0]?.id || null);
     setLoading(false);
   }
-  useEffect(() => { load().catch((requestError) => { setError(requestError.message); setLoading(false); }); }, []);
+  useEffect(() => { load().catch((requestError) => { setError(requestError.message); setLoading(false); }); }, [trashMode]);
 
-  const filtered = items.filter((item) => filter === "all" || (filter === "unread" ? !item.read_at : item.type === filter.slice(0, -1)))
+  const filtered = items.filter((item) => trashMode || filter === "all" || (filter === "unread" ? !item.read_at : item.type === filter.slice(0, -1)))
     .filter((item) => `${item.title} ${item.body || ""} ${item.project?.name || ""}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")));
   const selected = items.find((item) => item.id === selectedId) || null;
   const unread = items.filter((item) => !item.read_at).length;
@@ -294,16 +303,32 @@ function InboxPage() {
     const response = await sessionRequest(`/inbox/${item.id}`, { method: "DELETE", body: "{}" });
     if (!response.ok) return setError("Não foi possível arquivar a mensagem.");
     setItems((current) => current.filter((entry) => entry.id !== item.id)); setSelectedId(null);
+    setTrashCount((current) => current + 1);
+  }
+  async function clearInbox() {
+    const response = await sessionRequest("/inbox", { method: "DELETE", body: "{}" });
+    const data = await response.json();
+    if (!response.ok) return setError(data.message || "Não foi possível limpar a caixa de entrada.");
+    setConfirmClear(false); setItems([]); setSelectedId(null);
+    setTrashCount((current) => current + Number(data.archived_count || 0));
+  }
+  async function restore(item) {
+    const response = await sessionRequest(`/inbox/${item.id}/restore`, { method: "PATCH", body: "{}" });
+    const data = await response.json();
+    if (!response.ok) return setError(data.message || "Não foi possível restaurar a mensagem.");
+    setItems((current) => current.filter((entry) => entry.id !== item.id)); setSelectedId(null);
+    setTrashCount((current) => Math.max(0, current - 1));
   }
 
   return <div className="inbox-page workspace-page">
-    <header className="inbox-page-heading"><div><span className="workspace-eyebrow">COMUNICAÇÃO</span><h1>Caixa de entrada</h1><p>Acompanhe tarefas, menções, documentos e atualizações dos seus projetos.</p></div><button className="secondary-button" type="button" disabled={!unread} onClick={markAllRead}><CheckCheck size={17} /> Marcar todas como lidas</button></header>
+    <header className="inbox-page-heading"><div><span className="workspace-eyebrow">COMUNICAÇÃO</span><h1>{trashMode ? "Lixeira" : "Caixa de entrada"}</h1><p>{trashMode ? "As mensagens são excluídas definitivamente após 30 dias." : "Acompanhe tarefas, menções, documentos e atualizações dos seus projetos."}</p></div><div className="inbox-heading-actions"><button className={`inbox-trash-button ${trashMode ? "active" : ""}`} type="button" onClick={() => setFilter(trashMode ? "all" : "trash")} aria-label={trashMode ? "Voltar para a caixa de entrada" : "Abrir lixeira"}><Trash2 size={17} />{trashMode ? "Voltar à caixa" : "Lixeira"}{trashCount > 0 && <span>{trashCount}</span>}</button>{!trashMode && <><button className="inbox-clear-button" type="button" disabled={!items.length} onClick={() => setConfirmClear(true)}><Trash2 size={17} /> Limpar caixa</button><button className="secondary-button" type="button" disabled={!unread} onClick={markAllRead}><CheckCheck size={17} /> Marcar todas como lidas</button></>}</div></header>
     {error && <p className="home-state error">{error}</p>}
-    <div className="inbox-page-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar mensagens..." /></label><div>{[["all", "Todas"], ["unread", message("Não lidas ({count})", { count: unread })], ["tasks", "Tarefas"], ["documents", "Documentos"], ["mentions", "Menções"]].map(([key, label]) => <button className={filter === key ? "active" : ""} type="button" key={key} onClick={() => setFilter(key)}>{label}</button>)}</div></div>
+    <div className="inbox-page-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar mensagens..." /></label>{!trashMode && <div>{[["all", "Todas"], ["unread", message("Não lidas ({count})", { count: unread })], ["tasks", "Tarefas"], ["documents", "Documentos"], ["mentions", "Menções"]].map(([key, label]) => <button className={filter === key ? "active" : ""} type="button" key={key} onClick={() => setFilter(key)}>{label}</button>)}</div>}</div>
     <div className="inbox-page-layout">
-      <section className="inbox-message-list" aria-label="Mensagens">{loading && <p className="inbox-page-empty">Carregando mensagens...</p>}{!loading && !filtered.length && <p className="inbox-page-empty">Nenhuma mensagem encontrada.</p>}{filtered.map((item) => { const [TypeIcon, typeLabel] = typeMeta[item.type] || typeMeta.update; return <button className={`${selectedId === item.id ? "selected" : ""} ${!item.read_at ? "unread" : ""}`} type="button" key={item.id} onClick={() => markRead(item)}><span className={`inbox-type-icon ${item.type}`}><TypeIcon size={18} /></span><span><strong translate="no">{item.title}</strong><small>{item.project?.name || typeLabel}</small><em translate="no">{item.body}</em></span><time>{new Date(item.created_at).toLocaleDateString(getFormatLocale(), { day: "2-digit", month: "short" })}</time></button>; })}</section>
-      <section className="inbox-message-detail">{!selected ? <div className="inbox-detail-empty"><Mail size={35} /><strong>Selecione uma mensagem</strong><span>Os detalhes aparecerão aqui.</span></div> : (() => { const [TypeIcon, typeLabel] = typeMeta[selected.type] || typeMeta.update; return <><header><span className={`inbox-type-icon ${selected.type}`}><TypeIcon size={19} /></span><span><small>{typeLabel}</small><h2 translate="no">{selected.title}</h2></span><button type="button" title="Arquivar" aria-label="Arquivar mensagem" onClick={() => archive(selected)}><Archive size={19} /></button></header><div className="inbox-detail-body"><p>{selected.body || "Sem informações adicionais."}</p><dl><div><dt>Projeto</dt><dd>{selected.project?.name || "Geral"}</dd></div><div><dt>Enviado por</dt><dd>{selected.actor_name || "Spot"}</dd></div><div><dt>Recebido em</dt><dd>{new Date(selected.created_at).toLocaleString(getFormatLocale())}</dd></div></dl></div></>; })()}</section>
+      <section className="inbox-message-list" aria-label="Mensagens">{loading && <p className="inbox-page-empty">Carregando mensagens...</p>}{!loading && !filtered.length && <p className="inbox-page-empty">{trashMode ? "A lixeira está vazia." : "Nenhuma mensagem encontrada."}</p>}{filtered.map((item) => { const [TypeIcon, typeLabel] = typeMeta[item.type] || typeMeta.update; return <button className={`${selectedId === item.id ? "selected" : ""} ${!item.read_at && !trashMode ? "unread" : ""}`} type="button" key={item.id} onClick={() => trashMode ? setSelectedId(item.id) : markRead(item)}><span className={`inbox-type-icon ${item.type}`}><TypeIcon size={18} /></span><span><strong translate="no">{item.title}</strong><small>{item.project?.name || typeLabel}</small><em translate="no">{item.body}</em></span><time>{new Date(item.created_at).toLocaleDateString(getFormatLocale(), { day: "2-digit", month: "short" })}</time></button>; })}</section>
+      <section className="inbox-message-detail">{!selected ? <div className="inbox-detail-empty"><Mail size={35} /><strong>Selecione uma mensagem</strong><span>Os detalhes aparecerão aqui.</span></div> : (() => { const [TypeIcon, typeLabel] = typeMeta[selected.type] || typeMeta.update; return <><header><span className={`inbox-type-icon ${selected.type}`}><TypeIcon size={19} /></span><span><small>{typeLabel}</small><h2 translate="no">{selected.title}</h2></span>{trashMode ? <button type="button" title="Restaurar" aria-label="Restaurar mensagem" onClick={() => restore(selected)}><Archive size={19} /></button> : <button type="button" title="Mover para a lixeira" aria-label="Mover mensagem para a lixeira" onClick={() => archive(selected)}><Trash2 size={19} /></button>}</header><div className="inbox-detail-body"><p>{selected.body || "Sem informações adicionais."}</p>{trashMode && <p className="inbox-trash-retention">Esta mensagem será excluída definitivamente 30 dias após ter sido movida para a lixeira.</p>}<dl><div><dt>Projeto</dt><dd>{selected.project?.name || "Geral"}</dd></div><div><dt>Enviado por</dt><dd>{selected.actor_name || "Spot"}</dd></div><div><dt>Recebido em</dt><dd>{new Date(selected.created_at).toLocaleString(getFormatLocale())}</dd></div></dl></div></>; })()}</section>
     </div>
+    {confirmClear && <div className="inbox-confirm-overlay" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setConfirmClear(false)}><section role="alertdialog" aria-modal="true" aria-labelledby="clear-inbox-title" className="inbox-confirm-dialog"><span className="inbox-confirm-icon"><Trash2 size={24} /></span><h2 id="clear-inbox-title">Limpar a caixa de entrada?</h2><p>Todas as mensagens serão movidas para a lixeira. Você poderá restaurá-las durante 30 dias.</p><footer><button className="secondary-button" type="button" onClick={() => setConfirmClear(false)}>Cancelar</button><button className="inbox-confirm-action" type="button" onClick={clearInbox}><Trash2 size={16} /> Sim, limpar caixa</button></footer></section></div>}
   </div>;
 }
 
@@ -313,6 +338,8 @@ function CalendarPage() {
   const [selected, setSelected] = useState(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const [createError, setCreateError] = useState("");
+  const [createFieldErrors, setCreateFieldErrors] = useState({});
   const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 1);
   async function load() {
     const params = new URLSearchParams({ start: month.toISOString(), end: monthEnd.toISOString() });
@@ -324,19 +351,23 @@ function CalendarPage() {
   const days = Array.from({ length: 42 }, (_, index) => { const day = new Date(gridStart); day.setDate(gridStart.getDate() + index); return day; });
   const eventsFor = (day) => data.events.filter((event) => new Date(event.start).toDateString() === day.toDateString());
   async function createEvent(event) {
-    event.preventDefault(); setError(""); const form = new FormData(event.currentTarget);
+    event.preventDefault(); setError(""); setCreateError(""); setCreateFieldErrors({}); const form = new FormData(event.currentTarget);
     const response = await sessionRequest('/calendar/events', { method: 'POST', body: JSON.stringify(Object.fromEntries(form)) }); const result = await response.json();
-    if (!response.ok) return setError(result.message || Object.values(result.errors || {}).flat()[0] || 'Não foi possível criar o evento.');
+    if (!response.ok) {
+      const errors = result.errors || {};
+      setCreateFieldErrors(Object.fromEntries(Object.entries(errors).map(([field, messages]) => [field, Array.isArray(messages) ? messages[0] : messages])));
+      return setCreateError(Object.values(errors).flat()[0] || result.message || 'Não foi possível criar o evento.');
+    }
     setCreating(false); await load();
   }
   const providerLabel = { spot: 'Spot', google: 'Google', microsoft: 'Outlook', teams: 'Teams' };
   return <div className="calendar-page workspace-page">
-    <header className="calendar-heading"><div><span className="workspace-eyebrow">PLANEJAMENTO</span><h1>Agenda</h1><p>Seus compromissos do Spot, Google Calendar, Outlook e Teams em um só lugar.</p></div><button className="primary-action" type="button" onClick={() => setCreating(true)}><Plus size={17} /> Novo evento</button></header>
+    <header className="calendar-heading"><div><span className="workspace-eyebrow">PLANEJAMENTO</span><h1>Agenda</h1><p>Seus compromissos do Spot, Google Calendar, Outlook e Teams em um só lugar.</p></div><button className="primary-action" type="button" onClick={() => { setCreateError(""); setCreateFieldErrors({}); setCreating(true); }}><Plus size={17} /> Novo evento</button></header>
     <div className="calendar-connections"><span><i className="spot" /> Spot</span><span className={data.providers.google ? 'connected' : ''}><i className="google" /> Google Calendar {data.providers.google ? 'conectado' : 'desconectado'}</span><span className={data.providers.microsoft ? 'connected' : ''}><i className="microsoft" /> Microsoft/Teams {data.providers.microsoft ? 'conectado' : 'desconectado'}</span>{(!data.providers.google || !data.providers.microsoft) && <button type="button" onClick={() => window.scrollTo(0,0)}>Conectar em Apps</button>}</div>
     {(error || data.errors?.length > 0) && <p className="home-state error">{error || data.errors.join(' ')}</p>}
     <section className="calendar-shell"><header><div><button type="button" onClick={() => setMonth(new Date())}>Hoje</button><button type="button" aria-label="Mês anterior" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()-1,1))}><ChevronLeft size={18}/></button><button type="button" aria-label="Próximo mês" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()+1,1))}><ChevronRight size={18}/></button></div><h2>{month.toLocaleDateString(getFormatLocale(),{month:'long',year:'numeric'})}</h2><span>{data.events.length} eventos</span></header><div className="calendar-weekdays">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><span key={day}>{day}</span>)}</div><div className="calendar-grid">{days.map(day=><div className={`${day.getMonth()!==month.getMonth()?'outside ':''}${day.toDateString()===new Date().toDateString()?'today':''}`} key={day.toISOString()}><strong>{day.getDate()}</strong><div>{eventsFor(day).slice(0,3).map(event=><button className={event.provider} type="button" key={event.id} onClick={()=>setSelected(event)} title={event.title}><time>{new Date(event.start).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</time><span translate="no">{event.title}</span></button>)}{eventsFor(day).length>3&&<small>+{eventsFor(day).length-3} eventos</small>}</div></div>)}</div></section>
     {selected && <div className="calendar-event-popover"><button type="button" onClick={()=>setSelected(null)}><X size={18}/></button><em className={selected.provider}>{providerLabel[selected.provider]}</em><h3 translate="no">{selected.title}</h3><p>{selected.description||'Sem descrição.'}</p><span><CalendarDays size={16}/>{new Date(selected.start).toLocaleString(getFormatLocale())} – {new Date(selected.end).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</span>{selected.url&&<a href={selected.url} target="_blank" rel="noreferrer"><Video size={16}/> Abrir reunião ou evento</a>}</div>}
-    {creating && <div className="calendar-modal" onMouseDown={event=>event.target===event.currentTarget&&setCreating(false)}><form onSubmit={createEvent}><header><div><h2>Novo evento</h2><p>Escolha em qual agenda o compromisso será criado.</p></div><button type="button" onClick={()=>setCreating(false)}><X size={19}/></button></header><label>Título<input name="title" required maxLength="150" /></label><div><label>Início<input name="starts_at" type="datetime-local" required /></label><label>Fim<input name="ends_at" type="datetime-local" required /></label></div><label>Agenda<select name="provider" required><option value="spot">Spot</option><option value="google" disabled={!data.providers.google}>Google Calendar{!data.providers.google?' — conecte a conta':''}</option><option value="microsoft" disabled={!data.providers.microsoft}>Outlook{!data.providers.microsoft?' — conecte a conta':''}</option><option value="teams" disabled={!data.providers.microsoft}>Reunião do Teams{!data.providers.microsoft?' — conecte a conta':''}</option></select></label><label>Local<input name="location" placeholder="Sala ou endereço" /></label><label>Descrição<textarea name="description" rows="4" /></label><footer><button className="secondary-button" type="button" onClick={()=>setCreating(false)}>Cancelar</button><button className="primary-action" type="submit">Criar evento</button></footer></form></div>}
+    {creating && <div className="calendar-modal" onMouseDown={event=>event.target===event.currentTarget&&setCreating(false)}><form onSubmit={createEvent}><header><div><h2>Novo evento</h2><p>Escolha em qual agenda o compromisso será criado.</p></div><button type="button" onClick={()=>setCreating(false)}><X size={19}/></button></header>{createError&&<p className="calendar-form-error" role="alert">{createError}</p>}<label>Título<input name="title" required maxLength="150" aria-invalid={Boolean(createFieldErrors.title)} />{createFieldErrors.title&&<small>{createFieldErrors.title}</small>}</label><div><label>Início<input name="starts_at" type="datetime-local" required aria-invalid={Boolean(createFieldErrors.starts_at)} />{createFieldErrors.starts_at&&<small>{createFieldErrors.starts_at}</small>}</label><label>Fim<input name="ends_at" type="datetime-local" required aria-invalid={Boolean(createFieldErrors.ends_at)} />{createFieldErrors.ends_at&&<small>{createFieldErrors.ends_at}</small>}</label></div><label>Agenda<select name="provider" required aria-invalid={Boolean(createFieldErrors.provider)}><option value="spot">Spot</option><option value="google" disabled={!data.providers.google}>Google Calendar{!data.providers.google?' — conecte a conta':''}</option><option value="microsoft" disabled={!data.providers.microsoft}>Outlook{!data.providers.microsoft?' — conecte a conta':''}</option><option value="teams" disabled={!data.providers.microsoft}>Reunião do Teams{!data.providers.microsoft?' — conecte a conta':''}</option></select>{createFieldErrors.provider&&<small>{createFieldErrors.provider}</small>}</label><label>Local<input name="location" placeholder="Sala ou endereço" aria-invalid={Boolean(createFieldErrors.location)} />{createFieldErrors.location&&<small>{createFieldErrors.location}</small>}</label><label>Descrição<textarea name="description" rows="4" aria-invalid={Boolean(createFieldErrors.description)} />{createFieldErrors.description&&<small>{createFieldErrors.description}</small>}</label><footer><button className="secondary-button" type="button" onClick={()=>setCreating(false)}>Cancelar</button><button className="primary-action" type="submit">Criar evento</button></footer></form></div>}
   </div>;
 }
 
@@ -482,6 +513,14 @@ function AnalyticsLine({ items }) {
   return <div className="analytics-line"><svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Projetos iniciados por mês"><line x1="20" y1="120" x2="540" y2="120" /><polygon points={`20,120 ${points} 540,120`} /><polyline points={points} />{points.split(" ").map((point, index) => { const [x, y] = point.split(","); return <g key={items[index].label}><circle cx={x} cy={y} r="4" /><text x={x} y={Number(y) - 10}>{items[index].value}</text><text className="axis-label" x={x} y="140">{items[index].label}</text></g>; })}</svg></div>;
 }
 
+function AnalyticsRing({ value, label, tone = "blue", detail }) {
+  const normalized = Math.max(0, Math.min(Number(value) || 0, 100));
+  return <div className={`analytics-metric-ring ${tone}`} style={{ "--metric-progress": `${normalized * 3.6}deg` }}>
+    <span><strong>{Math.round(Number(value) || 0)}%</strong><small>{label}</small></span>
+    {detail && <em>{detail}</em>}
+  </div>;
+}
+
 function ProjectAnalyticsPage() {
   const [financialDetail,setFinancialDetail]=useState(null);
   const [data, setData] = useState(null);
@@ -527,7 +566,6 @@ function ProjectAnalyticsPage() {
       <h2 id="restricted-portfolio-title">Área restrita</h2>
       <p>Caso necessário acesso, falar com gerência</p>
     </section>}
-    {financialDetail && <div className="management-workspace"><FinancialResult data={financialDetail}/></div>}
     {error && <p className="analytics-error">{error}</p>}
     {loading && !data && <p className="analytics-loading">Processando levantamento com Pandas...</p>}
     {data && <>
@@ -535,37 +573,42 @@ function ProjectAnalyticsPage() {
       <section className="analytics-kpis">{[['Em andamento', summary.in_progress, 'blue'], ['Concluídos', summary.completed, 'slate'], ['Cancelados', summary.cancelled || 0, 'red'], ['No prazo', summary.on_time, 'green'], ['Fora do prazo', summary.overdue, 'red'], ['Congelados', summary.frozen, 'purple'], ['Total de projetos', summary.total, 'strong']].map(([label, value, tone]) => <article className={tone} key={label}><span>{label}</span><strong>{value}</strong></article>)}</section>
       <section className="analytics-grid top-row"><article className="analytics-panel status-panel"><header><h2>Situação dos projetos</h2><small>{summary.total} projetos</small></header><div className="status-chart"><div className="status-donut" style={{ background: `conic-gradient(${statusGradient || "#e5edf2 0 100%"})` }}><span><strong>{summary.total}</strong><small>Total</small></span></div><div className="status-legend">{data.status.map((item, index) => <span key={item.label}><i style={{ background: analyticsColors[index % analyticsColors.length] }} />{item.label}<strong>{item.value}</strong></span>)}</div></div></article><article className="analytics-panel monthly-panel"><header><h2>Iniciados por mês</h2><small>Evolução no período</small></header><AnalyticsLine items={data.monthly} /></article></section>
       {summary.unpriced_tasks > 0 && <p role="alert">Resultado parcial: existem atividades sem tarifa vigente. Cadastre o custo/hora dos analistas.</p>}<section className="analytics-grid bottom-row"><article className="analytics-panel"><header><h2>Quantidade por cliente</h2><small>{summary.clients} clientes</small></header><AnalyticsBars items={data.clients} /></article><article className="analytics-panel"><header><h2>Quantidade por gerente de contas</h2><small>{summary.managers} responsáveis</small></header><AnalyticsBars items={data.account_managers || data.managers} /></article><article className="analytics-panel"><header><h2>Quantidade por gerente de projetos</h2></header><AnalyticsBars items={data.managers} /></article><article className="analytics-panel financial-panel"><header><h2>Resultado do portfólio</h2><small>Valores consolidados</small></header><AnalyticsBars horizontal money items={[{ label: "Contratos", value: summary.contract_value }, { label: "Receita", value: summary.revenue }, { label: "Custos", value: summary.cost }, { label: "Lucro", value: summary.profit }]} /></article></section>
-      <section className="project-survey">
-        <header><div><span>LEVANTAMENTO INDIVIDUAL</span><h2>Todos os projetos</h2><p>Comparativo de execução, horas e resultado de cada projeto da carteira.</p></div><strong>{data.projects.length} {data.projects.length === 1 ? "projeto analisado" : "projetos analisados"}</strong></header>
-        <div className="project-survey-head"><span>Projeto</span><span>Progresso</span><span>Horas</span><span>Receita</span><span>Custos</span><span>Resultado</span><span /></div>
-        <div className="project-survey-list">
-          {data.projects.map((project) => {
-            const hoursPercent = project.estimated_hours > 0 ? Math.min((project.worked_hours / project.estimated_hours) * 100, 100) : 0;
-            return <button className={selectedProject === String(project.id) ? "active" : ""} type="button" key={project.id} onClick={() => setSelectedProject(String(project.id))}>
-              <span className="survey-project"><i><FolderKanban size={18} /></i><span><strong translate="no">{project.name}</strong><small>{project.client} · {project.manager}</small><em>{project.status}</em></span></span>
-              <span className="survey-meter"><strong>{project.progress}%</strong><i><b style={{ width: `${project.progress}%` }} /></i></span>
-              <span className="survey-meter"><strong>{project.worked_hours}h <small>/ {project.estimated_hours}h</small></strong><i><b className={project.worked_hours > project.estimated_hours ? "over" : ""} style={{ width: `${hoursPercent}%` }} /></i></span>
-              <strong>{currency(project.actual_revenue)}</strong>
-              <strong>{currency(project.actual_cost)}</strong>
-              <span className={project.profit >= 0 ? "survey-profit positive" : "survey-profit negative"}><strong>{currency(project.profit)}</strong><small>{project.profit >= 0 ? "Lucro" : "Prejuízo"}</small></span>
-              <ChevronRight size={19} />
-            </button>;
-          })}
-          {!data.projects.length && <p className="analytics-empty">Nenhum projeto encontrado no período selecionado.</p>}
-        </div>
-      </section>
       </>}
-      {detail && <section className="project-charts-section">
-        <header><div><span>GRÁFICOS INDIVIDUAIS</span><h2>{detail ? "Levantamento do projeto" : "Levantamento de cada projeto"}</h2><p>{detail ? "Indicadores detalhados do projeto selecionado." : "Indicadores financeiros, horas e execução para todos os projetos da carteira."}</p></div><strong>{projectsForCharts.length} {projectsForCharts.length === 1 ? "painel" : "painéis"}</strong></header>
+      <section className="project-charts-section">
+        <header><div><span>PAINEL GRÁFICO</span><h2>{detail ? "Indicadores do projeto" : "Indicadores de todos os projetos"}</h2><p>{detail ? "Finanças, esforço, execução e resultado do projeto selecionado." : "Uma visão gráfica completa para cada projeto da carteira."}</p></div><strong>{projectsForCharts.length} {projectsForCharts.length === 1 ? "projeto" : "projetos"}</strong></header>
         <div className="project-charts-list">
-          {projectsForCharts.map((project) => <article className="project-detail-analytics" key={project.id}>
+          {projectsForCharts.map((project) => {
+            const revenueRate = project.contract_value > 0 ? project.actual_revenue / project.contract_value * 100 : 0;
+            const budgetRate = project.contract_value > 0 ? project.actual_cost / project.contract_value * 100 : 0;
+            const hoursRate = project.estimated_hours > 0 ? project.worked_hours / project.estimated_hours * 100 : 0;
+            const margin = project.actual_revenue > 0 ? project.profit / project.actual_revenue * 100 : 0;
+            return <article className="project-detail-analytics" key={project.id}>
             <header><div><span>PROJETO #{project.id}</span><h2 translate="no">{project.name}</h2><p>{project.client} · {project.manager}</p></div><em>{project.status}</em></header>
             <div className="detail-kpis"><article><TrendingUp size={20} /><span>Valor do projeto<strong>{currency(project.contract_value)}</strong></span></article><article><Clock3 size={20} /><span>Horas estimadas<strong>{project.estimated_hours}h</strong></span></article><article><Clock3 size={20} /><span>Horas realizadas<strong>{project.worked_hours}h</strong></span></article><article><BarChart3 size={20} /><span>Progresso<strong>{project.progress}%</strong></span></article></div>
-            <div className="detail-comparison"><article><h3>Receita x custos</h3><AnalyticsBars horizontal money items={[{ label: "Receita", value: project.actual_revenue }, { label: "Custos", value: project.actual_cost }]} /></article><article><h3>Horas estimadas x realizadas</h3><AnalyticsBars horizontal items={[{ label: "Estimadas", value: project.estimated_hours }, { label: "Realizadas", value: project.worked_hours }]} /></article><article className="project-progress-chart"><h3>Execução do projeto</h3><div className="progress-ring" style={{ "--project-progress": `${Math.min(project.progress, 100) * 3.6}deg` }}><span><strong>{project.progress}%</strong><small>Concluído</small></span></div></article><article className={project.profit >= 0 ? "profit-positive" : "profit-negative"}><h3>Resultado</h3><strong>{currency(project.profit)}</strong><small>{project.profit >= 0 ? "Lucro apurado" : "Prejuízo apurado"}</small></article></div>
-          </article>)}
+            <div className="detail-comparison">
+              <article className="detail-chart-wide"><h3>Visão financeira</h3><AnalyticsBars horizontal money items={[{ label: "Contrato", value: project.contract_value }, { label: "Receita", value: project.actual_revenue }, { label: "Custos", value: project.actual_cost }]} /></article>
+              <article className="detail-chart-wide"><h3>Consumo de horas</h3><AnalyticsBars horizontal items={[{ label: "Estimadas", value: project.estimated_hours }, { label: "Realizadas", value: project.worked_hours }]} /><small className={hoursRate > 100 ? "chart-alert" : "chart-caption"}>{Math.round(hoursRate)}% das horas planejadas consumidas</small></article>
+              <article><h3>Execução</h3><AnalyticsRing value={project.progress} label="concluído" detail={`${project.progress}% do projeto`} /></article>
+              <article><h3>Receita realizada</h3><AnalyticsRing value={revenueRate} label="do contrato" tone="cyan" detail={`${currency(project.actual_revenue)} recebidos`} /></article>
+              <article><h3>Orçamento consumido</h3><AnalyticsRing value={budgetRate} label="em custos" tone={budgetRate > 100 ? "red" : "amber"} detail={`${currency(project.actual_cost)} utilizados`} /></article>
+              <article className={project.profit >= 0 ? "result-chart profit-positive" : "result-chart profit-negative"}><h3>Resultado e margem</h3><strong>{currency(project.profit)}</strong><AnalyticsRing value={Math.abs(margin)} label={margin >= 0 ? "de margem" : "de perda"} tone={margin >= 0 ? "green" : "red"} detail={project.profit >= 0 ? "Lucro apurado" : "Prejuízo apurado"} /></article>
+            </div>
+          </article>;
+          })}
           {!projectsForCharts.length && <p className="analytics-empty">Nenhum projeto disponível para gerar os gráficos.</p>}
         </div>
+      </section>
+      {financialDetail && <section className="analytics-grid financial-breakdown-charts" aria-label="Detalhamento gráfico do projeto">
+        <article className="analytics-panel"><header><h2>Composição dos custos</h2><small>Valores realizados</small></header><AnalyticsBars horizontal money items={[
+          { label: "Impostos", value: financialDetail.actual.taxes },
+          { label: "Comissão", value: financialDetail.actual.commission },
+          { label: "Mão de obra", value: financialDetail.actual.labor_cost },
+          { label: "Despesas", value: financialDetail.actual.approved_expenses },
+        ]} /></article>
+        <article className="analytics-panel"><header><h2>Custo por analista</h2><small>{financialDetail.by_analyst.length} participantes</small></header><AnalyticsBars items={financialDetail.by_analyst.map((item) => ({ label: item.name, value: Number(item.cost) }))} /></article>
+        <article className="analytics-panel"><header><h2>Horas por atividade</h2><small>Distribuição do esforço</small></header><AnalyticsBars items={financialDetail.by_activity_type.map((item) => ({ label: item.name, value: Math.round(Number(item.minutes) / 60 * 10) / 10 }))} /></article>
       </section>}
+      {financialDetail && <div className="management-workspace"><FinancialResult data={financialDetail}/></div>}
     </>}
   </div>;
 }
@@ -629,6 +672,7 @@ function ProjectInvitationModal({ onClose, canManageIdentity }) {
   const [form, setForm] = useState({
     project_id: "", email: "", project_role: "guest",
     relationship_type: "guest_client", organization_name: "", job_title: "", department: "", expires_in_hours: "72",
+    requires_password_creation: true,
     permissions: ["tasks.view", "files.view"],
   });
 
@@ -670,6 +714,7 @@ function ProjectInvitationModal({ onClose, canManageIdentity }) {
           organization_name: form.relationship_type === "external_analyst" ? form.organization_name : null,
           ...(canManageIdentity && form.project_role !== "guest" ? { job_title: form.job_title || null, department: form.department || null } : {}),
           expires_in_hours: Number(form.expires_in_hours),
+          requires_password_creation: form.requires_password_creation,
           permissions: form.permissions,
         }),
       });
@@ -696,7 +741,7 @@ function ProjectInvitationModal({ onClose, canManageIdentity }) {
         {acceptUrl ? (
           <div className="invitation-result">
             <span className="invitation-success"><CheckCircle2 size={19} /> Convite criado</span>
-            <p>O convite será enviado em breve para <strong translate="no">{form.email}</strong>. Como alternativa, você também pode copiar o link abaixo. Ele expira no prazo definido e pode ser utilizado uma única vez.</p>
+            <p>O convite será enviado em breve para <strong translate="no">{form.email}</strong>. Como alternativa, você também pode copiar o link abaixo. Ele expira no prazo definido e pode ser utilizado uma única vez.{form.requires_password_creation ? " A criação de uma nova senha será obrigatória no aceite." : ""}</p>
             <div className="invitation-link"><input readOnly value={acceptUrl} /><button type="button" onClick={copyInvitation}>{copied ? "Copiado" : "Copiar link"}</button></div>
           </div>
         ) : (
@@ -712,6 +757,7 @@ function ProjectInvitationModal({ onClose, canManageIdentity }) {
               </div>
               {form.relationship_type === "external_analyst" && <label>Empresa do analista externo<input required maxLength={160} placeholder="Nome da empresa" value={form.organization_name} onChange={(event) => setForm({ ...form, organization_name: event.target.value })} /></label>}
               <label>Validade do convite<select value={form.expires_in_hours} onChange={(event) => setForm({ ...form, expires_in_hours: event.target.value })}><option value="24">24 horas</option><option value="72">3 dias</option><option value="168">7 dias</option></select><small>Após o aceite, o acesso permanece até a finalização do projeto.</small></label>
+              <label className="invitation-password-policy"><input type="checkbox" checked={form.requires_password_creation} onChange={(event) => setForm({ ...form, requires_password_creation: event.target.checked })} /><span><strong>Criação de senha obrigatória</strong><small>Ao aceitar, a pessoa deverá definir uma nova senha. Novas contas sempre precisam criar uma senha.</small></span></label>
               <fieldset><legend>{form.project_role === "guest" ? "Áreas que o convidado poderá visualizar" : "Permissões no projeto"}</legend>{invitationPermissions.filter(([value]) => form.project_role !== "guest" || ["tasks.view", "files.view"].includes(value)).map(([value, label]) => <label className="invitation-check" key={value}><input type="checkbox" checked={form.permissions.includes(value)} onChange={() => togglePermission(value)} /><span>{label}</span></label>)}</fieldset>
             </>}
             {error && <p className="invitation-error">{error}</p>}
@@ -1124,12 +1170,18 @@ function ProfilePage({ user, onUserUpdate, tutorialTab }) {
   );
 }
 
-function AvatarStack({ count }) {
+function AvatarStack({ members = [], count = members.length, max = 4 }) {
+  const visibleMembers = members.slice(0, max);
+  const displayedCount = visibleMembers.length || Math.min(count, max);
+  const hiddenCount = Math.max(0, count - displayedCount);
   return (
     <div className="avatar-stack" aria-label={`${count} participantes`}>
-      {Array.from({ length: count }, (_, index) => (
-        <span key={index}><CircleUserRound size={31} fill="#fff" strokeWidth={1.2} /></span>
+      {visibleMembers.length ? visibleMembers.map((member) => (
+        <UserAvatar key={member.id ?? member.user_id} user={member} size={32} className="dashboard-team-avatar" />
+      )) : Array.from({ length: Math.min(count, max) }, (_, index) => (
+        <span className="dashboard-team-avatar avatar-placeholder" key={index}><CircleUserRound size={30} /></span>
       ))}
+      {hiddenCount > 0 && <span className="avatar-overflow" aria-label={`Mais ${hiddenCount} participantes`}>+{hiddenCount}</span>}
     </div>
   );
 }
@@ -1310,7 +1362,7 @@ const statusPresentation = {
   cancelled: ["Cancelado", "stopped"],
 };
 
-function HomeDashboard({ search, incompleteOnly, filterMode, sortAscending, onNavigate, onUpdated }) {
+function HomeDashboard({ search, incompleteOnly, filterMode, sortAscending, onNavigate, onEditTeam, onUpdated }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
@@ -1350,8 +1402,147 @@ function HomeDashboard({ search, incompleteOnly, filterMode, sortAscending, onNa
     <div className="dashboard-grid">
       <section className="board-column status-column"><div className="column-title"><span><SlidersHorizontal size={20} /> status</span><span className="column-count">{projects.length}</span></div><div className="column-surface">{projects.map((project) => { const [label, tone] = project.finalized ? ["Feito", "done"] : statusPresentation[project.status] || [project.status || "Planejamento", "progress"]; return <button className="project-row" type="button" key={project.id} onClick={() => onNavigate("projects")}><ClipboardList size={31} strokeWidth={1.4} /><span><span translate="no">{project.name}</span><small>{message("{count}% concluído", { count: project.progress })}</small></span><strong className={tone}>{label}</strong></button>; })}{!projects.length && <p className="column-empty">Nenhum projeto encontrado.</p>}</div></section>
       <section className="board-column tasks-column"><div className="column-title"><span><ListChecks size={20} /> tarefas</span><span className="column-count">{tasks.length}</span></div><div className={`task-list ${!tasks.length ? "empty-surface" : ""}`}>{tasks.map((task) => <article className={`task-card ${task.status === "done" ? "is-done" : ""}`} key={task.id}><button className="task-name" type="button" disabled={!task.mutable} onClick={() => toggleTask(task)} title={task.mutable ? "Alternar conclusão" : "Tarefa somente para visualização"}><Check size={17} /><span><span translate="no">{task.title}</span><small><span translate="no">{task.project_name}</span></small></span></button><div className="task-meta"><span><CircleUserRound size={31} fill="#c9c9c9" stroke="#fff" />{formatDate(task.due_date)}</span><span><i className={`priority-dot ${task.priority}`} /><MoreHorizontal size={24} /></span></div></article>)}{!tasks.length && <p className="column-empty">Nenhuma tarefa encontrada.</p>}</div></section>
-      <section className="board-column teams-column"><div className="column-title"><span><Users size={20} /> Times ativos</span><span className="column-count">{teams.length}</span></div><div className="column-surface team-surface">{teams.map((team) => <button className="team-row" type="button" key={team.project_id} onClick={() => onNavigate("projects")}><Users size={32} fill="#000" /><AvatarStack count={Math.min(team.count, 5)} /><span><strong translate="no">{team.name}</strong><small>{team.count} {team.count === 1 ? "pessoa" : "pessoas"}</small></span></button>)}{!teams.length && <p className="column-empty">Nenhum time ativo.</p>}</div></section>
+      <section className="board-column teams-column"><div className="column-title"><span><Users size={20} /> Times ativos</span><span className="column-count">{teams.length}</span></div><div className="column-surface team-surface">{teams.map((team) => <button className="team-row" type="button" key={team.project_id} onClick={() => onEditTeam(team.project_id)}><span className="team-row-icon"><Users size={24} /></span><AvatarStack members={team.members || []} count={team.count} /><span className="team-row-copy"><strong translate="no">{team.name}</strong><small>{team.count} {team.count === 1 ? "pessoa" : "pessoas"}</small></span><ChevronRight className="team-row-arrow" size={18} /></button>)}{!teams.length && <p className="column-empty">Nenhum time ativo.</p>}</div></section>
     </div>
+  </div>;
+}
+
+function TeamsPage({ initialProjectId }) {
+  const [teams, setTeams] = useState([]);
+  const [selectedId, setSelectedId] = useState(initialProjectId || null);
+  const [detail, setDetail] = useState(null);
+  const [draft, setDraft] = useState({ name: "", members: [] });
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  async function loadTeams(preferredId = selectedId) {
+    const response = await sessionRequest("/teams");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Não foi possível carregar as equipes.");
+    setTeams(data);
+    const nextId = preferredId && data.some((team) => team.project_id === preferredId) ? preferredId : data[0]?.project_id;
+    setSelectedId(nextId || null);
+    if (!nextId) { setDetail(null); setLoading(false); }
+    return nextId;
+  }
+
+  async function openTeam(projectId) {
+    if (!projectId) { setDetail(null); return; }
+    setError(""); setNotice(""); setLoading(true);
+    try {
+      const response = await sessionRequest(`/teams/${projectId}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Não foi possível carregar o time.");
+      setDetail(data);
+      setDraft({ name: data.name, members: data.members.map((member) => ({ user_id: member.user_id, role: member.role })) });
+    } catch (requestError) { setError(requestError.message); }
+    finally { setLoading(false); }
+  }
+
+  useEffect(() => { loadTeams(initialProjectId).catch((requestError) => { setError(requestError.message); setLoading(false); }); }, []);
+  useEffect(() => { if (selectedId && detail?.project_id !== selectedId) openTeam(selectedId); }, [selectedId]);
+
+  const selectedMembers = new Map(draft.members.map((member) => [member.user_id, member]));
+  const visibleUsers = (detail?.available_users || []).filter((person) => `${person.name} ${person.email}`.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")));
+  function toggleMember(person) {
+    setDraft((current) => ({ ...current, members: current.members.some((member) => member.user_id === person.id)
+      ? current.members.filter((member) => member.user_id !== person.id)
+      : [...current.members, { user_id: person.id, role: "analyst" }] }));
+  }
+  function changeRole(userId, role) {
+    setDraft((current) => ({ ...current, members: current.members.map((member) => member.user_id === userId ? { ...member, role } : member) }));
+  }
+  async function save(event) {
+    event.preventDefault(); setSaving(true); setError(""); setNotice("");
+    try {
+      const response = await sessionRequest(`/teams/${detail.project_id}`, { method: "PUT", body: JSON.stringify(draft) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || "Não foi possível salvar o time.");
+      setDetail(data); setDraft({ name: data.name, members: data.members.map((member) => ({ user_id: member.user_id, role: member.role })) });
+      await loadTeams(data.project_id); setNotice("Time atualizado com sucesso.");
+    } catch (requestError) { setError(requestError.message); }
+    finally { setSaving(false); }
+  }
+
+  return <div className="workspace-page teams-workspace">
+    <PageHeading eyebrow="Área de trabalho" title="Equipes" description="Edite os nomes, integrantes e responsabilidades dos times de projeto." />
+    {(error || notice) && <p className={`teams-feedback ${error ? "error" : "success"}`} role={error ? "alert" : "status"}>{error || notice}</p>}
+    <div className="teams-layout">
+      <aside className="teams-list"><header><span><Users size={19} /> Times ativos</span><small>{teams.length}</small></header>{teams.map((team) => <button type="button" className={selectedId === team.project_id ? "active" : ""} key={team.project_id} onClick={() => setSelectedId(team.project_id)}><AvatarStack members={team.members} count={team.members.length} /><span><strong translate="no">{team.name}</strong><small>{team.members.length} {team.members.length === 1 ? "pessoa" : "pessoas"}</small></span><ChevronRight size={17} /></button>)}</aside>
+      <section className="team-editor">{loading ? <p>Carregando time...</p> : detail ? <form onSubmit={save}>
+        <header><div><span>Time do projeto</span><h2 translate="no">{detail.project_name}</h2></div>{detail.finalized && <em>Projeto finalizado</em>}</header>
+        <label className="team-name-field"><span>Nome do time</span><input required maxLength={160} disabled={!detail.can_edit} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
+        <div className="team-members-heading"><div><h3>Integrantes</h3><p>Selecione as pessoas e defina o papel de cada uma no projeto.</p></div><strong>{draft.members.length}</strong></div>
+        <label className="team-search"><Search size={18} /><input aria-label="Buscar pessoa" placeholder="Buscar por nome ou e-mail..." value={search} onChange={(event) => setSearch(event.target.value)} /></label>
+        <div className="team-member-list">{visibleUsers.map((person) => { const selected = selectedMembers.get(person.id); return <article className={selected ? "selected" : ""} key={person.id}><button type="button" disabled={!detail.can_edit} aria-pressed={Boolean(selected)} onClick={() => toggleMember(person)}><UserAvatar user={person} size={38} className="team-member-avatar" /><span className="team-member-identity"><strong translate="no">{person.name}</strong><small translate="no">{person.email}</small></span><i>{selected ? <Check size={15} /> : <Plus size={15} />}</i></button>{selected && <select aria-label={`Papel de ${person.name}`} disabled={!detail.can_edit} value={selected.role} onChange={(event) => changeRole(person.id, event.target.value)}><option value="manager">Gestor</option><option value="analyst">Analista</option><option value="guest">Convidado</option></select>}</article>; })}</div>
+        {detail.can_edit ? <footer><button className="primary-action" disabled={saving}>{saving ? "Salvando..." : "Salvar alterações"}</button></footer> : <p className="team-readonly">Este time está disponível somente para consulta.</p>}
+      </form> : <p>Nenhum time disponível.</p>}</section>
+    </div>
+  </div>;
+}
+
+function ClientsPage() {
+  const emptyClient = { name: "", legal_name: "", document: "", email: "", phone: "", active: true };
+  const [clients, setClients] = useState([]);
+  const [access, setAccess] = useState({});
+  const [search, setSearch] = useState("");
+  const [editor, setEditor] = useState(false);
+  const [form, setForm] = useState(emptyClient);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  async function load() {
+    setLoading(true); setError("");
+    try {
+      const [clientsResponse, accessResponse] = await Promise.all([sessionRequest("/management/parameters/clients"), sessionRequest("/management/access")]);
+      const clientsData = await clientsResponse.json(); const accessData = await accessResponse.json();
+      if (!clientsResponse.ok) throw new Error(clientsData.message || "Não foi possível carregar os clientes.");
+      setClients(clientsData); setAccess(accessResponse.ok ? accessData : {});
+    } catch (requestError) { setError(requestError.message); }
+    finally { setLoading(false); }
+  }
+  useEffect(() => { load(); }, []);
+
+  const digits = (value) => value.replace(/\D/g, "");
+  const cnpj = (value) => digits(value || "").replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2").slice(0, 18);
+  const visible = clients.filter((client) => `${client.name} ${client.legal_name || ""} ${client.document || ""} ${client.email || ""}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")));
+  function open(client = null) {
+    setEditor(client || {}); setError(""); setNotice("");
+    setForm(client ? { name: client.name || "", legal_name: client.legal_name || client.name || "", document: cnpj(client.document), email: client.email || "", phone: client.phone || "", active: Boolean(client.active) } : emptyClient);
+  }
+  async function save(event) {
+    event.preventDefault(); setSaving(true); setError(""); setNotice("");
+    try {
+      const response = await sessionRequest(`/management/parameters/clients${editor?.id ? `/${editor.id}` : ""}`, { method: editor?.id ? "PUT" : "POST", body: JSON.stringify({ ...form, document: digits(form.document) || null }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || "Não foi possível salvar o cliente.");
+      setEditor(false); setForm(emptyClient); setNotice(editor?.id ? "Cliente atualizado com sucesso." : "Cliente cadastrado com sucesso."); await load();
+    } catch (requestError) { setError(requestError.message); }
+    finally { setSaving(false); }
+  }
+  async function archive(client) {
+    if (!window.confirm(`Arquivar o cliente ${client.name}? Os projetos existentes continuarão vinculados.`)) return;
+    const response = await sessionRequest(`/management/parameters/clients/${client.id}`, { method: "DELETE", body: "{}" });
+    if (!response.ok) return setError("Não foi possível arquivar o cliente.");
+    setNotice("Cliente arquivado com sucesso."); await load();
+  }
+
+  return <div className="workspace-page clients-workspace">
+    <PageHeading eyebrow="Relacionamento" title="Clientes" description="Cadastre e mantenha as empresas atendidas nos projetos." action={access["parameters.create"] ? "Nova empresa" : null} onAction={() => open()} />
+    {(error || notice) && <p className={`clients-feedback ${error ? "error" : "success"}`} role={error ? "alert" : "status"}>{error || notice}</p>}
+    <section className="clients-summary"><article><Building2 size={22} /><span><strong>{clients.length}</strong> empresas cadastradas</span></article><article><CheckCircle2 size={22} /><span><strong>{clients.filter((client) => client.active).length}</strong> clientes ativos</span></article></section>
+    <div className="clients-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por empresa, CNPJ ou e-mail..." /></label><span>{visible.length} {visible.length === 1 ? "resultado" : "resultados"}</span></div>
+    <section className="clients-panel">
+      <div className="clients-table-head"><span>Empresa</span><span>CNPJ</span><span>Contato</span><span>Situação</span><span>Ações</span></div>
+      {loading ? <p className="clients-empty">Carregando clientes...</p> : visible.map((client) => <article key={client.id}><span className="client-company"><i><Building2 size={20} /></i><span><strong translate="no">{client.name}</strong><small translate="no">{client.legal_name || "Razão social não informada"}</small></span></span><span>{client.document ? cnpj(client.document) : "Não informado"}</span><span className="client-contact"><strong translate="no">{client.email || "Sem e-mail"}</strong><small translate="no">{client.phone || "Sem telefone"}</small></span><span><em className={client.active ? "active" : "inactive"}>{client.active ? "Ativo" : "Inativo"}</em></span><span className="client-actions">{access["parameters.update"] && <><button type="button" onClick={() => open(client)}>Editar</button>{client.active && <button className="archive" type="button" onClick={() => archive(client)}>Arquivar</button>}</>}</span></article>)}
+      {!loading && !visible.length && <div className="clients-empty"><Building2 size={38} /><strong>Nenhuma empresa encontrada</strong><span>Cadastre um cliente ou altere os termos da busca.</span></div>}
+    </section>
+    {editor !== false && <div className="clients-modal" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setEditor(false)}><form onSubmit={save} role="dialog" aria-modal="true" aria-labelledby="client-editor-title"><header><div><span><Building2 size={20} /></span><div><h2 id="client-editor-title">{editor?.id ? "Editar cliente" : "Cadastrar empresa cliente"}</h2><p>Informe os dados empresariais usados nos projetos.</p></div></div><button type="button" aria-label="Fechar" onClick={() => setEditor(false)}><X size={19} /></button></header><div className="client-form-grid"><label><span>Nome fantasia</span><input required maxLength={150} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label><label><span>Razão social</span><input required maxLength={180} value={form.legal_name} onChange={(event) => setForm({ ...form, legal_name: event.target.value })} /></label><label><span>CNPJ</span><input required inputMode="numeric" placeholder="00.000.000/0000-00" value={form.document} onChange={(event) => setForm({ ...form, document: cnpj(event.target.value) })} /></label><label><span>E-mail corporativo</span><input type="email" maxLength={255} value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label><label><span>Telefone</span><input maxLength={30} value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></label><label><span>Situação</span><select value={form.active ? "1" : "0"} onChange={(event) => setForm({ ...form, active: event.target.value === "1" })}><option value="1">Ativo</option><option value="0">Inativo</option></select></label></div><footer><button className="secondary-button" type="button" onClick={() => setEditor(false)}>Cancelar</button><button className="primary-action" disabled={saving}>{saving ? "Salvando..." : "Salvar cliente"}</button></footer></form></div>}
   </div>;
 }
 
@@ -1488,6 +1679,7 @@ function HistoryPage() {
 function Dashboard({ onLogout, user, onUserUpdate }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [tutorialProfileTab, setTutorialProfileTab] = useState(null);
   const [pageMenuOpen, setPageMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -1521,6 +1713,8 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
     inbox: [Mail, "Caixa de entrada"],
     calendar: [CalendarDays, "Agenda"],
     projects: [FolderKanban, "Projetos"],
+    teams: [Users, "Equipes"],
+    ...(user?.can_view_parameters || user?.can_manage_identity ? { clients: [Building2, "Clientes"] } : {}),
     tasks: [ListChecks, "Tarefas"],
     documents: [Files, "Meus documentos"],
     history: [History, "Histórico"],
@@ -1538,7 +1732,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
   const dataSearchResults = normalizedSearch && searchIndex ? [
     ...(searchIndex.projects || []).filter((item) => item.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch)).map((item) => ({ id: `project-${item.id}`, type: "Projeto", label: item.name, detail: message("{count}% concluído", { count: item.progress }), page: "projects", Icon: FolderKanban })),
     ...(searchIndex.tasks || []).filter((item) => `${item.title} ${item.project_name}`.toLocaleLowerCase("pt-BR").includes(normalizedSearch)).map((item) => ({ id: `task-${item.id}`, type: "Tarefa", label: item.title, detail: item.project_name, page: "tasks", Icon: ListChecks })),
-    ...(searchIndex.teams || []).filter((item) => item.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch)).map((item) => ({ id: `team-${item.project_id}`, type: "Time", label: item.name, detail: message(item.count === 1 ? "{count} pessoa" : "{count} pessoas", { count: item.count }), page: "projects", Icon: Users })),
+    ...(searchIndex.teams || []).filter((item) => item.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch)).map((item) => ({ id: `team-${item.project_id}`, type: "Time", label: item.name, detail: message(item.count === 1 ? "{count} pessoa" : "{count} pessoas", { count: item.count }), page: "teams", projectId: item.project_id, Icon: Users })),
   ].slice(0, 8) : [];
   const globalSearchResults = [...pageSearchResults, ...dataSearchResults].slice(0, 8);
 
@@ -1555,6 +1749,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
   }
 
   function openSearchResult(result) {
+    if (result.projectId) setSelectedTeamId(result.projectId);
     setActivePage(result.page);
     setHomeSearch("");
     setSearchOpen(false);
@@ -1704,6 +1899,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
         onInboxEnter={showInbox}
         onInboxLeave={scheduleInboxClose}
         inboxPinned={inboxPlacement === "sidebar"}
+        canViewParameters={user?.can_view_parameters || user?.can_manage_identity}
       />
 
       <section className="dashboard-content">
@@ -1831,9 +2027,9 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
                   <UserAvatar user={user} size={43} />
                   <span><strong>{user?.name || "Alexandre Silva"}</strong><small>{user?.email || "alexandre@computecnica.com.br"}</small></span>
                 </div>
-                <button type="button" onClick={() => { setActivePage("profile"); setProfileOpen(false); }}><UserRound size={17} /><span>Meu perfil</span></button>
+                <button type="button" onClick={() => { setTutorialProfileTab({ tab: "personal", source: "profile-menu" }); setActivePage("profile"); setProfileOpen(false); }}><UserRound size={17} /><span>Meu perfil</span></button>
                 {user?.can_manage_identity && <button type="button" onClick={() => { setActivePage("admin-users"); setProfileOpen(false); }}><Settings size={17} /><span>Usuários e acessos</span></button>}
-                <button type="button"><ShieldCheck size={17} /><span>Privacidade e segurança</span></button>
+                <button type="button" onClick={() => { setTutorialProfileTab({ tab: "security", source: "profile-menu" }); setActivePage("profile"); setProfileOpen(false); }}><ShieldCheck size={17} /><span>Privacidade e segurança</span></button>
                 <div className="profile-menu-rule" />
                 <button className="logout-item" type="button" onClick={onLogout}><LogOut size={17} /><span>Sair da conta</span></button>
               </div>
@@ -1863,10 +2059,12 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
           </div>}
         </div>
 
-        {activePage === "home" && <HomeDashboard search={homeSearch} incompleteOnly={incompleteOnly} filterMode={homeFilter} sortAscending={sortAscending} onNavigate={setActivePage} onUpdated={setLastUpdatedAt} />}
+        {activePage === "home" && <HomeDashboard search={homeSearch} incompleteOnly={incompleteOnly} filterMode={homeFilter} sortAscending={sortAscending} onNavigate={setActivePage} onEditTeam={(projectId) => { setSelectedTeamId(projectId); setActivePage("teams"); }} onUpdated={setLastUpdatedAt} />}
         {activePage === "inbox" && <InboxPage />}
         {activePage === "calendar" && <CalendarPage />}
         {activePage === "projects" && <ProjectWorkspace request={sessionRequest} onNewProject={user?.can_create_projects ? () => setActivePage("new-project") : undefined} />}
+        {activePage === "teams" && <TeamsPage initialProjectId={selectedTeamId} />}
+        {activePage === "clients" && (user?.can_view_parameters || user?.can_manage_identity) && <ClientsPage />}
         {activePage === "new-project" && (user?.can_create_projects
           ? <NewProjectPage onCreated={() => setActivePage("projects")} onCancel={() => setActivePage("projects")} />
           : <div className="workspace-page new-project-page">
@@ -1916,8 +2114,20 @@ function AcceptInvitationPage() {
   const token = window.location.pathname.split("/").filter(Boolean).at(-1);
   const alreadyAuthenticated = Boolean(window.__SPOT__?.authenticated);
   const [form, setForm] = useState({ name: "", password: "", password_confirmation: "" });
+  const [invitation, setInvitation] = useState(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const requiresPassword = !alreadyAuthenticated || Boolean(invitation?.requires_password_creation);
+
+  useEffect(() => {
+    sessionRequest(`/invitations/${encodeURIComponent(token)}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Este convite não está mais disponível.");
+        setInvitation(data);
+      })
+      .catch((requestError) => setError(requestError.message));
+  }, [token]);
 
   async function accept(event) {
     event.preventDefault();
@@ -1925,7 +2135,10 @@ function AcceptInvitationPage() {
     try {
       const response = await sessionRequest(`/invitations/${encodeURIComponent(token)}/accept`, {
         method: "POST",
-        body: JSON.stringify(alreadyAuthenticated ? {} : form),
+        body: JSON.stringify({
+          ...(!alreadyAuthenticated ? { name: form.name } : {}),
+          ...(requiresPassword ? { password: form.password, password_confirmation: form.password_confirmation } : {}),
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || Object.values(data.errors || {}).flat()[0] || "Este convite não pôde ser aceito.");
@@ -1937,9 +2150,10 @@ function AcceptInvitationPage() {
   }
 
   return <main className="page-shell"><section className="login-card"><div className="login-panel"><div className="form-wrap"><header><h1>Aceitar convite do <strong>Spot</strong></h1><p>Este acesso será válido somente para o projeto e as permissões concedidas.</p></header><form onSubmit={accept}>
-    {!alreadyAuthenticated && <><label className="field"><span>Nome e sobrenome</span><div className="input-wrap"><UserRound size={19} /><input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></div></label><label className="field"><span>Crie uma senha</span><div className="input-wrap"><LockKeyhole size={19} /><input required minLength={8} type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div></label><label className="field"><span>Confirme a senha</span><div className="input-wrap"><LockKeyhole size={19} /><input required minLength={8} type="password" value={form.password_confirmation} onChange={(event) => setForm({ ...form, password_confirmation: event.target.value })} /></div></label></>}
+    {!alreadyAuthenticated && <label className="field"><span>Nome e sobrenome</span><div className="input-wrap"><UserRound size={19} /><input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></div></label>}
     {alreadyAuthenticated && <p>Você está conectado. Confirme para adicionar este projeto à sua conta.</p>}
-    {error && <p className="login-error">{error}</p>}<button className="submit-button" type="submit" disabled={submitting}>{submitting ? "Aceitando..." : "Aceitar convite"}</button>
+    {requiresPassword && <><p><strong>Criação de senha obrigatória</strong><br /><small>Use no mínimo 10 caracteres, com letras maiúsculas, minúsculas e números.</small></p><label className="field"><span>Crie uma nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input required minLength={10} type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div></label><label className="field"><span>Confirme a nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input required minLength={10} type="password" autoComplete="new-password" value={form.password_confirmation} onChange={(event) => setForm({ ...form, password_confirmation: event.target.value })} /></div></label></>}
+    {error && <p className="login-error">{error}</p>}<button className="submit-button" type="submit" disabled={submitting || !invitation}>{submitting ? "Aceitando..." : "Aceitar convite"}</button>
   </form></div></div></section></main>;
 }
 

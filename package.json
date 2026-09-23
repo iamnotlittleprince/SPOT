@@ -1,28 +1,46 @@
 {
-    "name": "spot",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "build": "vite build",
-        "dev": "vite",
-        "test:languages": "npm run build && node scripts/test-languages.mjs",
-        "test:tutorial": "npm run build && node scripts/test-tutorial.mjs",
-        "test:tasks": "npm run build && node scripts/test-tasks.mjs",
-        "test:management": "npm run build && node scripts/test-management.mjs"
-    },
-    "devDependencies": {
-        "@iconify-json/selfhst": "^1.2.16",
-        "@iconify-json/thesvg-color": "^1.2.4",
-        "@vitejs/plugin-react": "^5.0.0",
-        "concurrently": "^9.0.1",
-        "laravel-vite-plugin": "^3.1",
-        "playwright": "^1.63.0",
-        "vite": "^8.0.0"
-    },
-    "dependencies": {
-        "@iconify-json/logos": "^1.2.13",
-        "lucide-react": "^0.468.0",
-        "react": "^18.3.1",
-        "react-dom": "^18.3.1"
-    }
+  "name": "spot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test:languages": "npm run build && node scripts/test-languages.mjs",
+    "test:tutorial": "npm run build && node scripts/test-tutorial.mjs",
+    "test:tasks": "npm run build && node scripts/test-tasks.mjs",
+    "test:management": "npm run build && node scripts/test-management.mjs"
+  },
+  "devDependencies": {
+    "@iconify-json/selfhst": "^1.2.16",
+    "@iconify-json/thesvg-color": "^1.2.4",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.0.1",
+    "laravel-vite-plugin": "^3.1",
+    "playwright": "^1.63.0",
+    "vite": "^8.0.0"
+  },
+  "dependencies": {
+    "@iconify-json/logos": "^1.2.13",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "description": "Aplicação de gestão de projetos construída com Laravel 13, React 18 e Vite.",
+  "version": "1.0.0",
+  "main": "vite.config.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamnotlittleprince/SPOT.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iamnotlittleprince/SPOT/issues"
+  },
+  "homepage": "https://github.com/iamnotlittleprince/SPOT#readme"
 }

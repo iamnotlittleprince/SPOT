@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 use App\Mail\ProjectInvitationMail;
 use Tests\TestCase;
 
@@ -46,8 +47,8 @@ class ProjectInvitationTest extends TestCase
         Auth::forgetGuards();
         $this->postJson("/api/v1/invitations/{$token}/accept", [
             'name' => 'Cliente Convidado',
-            'password' => 'senha-segura',
-            'password_confirmation' => 'senha-segura',
+            'password' => 'Senha-Segura1',
+            'password_confirmation' => 'Senha-Segura1',
         ])->assertOk()->assertJsonPath('project_access_granted', true);
 
         $guest = User::where('email', 'convidado@example.com')->firstOrFail();
@@ -58,8 +59,56 @@ class ProjectInvitationTest extends TestCase
         Mail::assertSent(ProjectInvitationMail::class, fn ($mail) => $mail->hasTo('convidado@example.com'));
 
         $this->postJson("/api/v1/invitations/{$token}/accept", [
-            'name' => 'Outro', 'password' => 'senha-segura', 'password_confirmation' => 'senha-segura',
+            'name' => 'Outro', 'password' => 'Senha-Segura1', 'password_confirmation' => 'Senha-Segura1',
         ])->assertUnprocessable()->assertJsonValidationErrors('token');
+    }
+
+    public function test_invitation_can_require_an_existing_user_to_create_a_new_password(): void
+    {
+        $this->seed();
+        Queue::fake();
+        $admin = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
+        $existing = User::factory()->create(['email' => 'existente@example.com', 'password' => 'Senha-Antiga1']);
+        $project = Project::create(['company_id' => $admin->current_company_id, 'user_id' => $admin->id, 'name' => 'Projeto protegido', 'status' => 'planning', 'progress' => 0]);
+
+        $response = $this->actingAs($admin)->postJson("/api/v1/projects/{$project->id}/invitations", [
+            'email' => $existing->email,
+            'project_role' => 'guest',
+            'relationship_type' => 'guest_client',
+            'requires_password_creation' => true,
+        ])->assertCreated()->assertJsonPath('invitation.requires_password_creation', true);
+        $token = basename($response->json('accept_url'));
+
+        $this->actingAs($existing)->getJson("/api/v1/invitations/{$token}")
+            ->assertOk()->assertJsonPath('requires_password_creation', true);
+        $this->postJson("/api/v1/invitations/{$token}/accept", [])
+            ->assertUnprocessable()->assertJsonValidationErrors('password');
+        $this->postJson("/api/v1/invitations/{$token}/accept", [
+            'password' => 'Senha-Nova123',
+            'password_confirmation' => 'Senha-Nova123',
+        ])->assertOk();
+
+        $this->assertTrue(Hash::check('Senha-Nova123', $existing->fresh()->password));
+    }
+
+    public function test_existing_user_can_accept_without_changing_password_when_requirement_is_disabled(): void
+    {
+        $this->seed();
+        Queue::fake();
+        $admin = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
+        $existing = User::factory()->create(['email' => 'sem-troca@example.com', 'password' => 'Senha-Mantida1']);
+        $project = Project::create(['company_id' => $admin->current_company_id, 'user_id' => $admin->id, 'name' => 'Projeto sem troca', 'status' => 'planning', 'progress' => 0]);
+
+        $response = $this->actingAs($admin)->postJson("/api/v1/projects/{$project->id}/invitations", [
+            'email' => $existing->email,
+            'project_role' => 'guest',
+            'relationship_type' => 'guest_client',
+            'requires_password_creation' => false,
+        ])->assertCreated()->assertJsonPath('invitation.requires_password_creation', false);
+        $token = basename($response->json('accept_url'));
+
+        $this->actingAs($existing)->postJson("/api/v1/invitations/{$token}/accept", [])->assertOk();
+        $this->assertTrue(Hash::check('Senha-Mantida1', $existing->fresh()->password));
     }
 
     public function test_invitation_can_be_revoked_before_use(): void

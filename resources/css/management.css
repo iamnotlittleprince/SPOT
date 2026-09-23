@@ -17,6 +17,7 @@
 .management-dialog header, .management-dialog footer, .management-project-detail > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .management-dialog footer { margin-top: 20px; }
 .management-workspace [role="alert"], .management-dialog [role="alert"] { padding: 12px; background: #ffe3df; color: #812724; border-radius: 8px; }
+.management-field-help { color: #6f7f89; font-size: 11px; font-weight: 400; line-height: 1.45; }
 .management-workspace .project-finalized { background: #ffe3df; color: #9e241e; }
 .management-permissions { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 10px; margin: 15px 0; }
 .management-permissions label { display: flex; align-items: center; }
@@ -80,6 +81,7 @@ html[data-theme="dark"] .management-workspace input, html[data-theme="dark"] .ma
 html[data-theme="dark"] .management-workspace section, html[data-theme="dark"] .management-workspace td, html[data-theme="dark"] .management-workspace th { border-color: #45515a; }
 html[data-theme="dark"] .management-workspace .project-finalized { background: #44252a; color: #ffb0b5; }
 html[data-theme="dark"] .management-workspace [role="alert"], html[data-theme="dark"] .management-dialog [role="alert"] { background: #44252a; color: #ffb0b5; }
+html[data-theme="dark"] .management-field-help { color: #a5b6c0; }
 html[data-theme="dark"] .management-project-detail, html[data-theme="dark"] .management-workspace .project-config-card, html[data-theme="dark"] .management-workspace .project-expenses, html[data-theme="dark"] .management-workspace .management-report { background: #1d1f20; }
 html[data-theme="dark"] .project-detail-heading { border-color: #373d41; background: #232628; }
 html[data-theme="dark"] .project-detail-heading > div > span, html[data-theme="dark"] .report-heading > div > span { color: #6fc3ee; }

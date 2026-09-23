@@ -33,7 +33,22 @@ class CalendarController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $data=$request->validate(['title'=>['required','string','max:150'],'description'=>['nullable','string','max:3000'],'starts_at'=>['required','date'],'ends_at'=>['required','date','after:starts_at'],'provider'=>['required',Rule::in(['spot','google','microsoft','teams'])],'location'=>['nullable','string','max:200']]);
+        $data=$request->validate(
+            ['title'=>['required','string','max:150'],'description'=>['nullable','string','max:3000'],'starts_at'=>['required','date'],'ends_at'=>['required','date','after:starts_at'],'provider'=>['required',Rule::in(['spot','google','microsoft','teams'])],'location'=>['nullable','string','max:200']],
+            [
+                'title.required' => 'Informe o título do evento.',
+                'title.max' => 'O título pode ter no máximo 150 caracteres.',
+                'starts_at.required' => 'Informe a data e o horário de início.',
+                'starts_at.date' => 'Informe uma data e um horário de início válidos.',
+                'ends_at.required' => 'Informe a data e o horário de término.',
+                'ends_at.date' => 'Informe uma data e um horário de término válidos.',
+                'ends_at.after' => 'O horário de término deve ser posterior ao horário de início.',
+                'provider.required' => 'Escolha em qual agenda o evento será criado.',
+                'provider.in' => 'A agenda selecionada não é válida.',
+                'location.max' => 'O local pode ter no máximo 200 caracteres.',
+                'description.max' => 'A descrição pode ter no máximo 3.000 caracteres.',
+            ],
+        );
         $user=$request->user(); $externalId=null; $meetingUrl=null;
         if ($data['provider']==='google') {
             abort_unless($user->google_access_token,422,'Conecte uma conta Google primeiro.');

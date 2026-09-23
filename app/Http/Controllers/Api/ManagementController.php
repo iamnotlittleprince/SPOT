@@ -54,14 +54,33 @@ class ManagementController extends Controller
         Gate::authorize($id ? 'parameters.update' : 'parameters.create');
         $table = $this->table($type);
         $company = $r->user()->current_company_id;
-        $data = $r->validate(['name' => ['required', 'string', 'max:150'], 'active' => ['required', 'boolean'], 'email' => ['nullable', 'email', 'max:255'], 'phone' => ['nullable', 'string', 'max:30']]);
+        if ($type === 'clients') {
+            $r->merge(['document' => preg_replace('/\D+/', '', (string) $r->input('document')) ?: null]);
+        }
+        $data = $r->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'active' => ['required', 'boolean'],
+            'legal_name' => ['nullable', 'string', 'max:180'],
+            'document' => ['nullable', 'digits:14', Rule::unique('clients', 'document')->where('company_id', $company)->ignore($id)],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:30'],
+        ], [
+            'document.digits' => 'Informe um CNPJ com 14 números.',
+            'document.unique' => 'Já existe um cliente cadastrado com este CNPJ.',
+            'email.email' => 'Informe um e-mail corporativo válido.',
+        ]);
         $old = $id ? DB::table($table)->where('company_id', $company)->where('id', $id)->first() : null;
         if ($id) {
             abort_unless($old, 404);
         }
         $values = ['name' => $data['name'], 'active' => $data['active'], 'updated_at' => now()];
         if ($type === 'clients') {
-            $values += ['email' => $data['email'] ?? null, 'phone' => $data['phone'] ?? null];
+            $values += [
+                'legal_name' => $data['legal_name'] ?? $old?->legal_name ?? $data['name'],
+                'document' => $data['document'] ?? $old?->document,
+                'email' => $data['email'] ?? null,
+                'phone' => $data['phone'] ?? null,
+            ];
         } else {
             $values += ['slug' => $old?->slug ?? Str::slug($data['name']).'-'.Str::lower(Str::random(6)), 'updated_at' => now()];
         }

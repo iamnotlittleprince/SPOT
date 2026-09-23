@@ -31,3 +31,10 @@ Artisan::command('audit:prune {--dry-run}', function () {
     $this->info(($this->option('dry-run') ? 'Registros elegíveis: ' : 'Registros removidos: ').$total);
 })->purpose('Aplica a retenção de auditoria por empresa (12 meses por padrão)');
 \Illuminate\Support\Facades\Schedule::command('audit:prune')->dailyAt('03:00')->withoutOverlapping();
+
+Artisan::command('inbox:prune {--dry-run}', function () {
+    $query = \App\Models\InboxItem::whereNotNull('archived_at')->where('archived_at', '<', now()->subDays(30));
+    $total = $this->option('dry-run') ? $query->count() : $query->delete();
+    $this->info(($this->option('dry-run') ? 'Mensagens elegíveis: ' : 'Mensagens removidas: ').$total);
+})->purpose('Remove mensagens que estão na lixeira há mais de 30 dias');
+\Illuminate\Support\Facades\Schedule::command('inbox:prune')->dailyAt('03:15')->withoutOverlapping();

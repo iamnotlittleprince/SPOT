@@ -42,7 +42,6 @@
             "composer install",
             "test -f .env || cp .env.example .env",
             "./php artisan key:generate",
-            "test -f database/database.sqlite || touch database/database.sqlite",
             "./php artisan migrate --force",
             "npm install --ignore-scripts",
             "npm run build"
@@ -67,7 +66,6 @@
         ],
         "post-create-project-cmd": [
             "./php artisan key:generate --ansi",
-            "test -f database/database.sqlite || touch database/database.sqlite",
             "./php artisan migrate --graceful --ansi"
         ],
         "pre-package-uninstall": [

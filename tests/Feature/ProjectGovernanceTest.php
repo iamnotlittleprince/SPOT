@@ -40,7 +40,8 @@ class ProjectGovernanceTest extends TestCase
         [$manager, $project] = $this->userAndProject(['projects.delete']);
 
         $this->actingAs($manager)->deleteJson("/api/v1/projects/{$project->id}", ['reason' => 'curto'])
-            ->assertUnprocessable()->assertJsonValidationErrors('reason');
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.reason.0', 'A justificativa deve ter pelo menos 10 caracteres. Explique o motivo da alteração.');
 
         $this->actingAs($manager)->deleteJson("/api/v1/projects/{$project->id}", [
             'reason' => 'Proposta duplicada registrada por engano.',

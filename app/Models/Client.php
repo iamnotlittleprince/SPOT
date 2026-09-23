@@ -10,7 +10,9 @@ class Client extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['company_id', 'name', 'legal_name', 'document', 'email', 'phone', 'active'];
+
+    protected $casts = ['active' => 'boolean'];
 
     public function companyPeople(): BelongsToMany
     {

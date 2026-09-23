@@ -12,7 +12,7 @@ class ProjectInvitation extends Model
 
     protected function casts(): array
     {
-        return ['permissions' => 'array', 'expires_at' => 'datetime', 'accepted_at' => 'datetime', 'revoked_at' => 'datetime'];
+        return ['permissions' => 'array', 'requires_password_creation' => 'boolean', 'expires_at' => 'datetime', 'accepted_at' => 'datetime', 'revoked_at' => 'datetime'];
     }
 
     public function project(): BelongsTo { return $this->belongsTo(Project::class); }

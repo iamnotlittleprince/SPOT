@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
 class ProjectInvitationController extends Controller
@@ -36,6 +37,7 @@ class ProjectInvitationController extends Controller
             'relationship_type' => ['required', Rule::in(['cpt_internal_analyst', 'external_analyst', 'responsible_manager', 'guest_client', 'guest_analyst', 'guest_manager'])],
             'job_title' => ['nullable', 'string', 'max:120'],
             'department' => ['nullable', 'string', 'max:120'],
+            'requires_password_creation' => ['sometimes', 'boolean'],
         ]);
         if ($request->hasAny(['job_title', 'department'])) {
             Gate::authorize('security.manage');
@@ -65,7 +67,7 @@ class ProjectInvitationController extends Controller
             default => null,
         };
         $defaultPermissions = $data['project_role'] === 'guest' ? ['tasks.view', 'files.view'] : self::MEMBER_PERMISSIONS;
-        $result = $action->execute($project, $request->user(), $data['email'], $data['permissions'] ?? $defaultPermissions, $data['expires_in_hours'] ?? 72, $organizationId, $data['project_role'], $data['relationship_type'], $data['job_title'] ?? null, $data['department'] ?? null);
+        $result = $action->execute($project, $request->user(), $data['email'], $data['permissions'] ?? $defaultPermissions, $data['expires_in_hours'] ?? 72, $organizationId, $data['project_role'], $data['relationship_type'], $data['job_title'] ?? null, $data['department'] ?? null, $data['requires_password_creation'] ?? true);
         $acceptUrl = url('/accept-invitation/'.$result['token']);
         SendAccessEmail::dispatch('invitation', $result['invitation']->id, $acceptUrl)->afterCommit();
 
@@ -76,12 +78,24 @@ class ProjectInvitationController extends Controller
         ], 201);
     }
 
+    public function showAcceptance(string $token): JsonResponse
+    {
+        $invitation = ProjectInvitation::query()->where('token_hash', hash('sha256', $token))->first();
+        abort_unless($invitation?->isUsable(), 404, 'Convite inválido, expirado, revogado ou já utilizado.');
+
+        return response()->json([
+            'requires_password_creation' => $invitation->requires_password_creation,
+        ]);
+    }
+
     public function accept(Request $request, string $token, AcceptProjectInvitation $action): JsonResponse
     {
         $needsRegistration = $request->user() === null;
+        $invitation = ProjectInvitation::query()->where('token_hash', hash('sha256', $token))->first();
+        $requiresPassword = $needsRegistration || (bool) $invitation?->requires_password_creation;
         $data = $request->validate([
             'name' => [Rule::requiredIf($needsRegistration), 'nullable', 'string', 'max:120'],
-            'password' => [Rule::requiredIf($needsRegistration), 'nullable', 'string', 'min:8', 'confirmed'],
+            'password' => [Rule::requiredIf($requiresPassword), 'nullable', 'confirmed', Password::min(10)->letters()->mixedCase()->numbers()],
         ]);
         $user = $action->execute($token, $request->user(), $data['name'] ?? null, $data['password'] ?? null);
         if (! $request->user()) {

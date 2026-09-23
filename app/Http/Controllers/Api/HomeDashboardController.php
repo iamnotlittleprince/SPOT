@@ -47,7 +47,7 @@ class HomeDashboardController extends Controller
                 'mutable' => ! $task->project->isFinalized() && ($user->can('tasks.manage') || $task->user_id === $user->id),
             ]),
             'teams' => $projects->filter(fn (Project $project) => $project->active_members_count > 0)->map(fn (Project $project) => [
-                'project_id' => $project->id, 'name' => 'Time - '.$project->name,
+                'project_id' => $project->id, 'name' => $project->team_name ?: 'Time - '.$project->name,
                 'count' => $project->active_members_count,
                 'members' => $project->members->map(fn ($member) => $member->user?->only(['id', 'name', 'avatar_url']))->filter()->values(),
             ])->values(),

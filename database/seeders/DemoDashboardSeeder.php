@@ -7,24 +7,24 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DemoDashboardSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(ClientDemoSeeder::class);
         $admin = User::query()->where('email', env('INITIAL_ADMIN_EMAIL', 'admin@computecnica.com.br'))->firstOrFail();
         $analystProfile = Profile::query()->where('slug', 'analista')->firstOrFail();
+        $demoPassword = env('DEMO_USER_PASSWORD', 'Demo@Spot2026');
         $people = collect([
             ['name' => 'Mariana Costa', 'email' => 'mariana.demo@computecnica.com.br', 'job_title' => 'Analista de Projetos', 'department' => 'Projetos'],
             ['name' => 'Rafael Santos', 'email' => 'rafael.demo@computecnica.com.br', 'job_title' => 'Analista de Infraestrutura', 'department' => 'Tecnologia'],
             ['name' => 'Camila Oliveira', 'email' => 'camila.demo@computecnica.com.br', 'job_title' => 'Analista de Processos', 'department' => 'Consultoria'],
             ['name' => 'Lucas Almeida', 'email' => 'lucas.demo@computecnica.com.br', 'job_title' => 'Analista de Sistemas', 'department' => 'Tecnologia'],
-        ])->map(function (array $person) use ($admin, $analystProfile): User {
+        ])->map(function (array $person) use ($admin, $analystProfile, $demoPassword): User {
             $user = User::query()->updateOrCreate(['email' => $person['email']], [
                 ...$person,
-                'password' => Hash::make(Str::random(40)),
+                'password' => $demoPassword,
                 'email_verified_at' => now(),
                 'current_company_id' => $admin->current_company_id,
                 'organization_id' => $admin->organization_id,

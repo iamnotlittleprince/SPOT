@@ -46,6 +46,28 @@ class MemorialTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'parameter.saved']);
     }
 
+    public function test_client_registration_stores_company_data_and_rejects_duplicate_cnpj(): void
+    {
+        [$admin] = $this->setupData();
+        $payload = [
+            'name' => 'Cliente Exemplo',
+            'legal_name' => 'Cliente Exemplo Tecnologia Ltda.',
+            'document' => '12.345.678/0001-90',
+            'email' => 'contato@cliente-exemplo.com.br',
+            'phone' => '(11) 4000-1234',
+            'active' => true,
+        ];
+
+        $this->actingAs($admin)->postJson('/api/v1/management/parameters/clients', $payload)
+            ->assertCreated()
+            ->assertJsonPath('legal_name', $payload['legal_name'])
+            ->assertJsonPath('document', '12345678000190');
+
+        $this->postJson('/api/v1/management/parameters/clients', [...$payload, 'name' => 'Empresa duplicada'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('document');
+    }
+
     public function test_tasks_feed_finances_and_preserve_historical_rates(): void
     {
         [$admin,$project,$analyst] = $this->setupData();

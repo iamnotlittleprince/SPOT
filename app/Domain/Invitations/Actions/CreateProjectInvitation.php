@@ -14,9 +14,9 @@ final class CreateProjectInvitation
     public function __construct(private AuditRecorder $audit) {}
 
     /** @param array<int, string> $permissions @return array{invitation:ProjectInvitation, token:string} */
-    public function execute(Project $project, User $actor, string $email, array $permissions, int $expiresInHours, ?int $organizationId, string $projectRole, string $relationshipType, ?string $jobTitle = null, ?string $department = null): array
+    public function execute(Project $project, User $actor, string $email, array $permissions, int $expiresInHours, ?int $organizationId, string $projectRole, string $relationshipType, ?string $jobTitle = null, ?string $department = null, bool $requiresPasswordCreation = true): array
     {
-        return DB::transaction(function () use ($project, $actor, $email, $permissions, $expiresInHours, $organizationId, $projectRole, $relationshipType, $jobTitle, $department): array {
+        return DB::transaction(function () use ($project, $actor, $email, $permissions, $expiresInHours, $organizationId, $projectRole, $relationshipType, $jobTitle, $department, $requiresPasswordCreation): array {
             ProjectInvitation::query()->where('project_id', $project->id)->where('email', $email)
                 ->whereNull('accepted_at')->whereNull('revoked_at')->update(['revoked_at' => now()]);
 
@@ -31,6 +31,7 @@ final class CreateProjectInvitation
                 'relationship_type' => $relationshipType,
                 'token_hash' => hash('sha256', $token),
                 'permissions' => $permissions,
+                'requires_password_creation' => $requiresPasswordCreation,
                 'invited_by' => $actor->id,
                 'expires_at' => now()->addHours($expiresInHours),
             ]);

@@ -23,10 +23,13 @@ class DatabaseSeeder extends Seeder
             ['legal_name' => 'Computécnica Tecnologia Ltda.'],
             ['trade_name' => 'Computécnica', 'cnpj' => null],
         );
-        $cptOrganizationId = DB::table('organizations')->insertGetId([
-            'name' => 'Computécnica Tecnologia Ltda.', 'type' => 'cpt', 'active' => true,
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
+        $cptOrganizationId = DB::table('organizations')->where('name', 'Computécnica Tecnologia Ltda.')->value('id');
+        if (! $cptOrganizationId) {
+            $cptOrganizationId = DB::table('organizations')->insertGetId([
+                'name' => 'Computécnica Tecnologia Ltda.', 'type' => 'cpt', 'active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
 
         $permissions = [
             'security.manage' => ['Segurança', 'Administrar perfis, permissões e exceções'],
@@ -97,9 +100,9 @@ class DatabaseSeeder extends Seeder
             throw new RuntimeException('Defina INITIAL_ADMIN_PASSWORD antes de executar o seed em produção.');
         }
 
-        $admin = User::query()->firstOrCreate(
+        $admin = User::query()->updateOrCreate(
             ['email' => env('INITIAL_ADMIN_EMAIL', 'admin@computecnica.com.br')],
-            ['name' => 'Administrador', 'password' => env('INITIAL_ADMIN_PASSWORD', 'senha12345'), 'email_verified_at' => now()],
+            ['name' => 'Administrador', 'password' => env('INITIAL_ADMIN_PASSWORD', 'Admin@Spot2026'), 'email_verified_at' => now()],
         );
         $admin->update(['current_company_id' => $company->id, 'organization_id' => $cptOrganizationId, 'job_title' => 'Administrador de projetos', 'department' => 'Projetos', 'active' => true, 'account_status' => 'active']);
         $admin->profiles()->syncWithoutDetaching([

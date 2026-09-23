@@ -56,7 +56,19 @@ Em produção, `PYTHON_BINARY` pode apontar para o executável de um ambiente vi
 - `public/`: imagens e arquivos públicos.
 - `.runtime/`: PHP/FrankenPHP, Composer e Node.js portáteis.
 
-O banco local usa SQLite em `database/database.sqlite`.
+O Spot usa exclusivamente PostgreSQL. O banco padrão de desenvolvimento é
+`spot`; a suíte automatizada usa o schema isolado `spot_testing`.
+
+Antes da primeira execução, crie os bancos e aplique as migrações:
+
+```bash
+createdb spot
+psql -d spot -c 'CREATE SCHEMA IF NOT EXISTS spot_testing'
+./php artisan migrate
+```
+
+Configure host, porta, banco, usuário, senha e modo SSL pelas variáveis `DB_*`
+do `.env`. Em produção, use credenciais próprias e conexão protegida por TLS.
 
 ## API principal da SPA
 
@@ -237,7 +249,8 @@ disponível, inclusive depois da conclusão. Trocar de página não repete o avi
 O guia oferece até 35 etapas conforme as permissões da conta: navegação, painel,
 projetos, tarefas, mensagens, documentos, agenda, portfólio, histórico, perfil,
 segurança, notificações, integrações e administração. Permite voltar, avançar,
-escolher um assunto, pausar com Escape, retomar e reiniciar. O conteúdo acompanha
+escolher um assunto e pausar com Escape. Ao abrir o botão **?** novamente, retoma
+diretamente a última etapa; voltar ao início exige confirmação. O conteúdo acompanha
 português, inglês e espanhol, além dos temas claro e escuro e telas pequenas.
 
 O progresso é salvo por conta em `localStorage`, com a chave `spot.tutorial.v1:`.

@@ -1,4 +1,4 @@
-const pptxgen = require('/tmp/spot-slides-csQycd/node_modules/pptxgenjs');
+const pptxgen = require(process.env.PPTXGENJS_PATH || 'pptxgenjs');
 
 const pptx = new pptxgen();
 pptx.layout = 'LAYOUT_WIDE';
@@ -137,7 +137,7 @@ function iconCircle(slide, text, x,y,color=C.blue){
     ['EXPERIÊNCIA','React 18 + Vite','Painel, portfólio, projetos, tarefas, agenda, inbox e perfil',C.cyan],
     ['API PRINCIPAL','Laravel 13 + Sanctum','REST /api/v1, sessão, CSRF, throttling e validação',C.blue],
     ['DOMÍNIO','Actions + Models','Projetos, despesas, horas, convites, auditoria e estoque',C.purple],
-    ['DADOS & ANÁLISE','SQLite + Python/Pandas','Persistência local e consolidação de indicadores gráficos',C.green]
+    ['DADOS & ANÁLISE','PostgreSQL + Python/Pandas','Persistência relacional e consolidação de indicadores gráficos',C.green]
   ];
   layers.forEach((l,i)=>{const y=1.91+i*1.13; box(s,1.08,y,11.0,.84,i%2?'FFFFFF':'F0F8FA'); s.addShape(S.rect,{x:1.08,y,w:.12,h:.84,fill:{color:l[3]},line:{color:l[3]}}); s.addText(l[0],{x:1.48,y:y+.15,w:1.7,h:.19,fontSize:10,bold:true,color:l[3],charSpacing:1,margin:0}); s.addText(l[1],{x:3.18,y:y+.12,w:2.65,h:.27,fontSize:17,bold:true,color:C.navy,margin:0}); s.addText(l[2],{x:6.0,y:y+.15,w:5.48,h:.32,fontSize:11.5,color:C.muted,margin:0,fit:'shrink'}); if(i<3)s.addShape(S.chevron,{x:6.25,y:y+.83,w:.55,h:.3,rotate:90,fill:{color:C.line},line:{color:C.line}})});
   pill(s,'JWT permanece apenas como camada temporária de compatibilidade',4.0,6.52,5.35,'FFF1D9','9A651B');
@@ -162,7 +162,7 @@ function iconCircle(slide, text, x,y,color=C.blue){
   addBullets(s,['Build de produção concluído','52 testes / 262 asserções aprovados','API principal protegida por sessão e CSRF','Fluxos financeiros e governados cobertos por testes','Interface responsiva com principais áreas navegáveis'],1.02,2.92,4.9,2.7,C.ink,14);
   box(s,6.78,1.95,5.55,4.45,'FFF9EE','FFF9EE','F0D7A7');
   pill(s,'A CONSOLIDAR',7.08,2.28,1.62,C.amber,C.white);
-  addBullets(s,['Concluir telas ainda demonstrativas ou parcialmente conectadas','Ampliar testes do frontend e de ponta a ponta','Substituir SQLite e sessão local na produção escalável','Retirar gradualmente a compatibilidade JWT legada','Formalizar observabilidade, backup e operação'],7.12,2.92,4.65,2.7,C.ink,14);
+  addBullets(s,['Concluir telas ainda demonstrativas ou parcialmente conectadas','Ampliar testes do frontend e de ponta a ponta','Hospedar PostgreSQL e sessão em infraestrutura de produção','Retirar gradualmente a compatibilidade JWT legada','Formalizar observabilidade, backup e operação'],7.12,2.92,4.65,2.7,C.ink,14);
 }
 
 // 10 — próximos passos

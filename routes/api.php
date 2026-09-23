@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ProjectWorkflowController;
 use App\Http\Controllers\Api\ProjectAnalyticsController;
 use App\Http\Controllers\Api\ProjectExpenseController;
 use App\Http\Controllers\Api\ProjectInvitationController;
+use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TaskV1Controller;
 use App\Http\Controllers\Api\WorkLogController;
@@ -39,6 +40,7 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:60,1'])->group(fu
     });
     Route::post('first-access/{token}', [FirstAccessController::class, 'activate'])->middleware(['guest', 'throttle:5,1'])->name('first-access.activate');
     Route::post('first-access', [FirstAccessController::class, 'requestLink'])->middleware(['guest', 'throttle:3,10'])->name('first-access.request');
+    Route::get('invitations/{token}', [ProjectInvitationController::class, 'showAcceptance'])->middleware('throttle:30,1')->name('invitations.show');
     Route::post('invitations/{token}/accept', [ProjectInvitationController::class, 'accept'])->middleware('throttle:10,1')->name('invitations.accept');
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -90,6 +92,9 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:60,1'])->group(fu
         Route::patch('admin/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
         Route::delete('admin/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
         Route::get('projects/{project}/configuration', [ProjectConfigurationController::class, 'show'])->name('projects.configuration.show');
+        Route::get('teams', [TeamController::class, 'index'])->name('teams.index');
+        Route::get('teams/{project}', [TeamController::class, 'show'])->name('teams.show');
+        Route::put('teams/{project}', [TeamController::class, 'update'])->name('teams.update');
         Route::post('projects/{project}/members', [ProjectConfigurationController::class, 'addMember'])->name('projects.members.store');
         Route::post('projects/{project}/rates', [ProjectConfigurationController::class, 'storeRate'])->name('projects.rates.store');
         Route::put('projects/{project}/taxes', [ProjectConfigurationController::class, 'replaceTaxes'])->name('projects.taxes.replace');
@@ -113,6 +118,8 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:60,1'])->group(fu
         Route::patch('home-dashboard/tasks/{task}/toggle', [HomeDashboardController::class, 'toggleTask']);
         Route::get('inbox', [InboxController::class, 'index']);
         Route::patch('inbox/read-all', [InboxController::class, 'readAll']);
+        Route::delete('inbox', [InboxController::class, 'clear']);
+        Route::patch('inbox/{inboxItem}/restore', [InboxController::class, 'restore']);
         Route::patch('inbox/{inboxItem}/read', [InboxController::class, 'read']);
         Route::delete('inbox/{inboxItem}', [InboxController::class, 'archive']);
         Route::get('calendar', [CalendarController::class, 'index']);

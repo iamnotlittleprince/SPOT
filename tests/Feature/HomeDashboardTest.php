@@ -23,7 +23,9 @@ class HomeDashboardTest extends TestCase
         $this->actingAs($admin)->getJson('/api/v1/home-dashboard')->assertOk()
             ->assertJsonPath('projects.0.name', 'Projeto real')
             ->assertJsonPath('tasks.0.title', 'Tarefa real')
-            ->assertJsonPath('teams.0.count', 1);
+            ->assertJsonPath('teams.0.count', 1)
+            ->assertJsonPath('teams.0.members.0.id', $admin->id)
+            ->assertJsonPath('teams.0.members.0.name', $admin->name);
 
         $this->patchJson("/api/v1/home-dashboard/tasks/{$task->id}/toggle")
             ->assertOk()->assertJsonPath('status', 'done');

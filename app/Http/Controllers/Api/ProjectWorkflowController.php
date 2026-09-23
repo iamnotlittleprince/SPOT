@@ -44,7 +44,16 @@ class ProjectWorkflowController extends Controller
     /** @return array{reason:string} */
     private function reason(Request $request): array
     {
-        return $request->validate(['reason' => ['required', 'string', 'min:10', 'max:1000']]);
+        $request->merge(['reason' => trim((string) $request->input('reason'))]);
+
+        return $request->validate(
+            ['reason' => ['required', 'string', 'min:10', 'max:1000']],
+            [
+                'reason.required' => 'Informe uma justificativa para continuar.',
+                'reason.min' => 'A justificativa deve ter pelo menos 10 caracteres. Explique o motivo da alteração.',
+                'reason.max' => 'A justificativa pode ter no máximo 1.000 caracteres.',
+            ],
+        );
     }
 
     private function ensureSameCompany(Request $request, Project $project): void

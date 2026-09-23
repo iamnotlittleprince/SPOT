@@ -30,6 +30,9 @@ final class AcceptProjectInvitation
             }
 
             $user = $existing ?? User::create(['name' => $name, 'email' => $invitation->email, 'password' => $password, 'email_verified_at' => now(), 'organization_id' => $invitation->organization_id, 'job_title' => $invitation->job_title, 'department' => $invitation->department, 'account_status' => 'active']);
+            if ($existing && $password !== null) {
+                $user->update(['password' => $password]);
+            }
             $companyId = $invitation->project->company_id;
             $user->update(['current_company_id' => $companyId, 'active' => true]);
             // O papel do convite é restrito ao projeto. Ele nunca promove o

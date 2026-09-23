@@ -17,6 +17,11 @@ const words = {
   later: ['Agora não', 'Not now', 'Ahora no'],
   understood: ['Entendi', 'Got it', 'Entendido'],
   restart: ['Começar do início', 'Start from the beginning', 'Empezar desde el principio'],
+  restartQuestion: ['Quer começar o tutorial do início?', 'Start the tutorial from the beginning?', '¿Quiere empezar el tutorial desde el principio?'],
+  restartBody: ['Seu progresso atual será substituído pela primeira etapa.', 'Your current progress will be replaced by the first step.', 'Su progreso actual será sustituido por el primer paso.'],
+  confirmRestart: ['Sim, começar do início', 'Yes, start from the beginning', 'Sí, empezar desde el principio'],
+  keepGoing: ['Não, continuar de onde parei', 'No, resume where I left off', 'No, continuar donde lo dejé'],
+  cancelRestart: ['Não, cancelar', 'No, cancel', 'No, cancelar'],
   close: ['Fechar tutorial', 'Close tutorial', 'Cerrar tutorial'],
   contents: ['Escolher um assunto', 'Choose a topic', 'Elegir un tema'],
   next: ['Próximo', 'Next', 'Siguiente'],
@@ -50,7 +55,7 @@ function readProgress(key) {
 
 export default function SpotTutorial({ user, locale, onNavigate, onExit, onLanguageChange }) {
   const key = progressKey(user);
-  const steps = useMemo(() => getLessons(user), [user?.can_create_projects, user?.can_manage_identity, user?.can_view_financial]);
+  const steps = useMemo(() => getLessons(user), [user?.can_create_projects, user?.can_manage_identity, user?.can_view_financial, user?.can_view_parameters]);
   const [progress, setProgress] = useState(() => readProgress(key));
   const [mode, setMode] = useState('notice');
   const [index, setIndex] = useState(0);
@@ -90,6 +95,17 @@ export default function SpotTutorial({ user, locale, onNavigate, onExit, onLangu
   }
   function start() {
     goTo(canResume ? steps.findIndex(item => item.id === progress.stepId) : 0);
+  }
+  function openHelp() {
+    if (canResume) start();
+    else setMode('menu');
+  }
+  function askToRestart() {
+    setMode('restart');
+  }
+  function cancelRestart() {
+    if (progress.status === 'completed') setMode('complete');
+    else start();
   }
   function next() {
     if (index < steps.length - 1) goTo(index + 1);
@@ -193,7 +209,7 @@ export default function SpotTutorial({ user, locale, onNavigate, onExit, onLangu
   </details>;
 
   return <>
-    <button ref={helpButton} type="button" className="tutorial-help-button" data-tour="help" aria-label={w('help')} title={w('help')} aria-haspopup="dialog" onClick={() => setMode('menu')} translate="no">?</button>
+    <button ref={helpButton} type="button" className="tutorial-help-button" data-tour="help" aria-label={w('help')} title={w('help')} aria-haspopup="dialog" onClick={openHelp} translate="no">?</button>
     {open && createPortal(<div className={`tutorial-screen ${running ? 'is-running' : ''} ${rect && running ? 'has-highlight' : ''}`} onKeyDown={onKeyDown} translate="no">
       <div className="tutorial-backdrop" aria-hidden="true" />
       {running && rect && <div className="tutorial-highlight" aria-hidden="true" style={{ top: rect.top, left: rect.left, width: Math.max(0, rect.right - rect.left), height: Math.max(0, rect.bottom - rect.top) }} />}
@@ -216,6 +232,10 @@ export default function SpotTutorial({ user, locale, onNavigate, onExit, onLangu
             <h2 id="spot-tutorial-title" data-tutorial-heading tabIndex={-1}>{w('completion')}</h2>
             <p id="spot-tutorial-description">{w('completionBody')}</p>
             {indexList}
+          </> : mode === 'restart' ? <>
+            <div className="tutorial-welcome"><span className="tutorial-emblem"><RotateCcw size={34} /></span></div>
+            <h2 id="spot-tutorial-title" data-tutorial-heading tabIndex={-1}>{w('restartQuestion')}</h2>
+            <p id="spot-tutorial-description">{w('restartBody')}</p>
           </> : <>
             <div className="tutorial-welcome"><span className="tutorial-emblem">?</span><span className="tutorial-recommended">{w('recommended')}</span></div>
             <h2 id="spot-tutorial-title" data-tutorial-heading tabIndex={-1}>{mode === 'notice' ? w(firstVisit ? 'welcome' : 'reminder') : w('help')}</h2>
@@ -230,14 +250,17 @@ export default function SpotTutorial({ user, locale, onNavigate, onExit, onLangu
         </div>
         <footer className="tutorial-card-footer">
           {running ? <>
-            <button type="button" className="tutorial-link-button" onClick={close}><Pause size={15} />{w('pause')}</button>
+            <div><button type="button" className="tutorial-link-button" onClick={close}><Pause size={15} />{w('pause')}</button><button type="button" className="tutorial-link-button" onClick={askToRestart}><RotateCcw size={15} />{w('restart')}</button></div>
             <div><button type="button" className="tutorial-secondary" onClick={() => goTo(index - 1)} disabled={index === 0}><ArrowLeft size={16} />{w('back')}</button><button type="button" className="tutorial-primary" onClick={next}>{w(index === steps.length - 1 ? 'finish' : 'next')}<ArrowRight size={16} /></button></div>
           </> : mode === 'complete' ? <>
-            <button type="button" className="tutorial-link-button" onClick={() => goTo(0)}><RotateCcw size={15} />{w('restart')}</button><button type="button" className="tutorial-primary" onClick={close}>{w('done')}</button>
+            <button type="button" className="tutorial-link-button" onClick={askToRestart}><RotateCcw size={15} />{w('restart')}</button><button type="button" className="tutorial-primary" onClick={close}>{w('done')}</button>
+          </> : mode === 'restart' ? <>
+            <button type="button" className="tutorial-secondary" onClick={cancelRestart}>{w(progress.status === 'completed' ? 'cancelRestart' : 'keepGoing')}</button>
+            <button type="button" className="tutorial-primary" onClick={() => goTo(0)}><RotateCcw size={15} />{w('confirmRestart')}</button>
           </> : <>
             <button type="button" className="tutorial-secondary" onClick={close}>{w(firstVisit ? 'later' : 'understood')}</button>
             <button type="button" className="tutorial-primary" onClick={start}><Play size={16} />{w(canResume ? 'resume' : 'start')}</button>
-            {canResume && <button type="button" className="tutorial-link-button" onClick={() => goTo(0)}><RotateCcw size={15} />{w('restart')}</button>}
+            {canResume && <button type="button" className="tutorial-link-button" onClick={askToRestart}><RotateCcw size={15} />{w('restart')}</button>}
           </>}
         </footer>
         {running && <p className="tutorial-keyboard">{w('keyboard')}</p>}
