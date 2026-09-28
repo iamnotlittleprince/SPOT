@@ -26,7 +26,8 @@ export async function sessionRequest(path, options = {}) {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json",
+      // O navegador define o boundary multipart ao enviar FormData.
+      ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
       ...(changesState ? { "X-XSRF-TOKEN": xsrfToken() } : {}),
       ...options.headers,
     },

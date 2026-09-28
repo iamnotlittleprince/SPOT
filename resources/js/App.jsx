@@ -1579,8 +1579,7 @@ function DocumentsPage() {
     body.append("file", file);
     if (uploadProject) body.append("project_id", uploadProject);
     try {
-      await fetch("/sanctum/csrf-cookie", { credentials: "same-origin" });
-      const response = await fetch("/api/v1/documents", { method: "POST", credentials: "same-origin", headers: { Accept: "application/json", "X-XSRF-TOKEN": xsrfToken() }, body });
+      const response = await sessionRequest("/documents", { method: "POST", body });
       const data = await response.json();
       if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || "Não foi possível enviar o arquivo.");
       setDocuments((current) => [data, ...current]);

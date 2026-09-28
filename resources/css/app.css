@@ -3788,6 +3788,10 @@ html[data-theme="dark"] .inbox-preview-empty { color: #a6a6a6; }
   color: #fff !important;
 }
 
+.quick-access-section {
+  padding-bottom: 24px;
+}
+
 .quick-access-list {
   display: grid;
   margin-top: 10px;
@@ -3815,7 +3819,7 @@ html[data-theme="dark"] .inbox-preview-empty { color: #a6a6a6; }
 
 @media (min-width: 821px) {
   .dashboard-shell .dashboard-sidebar .quick-access-list { padding-right: 52px; padding-left: 52px; }
-  .dashboard-shell .dashboard-sidebar .quick-access-list button { width: 28px; height: 43px; overflow: hidden; }
+  .dashboard-shell .dashboard-sidebar .quick-access-list button { width: 28px; height: 54px; min-height: 54px; overflow: hidden; }
   .dashboard-shell .dashboard-sidebar .quick-access-list button svg { width: 28px; min-width: 28px; height: 28px; }
   .dashboard-sidebar .sidebar-toggle,
   .dashboard-sidebar .quick-access-section .show-more,
@@ -3838,7 +3842,7 @@ html[data-theme="dark"] .inbox-preview-empty { color: #a6a6a6; }
   .dashboard-shell .dashboard-sidebar.inbox-pinned .quick-access-list { padding-right: 40px; padding-left: 40px; }
   .dashboard-shell .dashboard-sidebar:hover .quick-access-list button,
   .dashboard-shell .dashboard-sidebar:focus-within .quick-access-list button,
-  .dashboard-shell .dashboard-sidebar.inbox-pinned .quick-access-list button { width: 100%; }
+  .dashboard-shell .dashboard-sidebar.inbox-pinned .quick-access-list button { width: 100%; height: 46px; min-height: 46px; }
   .dashboard-shell .dashboard-sidebar:hover .quick-access-list button svg,
   .dashboard-shell .dashboard-sidebar:focus-within .quick-access-list button svg,
   .dashboard-shell .dashboard-sidebar.inbox-pinned .quick-access-list button svg { width: 20px; min-width: 20px; height: 20px; }
@@ -3855,7 +3859,7 @@ html[data-theme="dark"] .inbox-preview-empty { color: #a6a6a6; }
 
 .topbar {
   display: grid;
-  grid-template-columns: 300px minmax(360px, 1fr) 200px;
+  grid-template-columns: 300px minmax(0, 1fr) auto;
   align-items: center;
   height: 82px;
   padding: 0 25px;
@@ -4789,7 +4793,7 @@ html[data-theme="dark"] .profile-menu-rule {
   }
 
   .topbar {
-    grid-template-columns: 240px 1fr 170px;
+    grid-template-columns: 240px minmax(0, 1fr) auto;
   }
 }
 
@@ -6262,6 +6266,10 @@ html[data-theme="dark"] .page-menu-trigger.is-open .home-mark {
 
   .dashboard-shell .dashboard-sidebar .quick-access {
     padding-left: 52px;
+  }
+
+  .dashboard-shell .dashboard-sidebar:not(:hover):not(:focus-within):not(.inbox-pinned) .quick-access {
+    padding-top: 64px;
   }
 
   .dashboard-shell .dashboard-sidebar:hover,

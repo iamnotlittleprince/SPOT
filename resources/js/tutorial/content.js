@@ -22,7 +22,7 @@ export const lessons = [
     text('Encontre cada área', 'Find each area', 'Encuentre cada área'),
     text('Clique no nome da página, no topo, para abrir a lista de áreas. O menu lateral também leva às páginas; em telas pequenas, use o botão de menu.', 'Click the page name at the top to open the list of areas. The sidebar also links to pages; on small screens, use the menu button.', 'Haga clic en el nombre de la página para abrir la lista de áreas. El menú lateral también permite navegar; en pantallas pequeñas, use el botón de menú.'),
     text('Acesso rápido guarda as páginas visitadas neste navegador.', 'Quick access remembers pages visited in this browser.', 'Acceso rápido recuerda las páginas visitadas en este navegador.')),
-  step('search', 'basics', 'home', '.topbar-tools',
+  step('search', 'basics', 'home', '.search-box',
     text('Pesquise sem perder tempo', 'Find things quickly', 'Encuentre lo que necesita'),
     text('A pesquisa do topo encontra páginas e os projetos, tarefas e times disponíveis para sua conta. Digite parte do nome e escolha um resultado.', 'The top search finds pages and the projects, tasks and teams available to your account. Type part of a name and choose a result.', 'La búsqueda superior encuentra páginas y los proyectos, tareas y equipos disponibles para su cuenta. Escriba parte del nombre y elija un resultado.'),
     text('Os nomes cadastrados não são traduzidos. Pesquise pelo nome original do projeto ou da tarefa.', 'Registered names are not translated. Search for the original project or task name.', 'Los nombres registrados no se traducen. Busque el nombre original del proyecto o de la tarea.')),
