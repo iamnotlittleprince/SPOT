@@ -63,6 +63,17 @@ body {
 .back-to-login { display: inline-block; margin-top: 22px; color: #0c588a; font-size: 12px; font-weight: 700; text-decoration: none; }
 .recovery-login-button { display: grid; place-items: center; color: #fff; text-decoration: none; }
 
+.reset-success { display: flex; flex-direction: column; align-items: flex-start; }
+.reset-success-icon { display: grid; place-items: center; width: 76px; height: 76px; margin-bottom: 28px; border: 1px solid #67cf9a55; border-radius: 24px; background: #67cf9a14; color: #78dca8; box-shadow: 0 0 40px #67cf9a0a; }
+.reset-success-label { margin-bottom: 10px; color: #78dca8; font-size: 11px; font-weight: 700; letter-spacing: .14em; }
+.recovery-card .reset-success h1 { margin: 0 0 14px; color: #fff; font-size: clamp(28px, 2.2vw, 36px); line-height: 1.2; text-align: left; }
+.reset-success p { margin: 0; color: #b8c1c9; font-size: 14px; line-height: 1.8; }
+.reset-success-note { display: flex; align-items: center; gap: 10px; width: 100%; margin: 26px 0 30px; padding: 14px 16px; border: 1px solid #ffffff16; border-radius: 10px; background: #ffffff04; color: #c4d0d8; font-size: 12px; line-height: 1.5; }
+.reset-success-note svg { flex-shrink: 0; color: #78dca8; }
+.recovery-card .reset-success .recovery-login-button { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; margin: 0; border: 1px solid #1676af; border-radius: 10px; background: #0c588a; box-shadow: 0 6px 20px #0002; transition: background .2s, border-color .2s; }
+.recovery-card .reset-success .recovery-login-button:hover { background: #106ca5; border-color: #3499d2; }
+.recovery-card .reset-success .recovery-login-button:focus-visible { outline: 3px solid #78dca8; outline-offset: 4px; }
+
 .recovery-card {
   grid-template-columns: minmax(360px, .78fr) minmax(500px, 1.22fr);
   width: min(84.5vw, 1400px);
@@ -6304,3 +6315,70 @@ html[data-theme="dark"] .page-menu-trigger.is-open .home-mark {
 .restricted-project-access { display: grid; justify-items: center; gap: 12px; }
 .restricted-project-access h2 { margin: 0; font-size: 22px; color: inherit; }
 .restricted-project-access p { margin: 0; color: inherit; }
+
+/* Recuperação: mesma linguagem visual da confirmação de nova senha. */
+.login-card.forgot-password-card { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); width: min(1120px, 100%); min-height: 600px; border-radius: 16px; }
+.forgot-password-card .login-panel { min-width: 0; padding: 56px clamp(28px, 4vw, 64px); }
+.forgot-password-card .form-wrap { width: min(100%, 410px); }
+.forgot-password-card .recovery-heading { margin-bottom: 32px; }
+.forgot-password-card .recovery-icon { width: 56px; height: 56px; margin-bottom: 24px; border: 1px solid #3499d240; border-radius: 16px; color: #80c9ff; background: #0c588a26; }
+.forgot-password-card .recovery-heading h1 { margin: 0 0 14px; font-size: clamp(26px, 2.4vw, 34px); line-height: 1.2; letter-spacing: -.025em; }
+.forgot-password-card .recovery-heading p { color: #b8c1c9; font-size: 14px; line-height: 1.8; }
+.forgot-password-card .field { margin-bottom: 24px; }
+.forgot-password-card .field > span { margin-bottom: 10px; font-size: 13px; }
+.forgot-password-card .input-wrap { height: 54px; border: 1px solid #ffffff26; border-radius: 10px; color: #9aaebd; background: #ffffff06; }
+.forgot-password-card .input-wrap input { color: #fff; font-size: 14px; }
+.forgot-password-card .input-wrap input::placeholder { color: #8d9aa5; }
+.forgot-password-card .input-wrap:focus-within { border-color: #80c9ff; box-shadow: 0 0 0 3px #80c9ff20; }
+.forgot-password-card .submit-button { display: flex; align-items: center; justify-content: center; gap: 12px; height: 54px; border: 1px solid #1676af; border-radius: 10px; background: #0c588a; box-shadow: 0 6px 20px #0002; font-size: 14px; font-weight: 600; }
+.forgot-password-card .submit-button:hover { background: #106ca5; border-color: #3499d2; }
+.forgot-password-card .submit-button:disabled { opacity: .65; cursor: wait; }
+.forgot-password-card .back-to-login { margin-top: 24px; color: #80c9ff; font-size: 13px; font-weight: 500; }
+.forgot-password-card .back-to-login:hover { color: #b9e1ff; text-decoration: underline; text-underline-offset: 4px; }
+.forgot-password-card a:focus-visible, .forgot-password-card button:focus-visible { outline: 2px solid #80c9ff; outline-offset: 4px; }
+.forgot-password-card .brand { margin-top: 28px !important; }
+.forgot-password-card .recovery-illustration { min-width: 0; }
+@media (max-width: 900px) {
+  .login-card.forgot-password-card { grid-template-columns: 1fr; width: min(560px, 100%); min-height: auto; }
+  .forgot-password-card .recovery-illustration { display: none; }
+}
+@media (max-width: 520px) {
+  .page-shell.recovery-page { display: grid; place-items: center; padding: 20px 16px; }
+  .login-card.forgot-password-card { min-height: auto; border-radius: 16px; }
+  .forgot-password-card .login-panel { padding: 36px 24px; }
+}
+
+/* Primeiro acesso: mantém o formulário em fluxo, inclusive em telas baixas. */
+.login-card.first-access-card { min-height: auto; grid-template-columns: minmax(360px, .9fr) minmax(380px, 1.1fr); }
+.first-access-card .login-panel { padding: 48px clamp(28px, 3.4vw, 64px); }
+.first-access-card .form-wrap { width: min(100%, 530px); }
+.first-access-card .recovery-heading { display: grid; grid-template-columns: 44px 1fr; align-items: center; column-gap: 16px; row-gap: 16px; margin-bottom: 32px; }
+.first-access-card .recovery-heading h1 { margin: 0; font-size: clamp(24px, 1.8vw, 32px); line-height: 1.2; }
+.first-access-card .recovery-heading p { grid-column: 1 / -1; max-width: none; color: #b8c1c9; font-size: 14px; line-height: 1.7; }
+.first-access-card .field { display: block; margin: 0 0 16px; }
+.first-access-card .field > span { display: block; margin-bottom: 8px; }
+.first-access-card .input-wrap { min-width: 0; }
+.first-access-card .input-wrap input { min-width: 0; }
+.first-access-passwords { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; margin: 24px 0; padding-top: 22px; border-top: 1px solid #ffffff1f; }
+.first-access-password-hint { grid-column: 1 / -1; margin: 0 0 16px; color: #b8c1c9; font-size: 12px; line-height: 1.5; }
+.first-access-card .first-access-passwords .field { margin: 0; }
+.first-access-card .recovery-message { margin: 0 0 16px; }
+.first-access-card .submit-button { margin-top: 6px; }
+.first-access-card .back-to-login { margin-top: 20px; color: #80c9ff; }
+.first-access-card .brand { margin-top: 24px !important; }
+.first-access-card .submit-button:disabled { opacity: .65; cursor: wait; }
+.first-access-card a:focus-visible, .first-access-card button:focus-visible { outline: 2px solid #80c9ff; outline-offset: 4px; }
+.first-access-card .input-wrap:focus-within { border-color: #80c9ff; box-shadow: 0 0 0 3px #80c9ff26; }
+@media (min-width: 901px) and (max-width: 1450px) {
+  .first-access-passwords { grid-template-columns: 1fr; row-gap: 16px; }
+  .first-access-password-hint { margin-bottom: 0; }
+}
+@media (max-width: 900px) {
+  .login-card.first-access-card { grid-template-columns: 1fr; width: min(560px, 100%); }
+}
+@media (max-width: 520px) {
+  .first-access-card .login-panel { padding: 28px 22px; }
+  .first-access-card .recovery-heading { column-gap: 12px; margin-bottom: 24px; }
+  .first-access-passwords { grid-template-columns: 1fr; row-gap: 16px; }
+  .first-access-password-hint { margin-bottom: 0; }
+}

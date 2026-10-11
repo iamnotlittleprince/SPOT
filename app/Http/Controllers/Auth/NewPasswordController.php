@@ -20,6 +20,8 @@ class NewPasswordController extends Controller
             'token' => ['required'],
             'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'password.confirmed' => 'As senhas não coincidem. Digite exatamente a mesma senha nos campos “Nova senha” e “Confirmar nova senha”.',
         ]);
 
         $status = Password::reset(

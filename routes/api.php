@@ -38,7 +38,7 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:60,1'])->group(fu
     Route::prefix('auth')->group(function () {
         Route::post('login', [AuthController::class, 'loginSession'])->middleware(['guest', 'throttle:5,1']);
     });
-    Route::post('first-access/{token}', [FirstAccessController::class, 'activate'])->middleware(['guest', 'throttle:5,1'])->name('first-access.activate');
+    Route::post('first-access/{token}', [FirstAccessController::class, 'activate'])->middleware('throttle:5,1')->name('first-access.activate');
     Route::post('first-access', [FirstAccessController::class, 'requestLink'])->middleware(['guest', 'throttle:3,10'])->name('first-access.request');
     Route::get('invitations/{token}', [ProjectInvitationController::class, 'showAcceptance'])->middleware('throttle:30,1')->name('invitations.show');
     Route::post('invitations/{token}/accept', [ProjectInvitationController::class, 'accept'])->middleware('throttle:10,1')->name('invitations.accept');

@@ -55,6 +55,9 @@ class FirstAccessController extends Controller
 
             return $user;
         });
+        // Troque a sessão somente depois de validar e concluir a ativação.
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
 

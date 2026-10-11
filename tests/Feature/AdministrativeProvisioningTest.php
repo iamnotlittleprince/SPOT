@@ -84,19 +84,32 @@ class AdministrativeProvisioningTest extends TestCase
         $this->assertSame('Analista de projetos', $pending->job_title);
         $this->assertSame('Projetos', $pending->department);
 
-        Auth::guard('web')->logout();
-        Auth::forgetGuards();
+        $this->postJson("/api/v1/first-access/{$token}", [
+            'name' => 'Nome incorreto', 'email' => 'ana@computecnica.com.br',
+            'password' => 'senha-segura', 'password_confirmation' => 'senha-segura',
+        ])->assertUnprocessable()->assertJsonValidationErrors('identity');
+        $this->assertAuthenticatedAs($admin);
+        $this->assertNull($pending->fresh()->password);
+        $this->assertDatabaseHas('user_activation_tokens', [
+            'user_id' => $pending->id, 'used_at' => null,
+        ]);
+        $this->withSession(['previous_account_data' => 'admin']);
+        $previousSessionId = session()->getId();
         $this->postJson("/api/v1/first-access/{$token}", [
             'name' => 'Ana Analista', 'email' => 'ana@computecnica.com.br',
             'password' => 'senha-segura', 'password_confirmation' => 'senha-segura',
         ])->assertOk()->assertJsonPath('user.account_status', 'active');
-
-        Auth::guard('web')->logout();
+        $this->assertAuthenticatedAs($pending->fresh(), 'web');
+        $this->assertNotSame($previousSessionId, session()->getId());
+        $this->assertNull(session('previous_account_data'));
         Auth::forgetGuards();
+        $this->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('id', $pending->id);
+
         $this->postJson("/api/v1/first-access/{$token}", [
             'name' => 'Ana Analista', 'email' => 'ana@computecnica.com.br',
             'password' => 'outra-senha', 'password_confirmation' => 'outra-senha',
         ])->assertUnprocessable()->assertJsonValidationErrors('token');
+        $this->assertAuthenticatedAs($pending->fresh(), 'web');
 
         $this->assertDatabaseHas('audit_logs', ['action' => 'user.activation_created', 'auditable_id' => $pending->id]);
         $this->assertDatabaseHas('audit_logs', ['action' => 'user.activated', 'auditable_id' => $pending->id]);

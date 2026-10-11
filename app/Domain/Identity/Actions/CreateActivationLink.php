@@ -3,6 +3,7 @@
 namespace App\Domain\Identity\Actions;
 
 use App\Domain\Audit\AuditRecorder;
+use App\Jobs\SendAccessEmail;
 use App\Models\User;
 use App\Models\UserActivationToken;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ final class CreateActivationLink
             $token = Str::random(64);
             $record = UserActivationToken::create(['user_id' => $user->id, 'token_hash' => hash('sha256', $token), 'created_by' => $administrator->id, 'expires_at' => now()->addHours(48)]);
             $this->audit->record('user.activation_created', $user, $administrator, [], ['expires_at' => $record->expires_at]);
+            SendAccessEmail::dispatch('activation', $record->id, url('/first-access/'.$token))->afterCommit();
             return compact('record', 'token');
         });
     }

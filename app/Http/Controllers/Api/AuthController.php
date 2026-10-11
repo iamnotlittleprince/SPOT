@@ -26,7 +26,7 @@ class AuthController extends Controller
         unset($credentials['two_factor_code']);
 
         if (! Auth::guard('web')->attempt([...$credentials, 'active' => true, 'account_status' => 'active'], true)) {
-            return response()->json(['message' => 'Credenciais inválidas.'], 401);
+            return $this->loginFailure($credentials['email']);
         }
 
         $user = Auth::guard('web')->user();
@@ -117,10 +117,28 @@ class AuthController extends Controller
 
         $guard = Auth::guard('api');
         if (! $token = $guard->attempt([...$credentials, 'active' => true, 'account_status' => 'active'])) {
-            return response()->json(['message' => 'Credenciais inválidas.'], 401);
+            return $this->loginFailure($credentials['email']);
         }
 
         return $this->respondWithToken($token, $guard->user());
+    }
+
+    private function loginFailure(string $email): JsonResponse
+    {
+        $awaitingFirstAccess = User::query()
+            ->where('email', $email)
+            ->where('account_status', 'pending_activation')
+            ->whereNull('password')
+            ->exists();
+
+        if ($awaitingFirstAccess) {
+            return response()->json([
+                'message' => 'Sua conta aguarda ativação e ainda não possui senha. Abra o link de primeiro acesso fornecido pelo administrador para criar sua senha e ativar a conta.',
+                'activation_required' => true,
+            ], 401);
+        }
+
+        return response()->json(['message' => 'Credenciais inválidas.'], 401);
     }
 
     public function logout(): JsonResponse

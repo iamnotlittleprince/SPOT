@@ -2092,21 +2092,61 @@ function FirstAccessPage() {
   const requesting = token === 'first-access';
   const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState({});
+  const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   const submit = async (event) => {
-    event.preventDefault(); setError('');
-    const response = await sessionRequest(requesting ? '/first-access' : `/first-access/${encodeURIComponent(token)}`, { method: 'POST', body: JSON.stringify(form) });
-    const data = await response.json();
-    if (!response.ok) return setError(data.message || Object.values(data.errors || {}).flat()[0] || 'Não foi possível ativar a conta.');
-    if (requesting) return setError(data.message);
-    window.location.assign('/?home');
+    event.preventDefault();
+    if (submitting) return;
+    setError(''); setSuccess('');
+    if (!requesting && form.password !== form.password_confirmation) {
+      setError('As senhas não coincidem. Confira a confirmação da senha.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const response = await sessionRequest(requesting ? '/first-access' : `/first-access/${encodeURIComponent(token)}`, {
+        method: 'POST', body: JSON.stringify({ ...form, name: form.name.trim(), email: form.email.trim() }),
+      });
+      if (!response.headers.get('content-type')?.includes('application/json')) {
+        throw new Error('O servidor retornou uma resposta inesperada. Recarregue a página e tente novamente.');
+      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || 'Não foi possível ativar a conta.');
+      if (requesting) setSuccess(data.message);
+      else window.location.assign('/?home');
+    } catch (failure) {
+      setError(failure.message || 'Não foi possível concluir. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
-  return <main className="page-shell"><section className="login-card"><div className="login-panel"><div className="form-wrap"><header><h1>Primeiro acesso ao <strong>Spot</strong></h1><p>Confirme os dados cadastrados pelo administrador e crie sua senha.</p></header><form onSubmit={submit}>
-    <label>Nome e sobrenome<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
-    <label>E-mail<input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
-    {!requesting && <><label>Nova senha<input required minLength={8} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
-    <label>Confirmar senha<input required minLength={8} type="password" value={form.password_confirmation} onChange={(e) => setForm({ ...form, password_confirmation: e.target.value })} /></label></>}
-    {error && <p className="login-error">{error}</p>}<button type="submit" className="login-button">{requesting ? 'Enviar link de ativação' : 'Ativar minha conta'}</button>
-  </form></div></div></section></main>;
+  return <AuthShell className="first-access-card">
+    <header className="recovery-heading">
+      <div className="recovery-icon"><ShieldCheck size={24} aria-hidden="true" /></div>
+      <h1>Primeiro acesso ao <strong>Spot</strong></h1>
+      <p>{requesting ? 'Informe o nome e o e-mail cadastrados pelo administrador para receber seu link de ativação.' : 'Confirme os dados cadastrados pelo administrador e crie sua senha.'}</p>
+    </header>
+    <form onSubmit={submit} aria-busy={submitting}>
+      <label className="field"><span>Nome e sobrenome</span><div className="input-wrap"><UserRound size={19} aria-hidden="true" /><input name="name" autoComplete="name" placeholder="Seu nome completo" required maxLength={255} value={form.name} onChange={updateField} /></div></label>
+      <label className="field"><span>E-mail</span><div className="input-wrap"><Mail size={19} aria-hidden="true" /><input name="email" autoComplete="email" placeholder="seu@email.com" required type="email" maxLength={255} value={form.email} onChange={updateField} /></div></label>
+      {!requesting && <div className="first-access-passwords">
+        <p className="first-access-password-hint" id="first-access-password-hint">Crie uma senha com pelo menos 8 caracteres.</p>
+        {[['password', 'Nova senha', 'Crie sua senha'], ['password_confirmation', 'Confirmar senha', 'Repita sua senha']].map(([name, label, placeholder]) => <label className="field" key={name}>
+          <span>{label}</span><div className="input-wrap"><LockKeyhole size={19} aria-hidden="true" />
+            <input name={name} autoComplete="new-password" aria-describedby="first-access-password-hint" required minLength={8} type={visiblePasswords[name] ? 'text' : 'password'} placeholder={placeholder} value={form[name]} onChange={updateField} />
+            <button className="password-toggle" type="button" aria-label={`${visiblePasswords[name] ? 'Ocultar' : 'Mostrar'} ${label.toLowerCase()}`} aria-pressed={Boolean(visiblePasswords[name])} onClick={() => setVisiblePasswords((current) => ({ ...current, [name]: !current[name] }))}>{visiblePasswords[name] ? <EyeOff size={19} /> : <Eye size={19} />}</button>
+          </div>
+        </label>)}
+      </div>}
+      {error && <p className="recovery-message error" role="alert">{error}</p>}
+      {success && <p className="recovery-message" role="status">{success}</p>}
+      <button type="submit" className="submit-button" disabled={submitting || Boolean(success)}>{submitting ? 'Aguarde…' : requesting ? 'Enviar link de ativação' : 'Ativar minha conta'}</button>
+    </form>
+    <a className="back-to-login" href="/">Voltar para o login</a>
+    <div className="brand"><img src="/spot-logo.png" alt="SPOT - Organize, planeje, execute" /></div>
+  </AuthShell>;
 }
 
 function AcceptInvitationPage() {
@@ -2167,7 +2207,7 @@ function LegacySpotApp() {
   const [loginError, setLoginError] = useState("");
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
 
-  if (window.location.pathname.startsWith("/first-access/")) return <FirstAccessPage />;
+  if (window.location.pathname === "/first-access" || window.location.pathname.startsWith("/first-access/")) return <FirstAccessPage />;
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -2307,12 +2347,12 @@ export default function App() {
   return <LegacySpotApp />;
 }
 
-function AuthShell({ children }) {
+function AuthShell({ children, className = "" }) {
   return (
     <main className="page-shell recovery-page">
       <div className="decor decor-one" /><div className="decor decor-two" /><div className="decor decor-three" />
       <div className="decor decor-four" /><div className="decor decor-five" /><div className="decor decor-six" />
-      <section className="login-card recovery-card">
+      <section className={`login-card recovery-card ${className}`}>
         <div className="login-panel"><div className="form-wrap">{children}</div></div>
         <aside className="illustration-panel recovery-illustration"><img src="/password-recovery-illustration-v2.png" alt="Ilustração de recuperação segura de acesso" /></aside>
       </section>
@@ -2323,12 +2363,14 @@ function AuthShell({ children }) {
 
 function ForgotPasswordPage() {
   const [message, setMessage] = useState("");
+  const [hasError, setHasError] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
     setLoading(true);
     setMessage("");
+    setHasError(false);
     const email = new FormData(event.currentTarget).get("email");
     try {
       const response = await fetch("/forgot-password", {
@@ -2339,15 +2381,15 @@ function ForgotPasswordPage() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Não foi possível enviar o link.");
       setMessage(result.message);
-    } catch (error) { setMessage(error.message); } finally { setLoading(false); }
+    } catch (error) { setHasError(true); setMessage(error.message); } finally { setLoading(false); }
   }
 
-  return <AuthShell>
+  return <AuthShell className="forgot-password-card">
     <header className="recovery-heading"><span className="recovery-icon"><LockKeyhole size={24} /></span><h1>Recupere sua senha</h1><p>Informe seu e-mail e enviaremos um link seguro para criar uma nova senha.</p></header>
     <form onSubmit={submit}>
-      <label className="field"><span>E-mail</span><div className="input-wrap"><Mail size={19} /><input type="email" name="email" placeholder="seu@email.com" required autoFocus /></div></label>
-      <button className="submit-button" type="submit" disabled={loading}>{loading ? "Enviando..." : "Enviar link de recuperação"}</button>
-      {message && <div className="recovery-message">{message}</div>}
+      <label className="field"><span>E-mail</span><div className="input-wrap"><Mail size={19} aria-hidden="true" /><input type="email" name="email" placeholder="seu@email.com" autoComplete="email" required /></div></label>
+      <button className="submit-button" type="submit" disabled={loading}>{loading ? "Enviando..." : "Enviar link de recuperação"}<ChevronRight size={18} aria-hidden="true" /></button>
+      {message && <div className={`recovery-message${hasError ? " error" : ""}`} role={hasError ? "alert" : "status"}>{message}</div>}
     </form>
     <a className="back-to-login" href="/">← Voltar para o login</a>
     <div className="brand"><img src="/spot-logo.png" alt="SPOT" /></div>
@@ -2363,26 +2405,39 @@ function ResetPasswordPage() {
   async function submit(event) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    setMessage("");
+    if (data.get("password") !== data.get("password_confirmation")) {
+      setMessage('As senhas não coincidem. Para confirmar sua nova senha e evitar erros de digitação, digite exatamente a mesma senha nos campos “Nova senha” e “Confirmar nova senha”.');
+      event.currentTarget.elements.password_confirmation.focus();
+      return;
+    }
     try {
       const response = await fetch("/reset-password", {
         method: "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json", "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "" },
         body: JSON.stringify({ token, email, password: data.get("password"), password_confirmation: data.get("password_confirmation") }),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "Não foi possível redefinir a senha.");
+      const result = await response.json().catch(() => {
+        throw new Error("Não foi possível redefinir a senha. Tente novamente em instantes.");
+      });
+      if (!response.ok) throw new Error(result.errors?.password?.[0] || result.message || "Não foi possível redefinir a senha.");
       setSuccess(true); setMessage(result.message);
     } catch (error) { setMessage(error.message); }
   }
 
-  return <AuthShell>
-    <header className="recovery-heading"><span className="recovery-icon"><ShieldCheck size={24} /></span><h1>Crie uma nova senha</h1><p>Use pelo menos 8 caracteres e escolha uma senha que você não utiliza em outros serviços.</p></header>
-    {success ? <><div className="recovery-message success">{message}</div><a className="submit-button recovery-login-button" href="/">Entrar no Spot</a></> : <form onSubmit={submit}>
+  return <AuthShell className={success ? "reset-success-card" : ""}>
+    {success ? <section className="reset-success" role="status" aria-labelledby="reset-success-title">
+      <span className="reset-success-icon"><CheckCircle2 size={36} aria-hidden="true" /></span>
+      <span className="reset-success-label">TUDO PRONTO</span>
+      <h1 id="reset-success-title">Senha redefinida!</h1>
+      <p>Sua nova senha foi salva com sucesso. Agora você pode entrar no Spot e continuar de onde parou.</p>
+      <div className="reset-success-note"><ShieldCheck size={20} aria-hidden="true" /><span>Use sua nova senha no próximo acesso.</span></div>
+      <a className="submit-button recovery-login-button" href="/">Entrar no Spot <ChevronRight size={18} aria-hidden="true" /></a>
+    </section> : <><header className="recovery-heading"><span className="recovery-icon"><ShieldCheck size={24} /></span><h1>Crie uma nova senha</h1><p>Use pelo menos 8 caracteres e escolha uma senha que você não utiliza em outros serviços.</p></header><form onSubmit={submit}>
       <label className="field"><span>Nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input type="password" name="password" minLength="8" required /></div></label>
       <label className="field"><span>Confirmar nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input type="password" name="password_confirmation" minLength="8" required /></div></label>
       <button className="submit-button" type="submit">Redefinir senha</button>
-      {message && <div className="recovery-message error">{message}</div>}
-    </form>}
-    <a className="back-to-login" href="/">← Voltar para o login</a>
+      {message && <div className="recovery-message error" role="alert">{message}</div>}
+    </form><a className="back-to-login" href="/">← Voltar para o login</a></>}
   </AuthShell>;
 }
