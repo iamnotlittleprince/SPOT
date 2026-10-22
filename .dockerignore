@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+!.env.production.example
+node_modules
+vendor
+.runtime
+.venv
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+public/hot
+public/build
+tests
+docs

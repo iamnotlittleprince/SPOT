@@ -34,7 +34,7 @@ Route::prefix('auth')->group(function () {
 });
 
 // API principal da SPA. Usa a sessao web protegida por Sanctum e CSRF.
-Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:60,1'])->group(function () {
+Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:120,1'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('login', [AuthController::class, 'loginSession'])->middleware(['guest', 'throttle:5,1']);
     });

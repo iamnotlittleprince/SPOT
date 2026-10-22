@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use App\Models\Project;
 
 class ParameterController extends Controller
 {
@@ -16,6 +17,15 @@ class ParameterController extends Controller
         $companyId = $request->user()->current_company_id;
         $parameters = fn (string $table) => DB::table($table)->where('company_id', $companyId)->where('active', true)->orderBy('name')->get();
 
+        $clients = DB::table('clients')->where('company_id', $companyId)->where('active', true)->whereNull('deleted_at');
+        if (! $request->user()->can('projects.view_all')) {
+            $clients->whereIn('id', Project::query()
+                ->where('company_id', $companyId)
+                ->whereHas('members', fn ($members) => $members->where('user_id', $request->user()->id)
+                    ->where(fn ($access) => $access->where('active', true)->orWhereNotNull('projects.finalized_at')))
+                ->select('client_id'));
+        }
+
         return response()->json([
             'field_access' => \App\Domain\Projects\ProjectFields::access($request->user()),
             'project_statuses' => $parameters('project_statuses'),
@@ -24,7 +34,7 @@ class ParameterController extends Controller
             'activity_types' => $parameters('activity_types'),
             'expense_types' => $parameters('expense_types'),
             'users' => DB::table('users')->where('current_company_id', $companyId)->where('active', true)->orderBy('name')->get(['id', 'name', 'email']),
-            'clients' => DB::table('clients')->where('company_id', $companyId)->where('active', true)->whereNull('deleted_at')->orderBy('name')->get(),
+            'clients' => $clients->orderBy('name')->get(),
         ]);
     }
 }

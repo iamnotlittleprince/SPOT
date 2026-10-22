@@ -1,0 +1,75 @@
+x-app: &app
+    build: .
+    image: spot:production
+    env_file:
+      - .env.production
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: database
+      DB_PORT: 5432
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      APP_ENV: production
+      APP_DEBUG: "false"
+      SESSION_SECURE_COOKIE: "true"
+      PYTHON_BINARY: /opt/spot-venv/bin/python
+    volumes:
+      - spot_storage:/app/storage
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+services:
+  web:
+    <<: *app
+    command: ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile", "--adapter", "caddyfile"]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: database
+      DB_PORT: 5432
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      APP_ENV: production
+      APP_DEBUG: "false"
+      SESSION_SECURE_COOKIE: "true"
+      PYTHON_BINARY: /opt/spot-venv/bin/python
+      XDG_DATA_HOME: /data
+      XDG_CONFIG_HOME: /config
+    volumes:
+      - spot_storage:/app/storage
+      - caddy_data:/data
+      - caddy_config:/config
+
+  worker:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "--queue=emails,default", "--sleep=3", "--tries=3", "--timeout=60"]
+
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-spot}
+      POSTGRES_USER: ${DB_USERNAME:-spot}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em .env.production}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  spot_storage:
+  caddy_data:
+  caddy_config:

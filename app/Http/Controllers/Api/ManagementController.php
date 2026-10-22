@@ -44,6 +44,13 @@ class ManagementController extends Controller
         $q = DB::table($this->table($type))->where('company_id', $r->user()->current_company_id);
         if ($type === 'clients') {
             $q->whereNull('deleted_at');
+            if (! $r->user()->can('projects.view_all')) {
+                $q->whereIn('id', Project::query()
+                    ->where('company_id', $r->user()->current_company_id)
+                    ->whereHas('members', fn ($members) => $members->where('user_id', $r->user()->id)
+                        ->where(fn ($access) => $access->where('active', true)->orWhereNotNull('projects.finalized_at')))
+                    ->select('client_id'));
+            }
         }
 
         return response()->json($q->orderBy('name')->get());
