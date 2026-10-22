@@ -18,11 +18,15 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends unzip \
+    && rm -rf /var/lib/apt/lists/* \
+    && composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts
 
 COPY . .
 COPY --from=frontend /app/public/build ./public/build
-RUN composer dump-autoload --no-dev --optimize \
+RUN composer dump-autoload --no-dev --optimize --no-scripts \
+    && php artisan package:discover --ansi \
     && python3 -m venv /opt/spot-venv \
     && /opt/spot-venv/bin/pip install --no-cache-dir -r requirements.txt \
     && chown -R www-data:www-data storage bootstrap/cache \

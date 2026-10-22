@@ -47,10 +47,14 @@ services:
 
   worker:
     <<: *app
+    healthcheck:
+      disable: true
     command: ["php", "artisan", "queue:work", "--queue=emails,default", "--sleep=3", "--tries=3", "--timeout=60"]
 
   scheduler:
     <<: *app
+    healthcheck:
+      disable: true
     command: ["php", "artisan", "schedule:work"]
 
   database:
