@@ -44,3 +44,9 @@ Migração aplicada no ambiente local: `database/migrations/2026_10_28_170000_ad
 - Build e verificações compartilhadas de responsividade, acessibilidade e idiomas.
 
 As verificações de navegador usam respostas de API simuladas; os testes PHP exercitam persistência e autorização reais no banco de testes. Não foi feita avaliação com leitor de tela nem testes com usuários com deficiência nesta alteração.
+
+## Refinamento visual
+
+A tela passou a usar cabeçalho compacto e um painel próprio para envio. Projeto e tarefa ficam lado a lado com o botão no desktop; em telas estreitas, os controles se empilham. A indicação de formatos e limite pertence ao painel de envio. Busca, filtro e contagem ficam alinhados acima da lista, com adaptação para celular. O refinamento preserva os fluxos de atribuição e os temas claro/escuro.
+
+Validação do refinamento: build concluído; 239 verificações de responsividade sem erros (320–1440 px, orientações vertical/horizontal e leitura em 100%/120%); fluxo de documentos e verificações de teclado aprovados. Capturas revisadas em tema escuro a 1440 e 390 px. Mantém-se a limitação de avaliação sem leitor de tela e sem usuários reais.

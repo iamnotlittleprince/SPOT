@@ -631,8 +631,9 @@ function NewProjectPage({ onCreated, onCancel }) {
 }
 
 function UserAvatar({ user, size, className }) {
-  if (user?.avatar_url) {
-    return <img className={className} src={user.avatar_url} alt={`Foto de ${user.name}`} width={size} height={size} />;
+  const [failedUrl, setFailedUrl] = useState(null);
+  if (user?.avatar_url && failedUrl !== user.avatar_url) {
+    return <img className={className} src={user.avatar_url} referrerPolicy="no-referrer" onError={() => setFailedUrl(user.avatar_url)} alt={`Foto de ${user.name}`} width={size} height={size} />;
   }
 
   const name = user?.name?.trim() || "Usuário";
@@ -902,6 +903,7 @@ function ProfilePage({ user, onUserUpdate, tutorialTab }) {
   const [saved, setSaved] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const [avatarFeedback, setAvatarFeedback] = useState(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -1008,6 +1010,18 @@ function ProfilePage({ user, onUserUpdate, tutorialTab }) {
     }
   }
 
+  async function importMicrosoftAvatar() {
+    setAvatarMenuOpen(false); setUploadingAvatar(true); setAvatarFeedback(null);
+    try {
+      const response = await spotFetch('/profile/avatar/microsoft', {method: 'POST', headers: {Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''}});
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Não foi possível buscar a foto da Microsoft agora. Tente novamente.');
+      onUserUpdate({...user, avatar_url: result.avatar_url});
+      setAvatarFeedback({error: false, text: result.message});
+    } catch (failure) { setAvatarFeedback({error: true, text: failure.message}); }
+    finally { setUploadingAvatar(false); }
+  }
+
   async function uploadAvatar(event) {
     await uploadAvatarFile(event.target.files?.[0]);
     event.target.value = "";
@@ -1102,10 +1116,12 @@ function ProfilePage({ user, onUserUpdate, tutorialTab }) {
               <div className="avatar-action-menu">
                 <button type="button" onClick={() => { setAvatarMenuOpen(false); avatarInput.current?.click(); }}>Enviar imagem</button>
                 <button type="button" onClick={openCamera}>Tirar foto</button>
+                <button type="button" onClick={importMicrosoftAvatar}>Buscar foto da Microsoft</button>
                 <button type="button" onClick={resetAvatar}>Usar imagem padrão</button>
               </div>
             )}
           </div>
+          {avatarFeedback && <p className="profile-avatar-feedback" role={avatarFeedback.error ? "alert" : "status"}>{avatarFeedback.text}</p>}
           <h2 translate="no">{user?.name || user?.email || "—"}</h2>
           <p className="profile-role">{user?.spot_role || "Perfil não definido"}</p>
           <span className="online-badge"><i /> Disponível</span>

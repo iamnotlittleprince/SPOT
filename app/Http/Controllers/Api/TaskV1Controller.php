@@ -89,6 +89,24 @@ class TaskV1Controller extends Controller
         return response()->json($this->payload($updated, $user));
     }
 
+    public function updateStatus(Request $request, Task $task, AuditRecorder $audit): JsonResponse
+    {
+        $data = $request->validate(['status' => ['required', Rule::in(['todo', 'in_progress', 'review', 'done'])]]);
+        $user = $request->user();
+        $updated = DB::transaction(function () use ($task, $user, $data, $audit) {
+            $task = $this->tasks($user)->lockForUpdate()->findOrFail($task->id);
+            $this->writableProject($user, $task->project_id);
+            abort_unless($this->canChange($task, $user, 'tasks.manage'), 403);
+            if ($task->status !== $data['status']) {
+                $old = ['status' => $task->status];
+                $task->update(['status' => $data['status']]);
+                $audit->record('task.status_changed', $task, $user, $old, ['status' => $task->status]);
+            }
+            return $task;
+        });
+        return response()->json($this->payload($updated, $user));
+    }
+
     public function destroy(Request $request, Task $task, AuditRecorder $audit): JsonResponse
     {
         $user = $request->user();

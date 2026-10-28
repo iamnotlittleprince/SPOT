@@ -1,7 +1,7 @@
 import TaskDetails from './TaskDetails';
 import React, { useEffect, useRef, useState } from 'react';
-import { CalendarDays, CalendarRange, Columns3, Pencil, Plus, Search, Table2, Trash2, X } from 'lucide-react';
-import { getFormatLocale, translateText } from './i18n';
+import { CalendarDays, CalendarRange, Columns3, GripVertical, Pencil, Plus, Search, Table2, Trash2, X } from 'lucide-react';
+import { getFormatLocale, message, translateText } from './i18n';
 import '../css/tasks.css';
 
 const statuses = { todo: 'A fazer', in_progress: 'Em andamento', review: 'Em revisão', done: 'Concluído' };
@@ -31,8 +31,67 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
   const modal = useRef(null);
   const openedInitialTask = useRef(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [dragging, setDragging] = useState(null);
+  const [dropStatus, setDropStatus] = useState(null);
+  const [moving, setMoving] = useState(null);
+  const dragTask = useRef(null);
+  const touchDrag = useRef(null);
+  const movePending = useRef(false);
+  const suppressClick = useRef(0);
+  const restoreStatusFocus = useRef(null);
+  useEffect(() => {
+    if (restoreStatusFocus.current !== null && moving === null) {
+      document.querySelector(`.kanban-card[data-task-id="${restoreStatusFocus.current}"] select`)?.focus();
+      restoreStatusFocus.current = null;
+    }
+  }, [data.tasks, moving]);
+  function clearDrag() { dragTask.current = null; touchDrag.current = null; setDragging(null); setDropStatus(null); }
+  async function moveTask(task, status) {
+    clearDrag();
+    if (!task?.can_edit || task.status === status || movePending.current) return;
+    movePending.current = true; setMoving(task.id); setError(''); setFeedback('Salvando status...');
+    setData(current => ({...current, tasks: current.tasks.map(item => item.id === task.id ? {...item, status} : item)}));
+    try {
+      const response = await request(`/tasks/${task.id}/status`, {method: 'PATCH', body: JSON.stringify({status})});
+      const result = await response.json();
+      if (!response.ok) throw new Error(Object.values(result.errors || {}).flat()[0] || result.message || translateText('Não foi possível mudar o status. Tente novamente.'));
+      setData(current => ({...current, tasks: current.tasks.map(item => item.id === task.id ? result : item)}));
+      setFeedback(message('Tarefa movida para {status}.', {status: translateText(statuses[result.status])}));
+    } catch (failure) {
+      setData(current => ({...current, tasks: current.tasks.map(item => item.id === task.id ? task : item)}));
+      setFeedback(''); setError(failure.message);
+    } finally { movePending.current = false; setMoving(null); }
+  }
+  function startDrag(event, task) {
+    if (!task.can_edit || movePending.current || event.target.closest('select, input, a, button:not(.task-drag-handle)')) { event.preventDefault(); return; }
+    dragTask.current = task; setDragging(task.id);
+    event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', String(task.id));
+  }
+  function touchStart(event, task) {
+    if (event.pointerType === 'mouse' || !task.can_edit || movePending.current) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    touchDrag.current = {task, x: event.clientX, y: event.clientY, active: false};
+  }
+  function touchMove(event) {
+    const touch = touchDrag.current;
+    if (!touch) return;
+    if (!touch.active && Math.hypot(event.clientX - touch.x, event.clientY - touch.y) < 8) return;
+    touch.active = true; dragTask.current = touch.task; setDragging(touch.task.id);
+    const column = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-drop-status]');
+    setDropStatus(column?.dataset.dropStatus || null);
+    const board = event.currentTarget.closest('.kanban-board');
+    const bounds = board?.getBoundingClientRect();
+    if (bounds && event.clientX > bounds.right - 40) board.scrollBy({left: 35});
+    if (bounds && event.clientX < bounds.left + 40) board.scrollBy({left: -35});
+  }
+  function touchEnd(event) {
+    const touch = touchDrag.current;
+    const column = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-drop-status]');
+    if (touch?.active) { suppressClick.current = Date.now() + 400; if (column) moveTask(touch.task, column.dataset.dropStatus); }
+    clearDrag();
+  }
   function openCard(event, task) {
-    if (!event.target.closest('button, a, input, select')) setSelectedTask(task);
+    if (Date.now() >= suppressClick.current && !event.target.closest('button, a, input, select')) setSelectedTask(task);
   }
 
   useEffect(() => {
@@ -111,8 +170,8 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
   const incompleteLegacyTask = Boolean(editor?.id && (!form.worked_on || !form.activity_type_id));
   const canSave = Boolean(form.description.trim() && form.worked_on && form.activity_type_id && form.analyst_id && Number(form.hours) * 60 + Number(form.minutes) >= 1 && Number(form.hours) * 60 + Number(form.minutes) <= 1440);
   const actions = task => <div className="task-crud-actions">
-    {task.can_edit && <button type="button" aria-label="Editar tarefa" title="Editar tarefa" onClick={() => openEditor(task)}><Pencil size={16} /></button>}
-    {task.can_delete && <button type="button" aria-label="Excluir tarefa" title="Excluir tarefa" disabled={deleting !== null} onClick={() => setPendingDelete(task)}><Trash2 size={16} /></button>}
+    {task.can_edit && <button type="button" aria-label="Editar tarefa" title="Editar tarefa" disabled={moving !== null} onClick={() => openEditor(task)}><Pencil size={16} /></button>}
+    {task.can_delete && <button type="button" aria-label="Excluir tarefa" title="Excluir tarefa" disabled={deleting !== null || moving !== null} onClick={() => setPendingDelete(task)}><Trash2 size={16} /></button>}
     {!task.can_edit && !task.can_delete && <small>Somente leitura</small>}
   </div>;
 
@@ -135,13 +194,18 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
     {feedback && <p className="task-crud-success" role="status">{feedback}</p>}
     {loading && <p role="status">Carregando tarefas...</p>}
     {!loading && !tasks.length && <p className="task-crud-empty">Nenhuma tarefa encontrada.</p>}
+    {view === 'board' && <p className="kanban-help" id="kanban-help">Arraste os cartões entre as colunas ou use o seletor de status em cada tarefa.</p>}
     {view === 'board' && <div className="kanban-board">
-      {Object.entries(statuses).map(([status,label]) => <section className="kanban-column" key={status}>
+      {Object.entries(statuses).map(([status,label]) => <section className={`kanban-column ${dropStatus === status ? 'is-drop-target' : ''}`} data-drop-status={status} key={status}
+        onDragOver={event => { if (dragTask.current && !movePending.current) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; setDropStatus(status); } }}
+        onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget)) setDropStatus(null); }}
+        onDrop={event => { event.preventDefault(); const task = dragTask.current; suppressClick.current = Date.now() + 400; moveTask(task, status); }}>
         <header><span><i className={tones[status]} /><span>{label}</span><b>{tasks.filter(task => task.status === status).length}</b></span></header>
-        <div className="kanban-cards">{tasks.filter(task => task.status === status).map(task => <article className="kanban-card task-open-card" key={task.id} data-task-id={task.id} onClick={event => openCard(event, task)}>
-          <div className="card-project"><span translate="no">{task.project?.name}</span>{actions(task)}</div>
+        <div className="kanban-cards">{tasks.filter(task => task.status === status).map(task => <article className={`kanban-card task-open-card ${dragging === task.id ? 'is-dragging' : ''} ${moving === task.id ? 'is-saving' : ''}`} draggable={Boolean(task.can_edit && moving === null)} aria-busy={moving === task.id || undefined} onDragStart={event => startDrag(event, task)} onDragEnd={clearDrag} key={task.id} data-task-id={task.id} onClick={event => openCard(event, task)}>
+          <div className="card-project">{task.can_edit && <button className="task-drag-handle" type="button" aria-label="Arrastar tarefa" aria-describedby="kanban-help" disabled={moving !== null} onPointerDown={event => touchStart(event, task)} onPointerMove={touchMove} onPointerUp={touchEnd} onPointerCancel={clearDrag}><GripVertical size={18} aria-hidden="true" /></button>}<span translate="no">{task.project?.name}</span>{actions(task)}</div>
           <h2><button className="task-open-button" type="button" onClick={() => setSelectedTask(task)} translate="no">{task.description || task.title}</button></h2><p className="task-activity-summary"><span translate="no">{task.activity_type_name || '—'}</span> · {task.duration_minutes == null ? '—' : `${Math.floor(task.duration_minutes / 60)}h ${task.duration_minutes % 60}min`}{task.is_overtime && <span> · Hora extra</span>}</p>
           <div className="card-tags"><span className={`priority ${task.priority}`}>{priorities[task.priority]}</span><span><CalendarDays size={13} />{dateLabel(task.worked_on || task.due_date)}</span></div>
+          {task.can_edit && <label className="kanban-status-control"><span>Status</span><select aria-label={message('Status de {name}', {name: task.title})} value={task.status} disabled={moving !== null} onChange={event => { restoreStatusFocus.current = task.id; moveTask(task, event.target.value); }}>{Object.entries(statuses).map(([value,label]) => <option value={value} key={value}>{label}</option>)}</select></label>}
           <footer className="task-owner"><span>Responsável</span><strong translate="no">{task.user?.name || '—'}</strong></footer>
         </article>)}
         {data.can_create && <button className="add-task-card" type="button" onClick={() => openEditor(null, status)}><Plus size={17} />Adicionar tarefa</button>}</div>

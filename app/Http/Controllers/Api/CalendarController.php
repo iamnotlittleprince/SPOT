@@ -148,13 +148,6 @@ class CalendarController extends Controller
 
     private function microsoftToken($user): string
     {
-        if (! $user->microsoft_token_expires_at?->isPast()) {
-            return $user->microsoft_access_token;
-        } abort_unless($user->microsoft_refresh_token, 401, 'Reconecte sua conta Microsoft.');
-        $tenant = config('services.microsoft.tenant', 'common');
-        $r = Http::timeout(15)->connectTimeout(5)->asForm()->post("https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/token", ['client_id' => config('services.microsoft.client_id'), 'client_secret' => config('services.microsoft.client_secret'), 'refresh_token' => $user->microsoft_refresh_token, 'grant_type' => 'refresh_token', 'scope' => 'offline_access Calendars.ReadWrite'])->throw();
-        $user->forceFill(['microsoft_access_token' => $r->json('access_token'), 'microsoft_refresh_token' => $r->json('refresh_token') ?: $user->microsoft_refresh_token, 'microsoft_token_expires_at' => now()->addSeconds($r->json('expires_in',3600))])->save();
-
-        return $user->microsoft_access_token;
+        return app(\App\Domain\Auth\MicrosoftToken::class)->get($user);
     }
 }

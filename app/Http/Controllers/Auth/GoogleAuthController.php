@@ -41,7 +41,9 @@ class GoogleAuthController extends Controller
         if (! in_array(mb_strtolower($email), array_filter([mb_strtolower($user->email), mb_strtolower((string) $user->google_email)]), true)) return redirect('/?auth_error=email_mismatch');
         $providerName = trim((string) $googleUser->getName());
         $linkingProvider = ! $user->google_id;
-        $user->forceFill(['name' => $providerName !== '' ? mb_substr($providerName, 0, 255) : $user->name, 'google_id' => $googleUser->getId(), 'google_email' => $email, 'google_access_token' => $googleUser->token, 'google_refresh_token' => $googleUser->refreshToken ?: $user->google_refresh_token, 'google_token_expires_at' => $googleUser->expiresIn ? now()->addSeconds($googleUser->expiresIn) : null, 'avatar_url' => $user->avatar_url ?: $googleUser->getAvatar(), 'email_verified_at' => $user->email_verified_at ?: now()])->save();
+        $user->forceFill(['name' => $providerName !== '' ? mb_substr($providerName, 0, 255) : $user->name, 'google_id' => $googleUser->getId(), 'google_email' => $email, 'google_access_token' => $googleUser->token, 'google_refresh_token' => $googleUser->refreshToken ?: $user->google_refresh_token, 'google_token_expires_at' => $googleUser->expiresIn ? now()->addSeconds($googleUser->expiresIn) : null, 'email_verified_at' => $user->email_verified_at ?: now()])->save();
+
+        app(\App\Domain\Profile\OAuthAvatar::class)->sync($user, 'google', $googleUser);
 
         Auth::login($user, remember: true);
         app(\App\Domain\Audit\AuditRecorder::class)->record('user.login',$user,$user,[],['provider'=>'google']);

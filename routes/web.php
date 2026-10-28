@@ -14,6 +14,7 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 Route::get('/auth/microsoft', [MicrosoftAuthController::class, 'redirect'])->name('auth.microsoft');
 Route::get('/auth/microsoft/callback', [MicrosoftAuthController::class, 'callback'])->name('auth.microsoft.callback');
 Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
+Route::post('/profile/avatar/microsoft', [ProfileAvatarController::class, 'microsoft'])->middleware(['auth', 'throttle:6,1']);
 Route::post('/profile/avatar', [ProfileAvatarController::class, 'update'])
     ->middleware('auth')
     ->name('profile.avatar.update');

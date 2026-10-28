@@ -396,3 +396,7 @@ No cadastro de projetos, a seção de responsáveis permite selecionar a
 [equipe inicial do projeto](docs/equipe-no-cadastro-do-projeto.md).
 
 - [Vínculos de documentos com projetos e tarefas](docs/vinculos-de-documentos.md)
+
+- [Movimentação de tarefas no quadro](docs/quadro-de-tarefas.md)
+
+- [Diagnóstico e importação de fotos do Google e Microsoft](docs/fotos-oauth.md)

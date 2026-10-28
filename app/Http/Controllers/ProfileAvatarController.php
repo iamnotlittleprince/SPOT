@@ -29,6 +29,27 @@ class ProfileAvatarController extends Controller
         ]);
     }
 
+    public function microsoft(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $user->microsoft_id) return response()->json(['status' => 'reconnect', 'message' => 'Conecte sua conta Microsoft em Apps para buscar a foto.'], 422);
+        try {
+            $identity = new \Laravel\Socialite\Two\User;
+            $identity->token = app(\App\Domain\Auth\MicrosoftToken::class)->get($user);
+            $status = app(\App\Domain\Profile\OAuthAvatar::class)->sync($user, 'microsoft', $identity);
+        } catch (\Throwable) {
+            $status = 'reconnect';
+        }
+        $messages = [
+            'updated' => 'Foto da Microsoft atualizada.',
+            'no_photo' => 'A Microsoft não disponibilizou uma foto para esta conta. Você pode enviar uma imagem pelo perfil.',
+            'custom_photo' => 'Sua foto enviada manualmente foi mantida. Use a imagem padrão antes de importar outra foto.',
+            'reconnect' => 'Reconecte sua conta Microsoft em Apps e tente buscar a foto novamente.',
+            'unavailable' => 'Não foi possível buscar a foto da Microsoft agora. Tente novamente.',
+        ];
+        return response()->json(['status' => $status, 'message' => $messages[$status], 'avatar_url' => $user->avatar_url], in_array($status, ['reconnect', 'unavailable']) ? 422 : 200);
+    }
+
     public function destroy(Request $request): JsonResponse
     {
         $user = $request->user();

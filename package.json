@@ -10,7 +10,7 @@
     "dev": "vite",
     "test:languages": "npm run build && node scripts/test-languages.mjs",
     "test:tutorial": "npm run build && node scripts/test-tutorial.mjs",
-    "test:tasks": "npm run build && node scripts/test-tasks.mjs",
+    "test:tasks": "npm run build && node scripts/test-tasks.mjs && node scripts/test-task-board.mjs",
     "test:management": "npm run build && node scripts/test-management.mjs",
     "test:responsive": "npm run build && node scripts/test-responsive.mjs"
   },

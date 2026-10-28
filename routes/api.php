@@ -99,6 +99,7 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:120,1'])->group(f
         Route::post('projects/{project}/rates', [ProjectConfigurationController::class, 'storeRate'])->name('projects.rates.store');
         Route::put('projects/{project}/taxes', [ProjectConfigurationController::class, 'replaceTaxes'])->name('projects.taxes.replace');
         Route::apiResource('projects', ProjectController::class)->except(['destroy']);
+        Route::patch('tasks/{task}/status', [TaskV1Controller::class, 'updateStatus']);
         Route::apiResource('tasks', TaskV1Controller::class)->except(['show']);
         Route::prefix('security')->group(function () {
             Route::get('/', [AccountSecurityController::class, 'show']);

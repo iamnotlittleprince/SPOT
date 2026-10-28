@@ -37,15 +37,15 @@ class MicrosoftAuthController extends Controller
             return redirect('/?auth_error=microsoft_email');
         }
 
-        $avatar = $microsoftUser->getAvatar();
-
         $user = User::query()->where('microsoft_id', $microsoftUser->getId())->orWhere('microsoft_email', $email)->orWhere('email', $email)->first();
         if (! $user || ! $user->active || $user->account_status !== 'active') return redirect('/?auth_error=account_not_provisioned');
         if ($user->microsoft_id && $user->microsoft_id !== $microsoftUser->getId()) return redirect('/?auth_error=microsoft_already_linked');
         if (! in_array(mb_strtolower($email), array_filter([mb_strtolower($user->email), mb_strtolower((string) $user->microsoft_email)]), true)) return redirect('/?auth_error=email_mismatch');
         $linkingProvider = ! $user->microsoft_id;
         $providerName = trim((string) $microsoftUser->getName());
-        $user->forceFill(['name' => $providerName !== '' ? mb_substr($providerName, 0, 255) : $user->name, 'microsoft_id' => $microsoftUser->getId(), 'microsoft_email' => $email, 'microsoft_access_token' => $microsoftUser->token, 'microsoft_refresh_token' => $microsoftUser->refreshToken ?: $user->microsoft_refresh_token, 'microsoft_token_expires_at' => $microsoftUser->expiresIn ? now()->addSeconds($microsoftUser->expiresIn) : null, 'avatar_url' => $user->avatar_url ?: ($avatar ? (string) $avatar : null), 'email_verified_at' => $user->email_verified_at ?: now(), 'last_login_at' => now()])->save();
+        $user->forceFill(['name' => $providerName !== '' ? mb_substr($providerName, 0, 255) : $user->name, 'microsoft_id' => $microsoftUser->getId(), 'microsoft_email' => $email, 'microsoft_access_token' => $microsoftUser->token, 'microsoft_refresh_token' => $microsoftUser->refreshToken ?: $user->microsoft_refresh_token, 'microsoft_token_expires_at' => $microsoftUser->expiresIn ? now()->addSeconds($microsoftUser->expiresIn) : null, 'email_verified_at' => $user->email_verified_at ?: now(), 'last_login_at' => now()])->save();
+
+        app(\App\Domain\Profile\OAuthAvatar::class)->sync($user, 'microsoft', $microsoftUser);
 
         Auth::login($user, remember: true);
         app(\App\Domain\Audit\AuditRecorder::class)->record('user.login',$user,$user,[],['provider'=>'microsoft']);
