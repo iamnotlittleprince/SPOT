@@ -44,40 +44,42 @@ class TeamController extends Controller
 
     public function update(Request $request, Project $project, AuditRecorder $audit): JsonResponse
     {
-        Gate::authorize('projects.update');
-        $this->sameCompany($request, $project);
-        abort_if($project->isFinalized(), 409, 'Projeto finalizado não permite editar o time.');
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:160'],
-            'members' => ['present', 'array'],
-            'members.*.user_id' => ['required', 'integer', 'distinct', Rule::exists('users', 'id')->where('current_company_id', $request->user()->current_company_id)->where('active', true)],
-            'members.*.role' => ['required', Rule::in(['manager', 'analyst', 'guest'])],
-        ]);
+        return DB::transaction(function () use ($request, $project, $audit) {
+            Gate::authorize('projects.update');
+            $this->sameCompany($request, $project);
+            abort_if($project->isFinalized(), 409, 'Projeto finalizado não permite editar o time.');
+            $data = $request->validate([
+                'name' => ['required', 'string', 'max:160'],
+                'members' => ['present', 'array'],
+                'members.*.user_id' => ['required', 'integer', 'distinct', Rule::exists('users', 'id')->where('current_company_id', $request->user()->current_company_id)->where('active', true)],
+                'members.*.role' => ['required', Rule::in(['manager', 'analyst', 'guest'])],
+            ]);
 
-        $old = ['name' => $project->team_name, 'members' => $project->members()->where('active', true)->get(['user_id', 'role'])->toArray()];
-        DB::transaction(function () use ($project, $request, $data): void {
-            $project->update(['team_name' => trim($data['name'])]);
-            $selected = collect($data['members'])->pluck('user_id');
-            $project->members()->where('active', true)->whereNotIn('user_id', $selected)->update(['active' => false, 'access_revoked_at' => now()]);
-            foreach ($data['members'] as $member) {
-                $project->members()->updateOrCreate(['user_id' => $member['user_id']], [
-                    'role' => $member['role'],
-                    'relationship_type' => match ($member['role']) {
-                        'manager' => 'responsible_manager',
-                        'guest' => 'guest_client',
-                        default => 'cpt_internal_analyst',
-                    },
-                    'permissions' => $member['role'] === 'guest' ? ['tasks.view', 'files.view'] : ['tasks.view', 'tasks.comment', 'files.view', 'files.upload'],
-                    'organization_id' => $request->user()->organization_id,
-                    'active' => true, 'access_revoked_at' => null,
-                    'assigned_by' => $request->user()->id, 'assigned_at' => now(),
-                ]);
-            }
+            $old = ['name' => $project->team_name, 'members' => $project->members()->where('active', true)->get(['user_id', 'role'])->toArray()];
+            DB::transaction(function () use ($project, $request, $data): void {
+                $project->update(['team_name' => trim($data['name'])]);
+                $selected = collect($data['members'])->pluck('user_id');
+                $project->members()->where('active', true)->whereNotIn('user_id', $selected)->update(['active' => false, 'access_revoked_at' => now()]);
+                foreach ($data['members'] as $member) {
+                    $project->members()->updateOrCreate(['user_id' => $member['user_id']], [
+                        'role' => $member['role'],
+                        'relationship_type' => match ($member['role']) {
+                            'manager' => 'responsible_manager',
+                            'guest' => 'guest_client',
+                            default => 'cpt_internal_analyst',
+                        },
+                        'permissions' => $member['role'] === 'guest' ? ['tasks.view', 'files.view'] : ['tasks.view', 'tasks.comment', 'files.view', 'files.upload'],
+                        'organization_id' => $request->user()->organization_id,
+                        'active' => true, 'access_revoked_at' => null,
+                        'assigned_by' => $request->user()->id, 'assigned_at' => now(),
+                    ]);
+                }
+            });
+            $new = ['name' => $project->fresh()->team_name, 'members' => $project->members()->where('active', true)->get(['user_id', 'role'])->toArray()];
+            $audit->record('project.team_updated', $project, $request->user(), $old, $new);
+
+            return $this->show($request, $project->fresh());
         });
-        $new = ['name' => $project->fresh()->team_name, 'members' => $project->members()->where('active', true)->get(['user_id', 'role'])->toArray()];
-        $audit->record('project.team_updated', $project, $request->user(), $old, $new);
-
-        return $this->show($request, $project->fresh());
     }
 
     private function team(Project $project, Request $request): array

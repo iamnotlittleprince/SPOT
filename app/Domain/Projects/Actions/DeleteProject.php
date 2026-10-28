@@ -16,8 +16,9 @@ final class DeleteProject
         DB::transaction(function () use ($project, $actor, $reason): void {
             $project = Project::query()->lockForUpdate()->findOrFail($project->getKey());
             abort_if($project->isFinalized(), 409, 'Reabra o projeto antes de excluir.');
+            $old = $project->getAttributes();
             $project->forceFill(['deleted_by' => $actor->getKey(), 'deletion_reason' => $reason])->save();
-            $this->audit->record('project.deleted', $project, $actor, [], ['reason' => $reason]);
+            $this->audit->record('project.deleted', $project, $actor, $old, [...$project->getAttributes(), 'reason' => $reason]);
             $project->delete();
         });
     }

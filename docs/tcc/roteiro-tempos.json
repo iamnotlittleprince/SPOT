@@ -1,0 +1,107 @@
+[
+  {
+    "slide": 1,
+    "titulo": "SPOT: pesquisa que virou sistema",
+    "segundos": 20,
+    "inicio": "00:00",
+    "fim": "00:20"
+  },
+  {
+    "slide": 2,
+    "titulo": "Problema real e duas pesquisas",
+    "segundos": 50,
+    "inicio": "00:20",
+    "fim": "01:10"
+  },
+  {
+    "slide": 3,
+    "titulo": "Quem respondeu e onde já trabalha",
+    "segundos": 60,
+    "inicio": "01:10",
+    "fim": "02:10"
+  },
+  {
+    "slide": 4,
+    "titulo": "As dores que orientaram o núcleo",
+    "segundos": 70,
+    "inicio": "02:10",
+    "fim": "03:20"
+  },
+  {
+    "slide": 5,
+    "titulo": "Existe espaço para uma solução dedicada",
+    "segundos": 65,
+    "inicio": "03:20",
+    "fim": "04:25"
+  },
+  {
+    "slide": 6,
+    "titulo": "O que os participantes pediram",
+    "segundos": 70,
+    "inicio": "04:25",
+    "fim": "05:35"
+  },
+  {
+    "slide": 7,
+    "titulo": "Referências do mercado e nosso recorte",
+    "segundos": 75,
+    "inicio": "05:35",
+    "fim": "06:50"
+  },
+  {
+    "slide": 8,
+    "titulo": "Do contrato à margem",
+    "segundos": 65,
+    "inicio": "06:50",
+    "fim": "07:55"
+  },
+  {
+    "slide": 9,
+    "titulo": "Organização na tela de trabalho",
+    "segundos": 60,
+    "inicio": "07:55",
+    "fim": "08:55"
+  },
+  {
+    "slide": 10,
+    "titulo": "Indicadores para decidir",
+    "segundos": 55,
+    "inicio": "08:55",
+    "fim": "09:50"
+  },
+  {
+    "slide": 11,
+    "titulo": "Governança e integração no fluxo",
+    "segundos": 60,
+    "inicio": "09:50",
+    "fim": "10:50"
+  },
+  {
+    "slide": 12,
+    "titulo": "Como a arquitetura sustenta isso",
+    "segundos": 60,
+    "inicio": "10:50",
+    "fim": "11:50"
+  },
+  {
+    "slide": 13,
+    "titulo": "Uma tarefa, do clique ao banco",
+    "segundos": 55,
+    "inicio": "11:50",
+    "fim": "12:45"
+  },
+  {
+    "slide": 14,
+    "titulo": "O que validamos e o que falta",
+    "segundos": 50,
+    "inicio": "12:45",
+    "fim": "13:35"
+  },
+  {
+    "slide": 15,
+    "titulo": "Contribuição do trabalho",
+    "segundos": 35,
+    "inicio": "13:35",
+    "fim": "14:10"
+  }
+]

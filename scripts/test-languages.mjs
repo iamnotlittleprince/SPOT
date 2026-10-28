@@ -83,7 +83,9 @@ try {
   await navigate(page,'Home','en');
   assert.equal(await page.locator('.project-row [translate="no"]').innerText(),'Planejamento');checks++;
   await page.reload();await page.waitForFunction(()=>document.documentElement.lang==='en');
-  await page.locator('.tutorial-card').getByRole('button',{name:'Got it',exact:true}).click();checks++;
+  assert.equal(await page.locator('.tutorial-card').count(),0,'The dismissed first-visit notice must not reopen after reload');checks++;
+  await page.locator('[data-tour="help"]').click();
+  await page.locator('.tutorial-card').getByRole('button',{name:'Close tutorial',exact:true}).click();checks++;
   await context.close();
  }
  console.log(JSON.stringify({checks,failures:[...new Set(failures)],review:[...missing]},null,2));

@@ -19,7 +19,7 @@ class TaskV1Controller extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $tasks = $this->tasks($user)->with(['project:id,name,client_id,client_name,finalized_at', 'user:id,name'])
+        $tasks = $this->tasks($user)->with(['project:id,name,client_id,client_name,finalized_at', 'user:id,name', 'participants:id,name'])
             ->orderBy('position')->orderByDesc('id')->get();
 
         return response()->json([
@@ -28,13 +28,17 @@ class TaskV1Controller extends Controller
             'can_create' => $user->canCreateTasks(),
             'clients' => DB::table('clients')->where('company_id', $user->current_company_id)->whereIn('id', $this->projects($user)->select('client_id'))->get(['id', 'name']),
             'current_user' => $user->only(['id', 'name']),
-            'can_assign_others' => $user->can('work_logs.create_for_others'),
+            'can_assign_others' => $user->canCreateTasks(),
             'analysts' => $user->can('work_logs.create_for_others') ? DB::table('project_members')
                 ->join('users', 'users.id', '=', 'project_members.user_id')
                 ->whereIn('project_id', $this->projects($user)->select('id'))
                 ->where('project_members.active', true)->where('users.active', true)
                 ->get(['users.id', 'users.name', 'project_members.project_id'])
                 ->filter(fn ($row) => User::find($row->id)?->canCreateTasks())->values() : [],
+            'project_people' => DB::table('project_members')->join('users', 'users.id', '=', 'project_members.user_id')
+                ->whereIn('project_id', $this->projects($user)->select('id'))->where('users.current_company_id', $user->current_company_id)
+                ->where('project_members.active', true)->where('users.active', true)->get(['users.id', 'users.name', 'project_members.project_id'])
+                ->map(fn ($person) => [...(array) $person, 'can_be_responsible' => (bool) User::find($person->id)?->canCreateTasks()]),
             'activity_types' => DB::table('activity_types')->where('company_id', $user->current_company_id)->where('active', true)->orderBy('name')->get(['id', 'name']),
         ]);
     }
@@ -47,9 +51,12 @@ class TaskV1Controller extends Controller
         $task = DB::transaction(function () use ($data, $user, $audit) {
             $this->writableProject($user, $data['project_id']);
             $this->ensureAnalyst($user, $data);
+            $participants = $this->participantIds($user, $data);
+            unset($data['participant_ids']);
             $task = Task::create([...$data, 'created_by' => $user->id]);
+            $task->participants()->sync($participants);
             app(\App\Domain\Tasks\TaskCosting::class)->capture($task);
-            $audit->record('task.created', $task, $user, [], $task->getAttributes());
+            $audit->record('task.created', $task, $user, [], [...$task->getAttributes(), 'participant_ids' => $participants]);
 
             return $task;
         });
@@ -67,11 +74,14 @@ class TaskV1Controller extends Controller
             $this->writableProject($user, $data['project_id']);
             abort_unless($this->canChange($task, $user, 'tasks.manage'), 403);
             $this->ensureAnalyst($user, $data, $task);
-            $old = $task->getAttributes();
+            $participants = $this->participantIds($user, $data, $task);
+            unset($data['participant_ids']);
+            $old = [...$task->getAttributes(), 'participant_ids' => $task->participants()->pluck('users.id')->all()];
             $reprice = $task->cost_rate_snapshot === null || (int) $task->project_id !== (int) $data['project_id'] || (int) $task->user_id !== (int) $data['user_id'] || $task->worked_on?->toDateString() !== $data['worked_on'] || $task->is_overtime !== (bool) $data['is_overtime'];
             $task->update($data);
+            $task->participants()->sync($participants);
             if ($reprice) app(\App\Domain\Tasks\TaskCosting::class)->capture($task);
-            $audit->record('task.updated', $task, $user, $old, $task->getAttributes());
+            $audit->record('task.updated', $task, $user, $old, [...$task->getAttributes(), 'participant_ids' => $participants]);
 
             return $task;
         });
@@ -86,7 +96,7 @@ class TaskV1Controller extends Controller
             $task = $this->tasks($user)->lockForUpdate()->findOrFail($task->id);
             $this->writableProject($user, $task->project_id);
             abort_unless($this->canChange($task, $user, 'tasks.delete'), 403);
-            $audit->record('task.deleted', $task, $user, $task->getAttributes());
+            $audit->record('task.deleted', $task, $user, [...$task->getAttributes(), 'participant_ids' => $task->participants()->pluck('users.id')->all()]);
             $task->delete();
         });
 
@@ -107,7 +117,7 @@ class TaskV1Controller extends Controller
     private function tasks(User $user): Builder
     {
         return Task::query()->whereIn('project_id', $this->projects($user)->select('id'))
-            ->when(! $user->can('tasks.view_others'), fn ($query) => $query->where(fn ($own) => $own->where('created_by', $user->id)->orWhere(fn ($legacy) => $legacy->whereNull('created_by')->where('user_id', $user->id))));
+            ->when(! $user->can('tasks.view_others'), fn ($query) => $query->where(fn ($own) => $own->where('user_id', $user->id)->orWhereHas('participants', fn ($people) => $people->where('users.id', $user->id))));
     }
 
     private function writableProject(User $user, int $id): Project
@@ -123,6 +133,8 @@ class TaskV1Controller extends Controller
         $data = $request->validate([
             'project_id' => ['required', 'integer'],
             'title' => ['sometimes', 'string', 'max:180'],
+            'participant_ids' => ['sometimes', 'array', 'max:50'],
+            'participant_ids.*' => ['required', 'integer', 'distinct'],
             'analyst_id' => ['required', 'integer'],
             'worked_on' => ['required', 'date_format:Y-m-d'],
             'duration_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
@@ -142,31 +154,42 @@ class TaskV1Controller extends Controller
 
     private function canChange(Task $task, User $user, string $permission): bool
     {
-        return $user->canCreateTasks() && (($user->can($permission === 'tasks.delete' ? 'tasks.delete_others' : 'tasks.update_others')) || (int) ($task->created_by ?? $task->user_id) === $user->id);
+        return $user->canCreateTasks() && (($user->can($permission === 'tasks.delete' ? 'tasks.delete_others' : 'tasks.update_others')) || (int) $task->user_id === $user->id);
     }
 
     private function ensureAnalyst(User $user, array $data, ?Task $task = null): void
     {
         $id = (int) $data['user_id'];
-        if ($id !== $user->id && (! $task || $id !== $task->user_id)) {
-            Gate::authorize('work_logs.create_for_others');
-        }
         $analyst = User::find($id);
-        abort_unless($analyst && $analyst->current_company_id === $user->current_company_id && $analyst->canCreateTasks(), 422, 'Analista inválido.');
+        abort_unless($analyst && $analyst->current_company_id === $user->current_company_id && $analyst->active && $analyst->canCreateTasks(), 422, 'Analista inválido.');
         if ($id !== $user->id) {
             abort_unless(DB::table('project_members')->where('project_id', $data['project_id'])->where('user_id', $id)->where('active', true)->exists(), 422, 'Analista não atribuído ao projeto.');
         }
     }
 
+    private function participantIds(User $user, array $data, ?Task $task = null): array
+    {
+        $ids = $data['participant_ids'] ?? $task?->participants()->pluck('users.id')->all() ?? [];
+        $ids = array_values(array_filter(array_map('intval', $ids), fn ($id) => $id !== (int) $data['user_id']));
+        $valid = DB::table('project_members')->join('users', 'users.id', '=', 'project_members.user_id')
+            ->where('project_id', $data['project_id'])->where('project_members.active', true)
+            ->where('users.active', true)->where('users.current_company_id', $user->current_company_id)
+            ->whereIn('users.id', $ids)->distinct()->count('users.id');
+        abort_unless($valid === count($ids), 422, 'Selecione coparticipantes ativos deste projeto.');
+
+        return $ids;
+    }
+
     private function payload(Task $task, User $user): array
     {
-        $task->loadMissing(['project:id,name,client_id,client_name,finalized_at', 'user:id,name']);
+        $task->loadMissing(['project:id,name,client_id,client_name,finalized_at', 'user:id,name', 'participants:id,name']);
 
         return [
             ...collect($task->toArray())->except($user->can('financial.view') ? [] : ['cost_rate_snapshot', 'sale_rate_snapshot'])->all(),
             'due_date' => $task->due_date?->toDateString(),
             'worked_on' => $task->worked_on?->toDateString(),
             'activity_type_name' => DB::table('activity_types')->where('id', $task->activity_type_id)->value('name'),
+            'can_view' => $user->can('tasks.view_others') || (int) $task->user_id === $user->id || $task->participants->contains('id', $user->id),
             'can_edit' => ! $task->project->isFinalized() && $this->canChange($task, $user, 'tasks.manage'),
             'can_delete' => ! $task->project->isFinalized() && $this->canChange($task, $user, 'tasks.delete'),
         ];

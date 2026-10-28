@@ -3,6 +3,8 @@
 namespace App\Domain\Audit;
 
 use App\Models\AuditLog;
+use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -14,7 +16,17 @@ final class AuditRecorder
     {
         $request = app(Request::class);
 
-        return AuditLog::create([
+        $projectId = $subject instanceof Project ? $subject->getKey() : $subject->getAttribute('project_id');
+        if ($projectId) {
+            $newValues['_context'] = [
+                'project_id' => (int) $projectId,
+                'task_id' => $subject instanceof Task ? (int) $subject->getKey() : $subject->getAttribute('task_id'),
+                'actor_name' => $actor->name,
+                'subject_name' => $subject->getAttribute('title') ?? $subject->getAttribute('name') ?? $subject->getAttribute('description'),
+            ];
+        }
+
+        $audit = AuditLog::create([
             'company_id' => $actor->current_company_id,
             'user_id' => $actor->getKey(),
             'action' => $action,
@@ -27,5 +39,8 @@ final class AuditRecorder
             'request_id' => $request->attributes->get('request_id', (string) Str::ulid()),
             'created_at' => now(),
         ]);
+        app(\App\Domain\Notifications\BusinessNotifications::class)->record($audit, $subject, $actor, $oldValues, $newValues);
+
+        return $audit;
     }
 }

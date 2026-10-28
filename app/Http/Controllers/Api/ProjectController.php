@@ -49,7 +49,8 @@ class ProjectController extends Controller
                     'company_id' => $request->user()->current_company_id,
                 ]);
                 $this->saveTaxes($request, $project);
-                $audit->record('project.created', $project, $request->user(), [], $project->getAttributes());
+                $audit->record('project.created', $project, $request->user(), [], [...$project->getAttributes(), 'taxes' => $project->taxes()->get()->toArray()]);
+                $this->saveInitialTeam($request, $project, $audit);
 
                 return $project;
             });
@@ -60,7 +61,12 @@ class ProjectController extends Controller
             return response()->json($project, 201);
         }
 
-        $project = Auth::guard('api')->user()->projects()->create($request->validated());
+        $project = DB::transaction(function () use ($request, $audit) {
+            $actor = Auth::guard('api')->user();
+            $project = $actor->projects()->create($request->validated());
+            $audit->record('project.created', $project, $actor, [], $project->getAttributes());
+            return $project;
+        });
 
         return response()->json($project->loadCount('tasks'), 201);
     }
@@ -93,10 +99,10 @@ class ProjectController extends Controller
             DB::transaction(function () use ($request, $project, $audit) {
                 $project = Project::lockForUpdate()->findOrFail($project->id);
                 abort_if($project->isFinalized(), 409, 'Projeto finalizado não pode ser alterado.');
-                $old = $project->getOriginal();
+                $old = [...$project->getOriginal(), 'taxes' => $project->taxes()->get()->toArray()];
                 $project->update($this->projectData($request));
                 $this->saveTaxes($request, $project);
-                $audit->record('project.updated', $project, $request->user(), $old, $project->getAttributes());
+                $audit->record('project.updated', $project, $request->user(), $old, [...$project->getAttributes(), 'taxes' => $project->taxes()->get()->toArray()]);
             });
             $project->refresh();
             $project->loadCount('tasks');
@@ -106,19 +112,26 @@ class ProjectController extends Controller
         }
 
         $this->authorizeProject($project);
-        $project->update($request->validated());
+        DB::transaction(function () use ($request, $project, $audit) {
+            $old = $project->getAttributes();
+            $project->update($request->validated());
+            $audit->record('project.updated', $project, Auth::guard('api')->user(), $old, $project->getAttributes());
+        });
 
         return response()->json($project->loadCount('tasks'));
     }
 
-    public function destroy(Project $project): JsonResponse
+    public function destroy(Project $project, AuditRecorder $audit): JsonResponse
     {
         if (request()->is('api/v1/*')) {
             abort(405, 'Use o endpoint de exclusão governada com uma justificativa.');
         }
 
         $this->authorizeProject($project);
-        $project->delete();
+        DB::transaction(function () use ($project, $audit) {
+            $audit->record('project.deleted', $project, Auth::guard('api')->user(), $project->getAttributes());
+            $project->delete();
+        });
 
         return response()->json(null, 204);
     }
@@ -148,13 +161,38 @@ class ProjectController extends Controller
 
     private function projectData(SaveProjectRequest $request): array
     {
-        $data=collect($request->validated())->except('taxes')->all();
+        $data=collect($request->validated())->except(['taxes', 'member_ids'])->all();
         if(isset($data['project_status_id'])) {
             $slug=DB::table('project_statuses')->where('id',$data['project_status_id'])->value('slug');
             $mapped=['planning'=>'planning','in-progress'=>'in_progress','completed'=>'completed','cancelled'=>'cancelled','paused'=>'paused'];
             if(isset($mapped[$slug]))$data['status']=$mapped[$slug];
         }
         return $data;
+    }
+
+    private function saveInitialTeam(SaveProjectRequest $request, Project $project, AuditRecorder $audit): void
+    {
+        $ids = $request->validated('member_ids', []);
+        if (! $ids) return;
+        $companyId = $request->user()->current_company_id;
+        $users = \App\Models\User::query()->whereIn('id', $ids)
+            ->where('current_company_id', $companyId)->where('active', true)->where('account_status', 'active')
+            ->with(['profiles' => fn ($profiles) => $profiles->where('company_user_profiles.company_id', $companyId)])
+            ->orderBy('id')->lockForUpdate()->get();
+        if ($users->count() !== count($ids)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['member_ids' => 'A lista de usuários mudou. Revise a equipe e tente novamente.']);
+        }
+        foreach ($users as $user) {
+            $guest = $user->profiles->contains('slug', 'convidado');
+            $member = $project->members()->create([
+                'user_id' => $user->id, 'role' => $guest ? 'guest' : 'analyst',
+                'relationship_type' => $guest ? 'guest_client' : 'cpt_internal_analyst',
+                'permissions' => $guest ? ['tasks.view', 'files.view'] : ['tasks.view', 'tasks.comment', 'files.view', 'files.upload'],
+                'organization_id' => $request->user()->organization_id,
+                'active' => true, 'assigned_by' => $request->user()->id, 'assigned_at' => now(),
+            ]);
+            $audit->record('project.member_assigned', $member, $request->user(), [], $member->getAttributes());
+        }
     }
 
     private function saveTaxes(Request $request, Project $project): void

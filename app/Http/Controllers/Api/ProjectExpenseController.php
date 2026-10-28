@@ -10,6 +10,7 @@ use App\Models\ProjectExpense;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ProjectExpenseController extends Controller
@@ -23,27 +24,29 @@ class ProjectExpenseController extends Controller
 
     public function store(Request $request, Project $project, AuditRecorder $audit): JsonResponse
     {
-        Gate::authorize('expenses.create');
-        $this->ensureProjectAccess($request, $project);
-        abort_if($project->isFinalized(), 409, 'Projeto finalizado não aceita novas despesas.');
-        $data = $request->validate([
-            'analyst_id' => ['sometimes','integer',Rule::exists('users','id')->where('current_company_id',$request->user()->current_company_id)->where('active',true)],
-            'expense_type_id' => ['required', 'integer', Rule::exists('expense_types', 'id')->where('company_id', $request->user()->current_company_id)],
-            'expense_date' => ['required', 'date'],
-            'description' => ['required', 'string', 'max:1000'],
-            'amount' => ['required', 'numeric', 'gt:0'],
-            'currency' => ['sometimes', 'string', 'size:3'],
-            'receipt_path' => ['nullable', 'string', 'max:500'],
-        ]);
-        if (($data['analyst_id'] ?? $request->user()->id) !== $request->user()->id) {
-            Gate::authorize('financial.manage');
-            abort_unless($project->members()->where('user_id',$data['analyst_id'])->where('active',true)->exists(),422,'Analista não atribuído ao projeto.');
-        }
-        $data['analyst_id'] = $data['analyst_id'] ?? $request->user()->id;
-        $expense = $project->expenses()->create([...$data, 'submitted_by' => $request->user()->id, 'status' => 'pending']);
-        $audit->record('expense.created', $expense, $request->user(), [], $expense->only(['project_id', 'expense_type_id', 'amount', 'status']));
+        return DB::transaction(function () use ($request, $project, $audit) {
+            Gate::authorize('expenses.create');
+            $this->ensureProjectAccess($request, $project);
+            abort_if($project->isFinalized(), 409, 'Projeto finalizado não aceita novas despesas.');
+            $data = $request->validate([
+                'analyst_id' => ['sometimes','integer',Rule::exists('users','id')->where('current_company_id',$request->user()->current_company_id)->where('active',true)],
+                'expense_type_id' => ['required', 'integer', Rule::exists('expense_types', 'id')->where('company_id', $request->user()->current_company_id)],
+                'expense_date' => ['required', 'date'],
+                'description' => ['required', 'string', 'max:1000'],
+                'amount' => ['required', 'numeric', 'gt:0'],
+                'currency' => ['sometimes', 'string', 'size:3'],
+                'receipt_path' => ['nullable', 'string', 'max:500'],
+            ]);
+            if (($data['analyst_id'] ?? $request->user()->id) !== $request->user()->id) {
+                Gate::authorize('financial.manage');
+                abort_unless($project->members()->where('user_id',$data['analyst_id'])->where('active',true)->exists(),422,'Analista não atribuído ao projeto.');
+            }
+            $data['analyst_id'] = $data['analyst_id'] ?? $request->user()->id;
+            $expense = $project->expenses()->create([...$data, 'submitted_by' => $request->user()->id, 'status' => 'pending']);
+            $audit->record('expense.created', $expense, $request->user(), [], $expense->getAttributes());
 
-        return response()->json($expense, 201);
+            return response()->json($expense, 201);
+        });
     }
 
     public function review(Request $request, ProjectExpense $expense, ReviewProjectExpense $action): JsonResponse

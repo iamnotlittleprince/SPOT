@@ -38,8 +38,8 @@ class AccountSecurityController extends Controller
         return response()->json([
             'two_factor_enabled' => $user->two_factor_confirmed_at !== null,
             'providers' => [
-                'google' => ['connected' => filled($user->google_id), 'email' => $user->google_email],
-                'microsoft' => ['connected' => filled($user->microsoft_id), 'email' => $user->microsoft_email],
+                'google' => ['connected' => filled($user->google_id), 'email' => $user->google_email, 'calendar_connected' => filled($user->google_access_token), 'configured' => filled(config('services.google.client_id')) && filled(config('services.google.client_secret'))],
+                'microsoft' => ['connected' => filled($user->microsoft_id), 'email' => $user->microsoft_email, 'calendar_connected' => filled($user->microsoft_access_token), 'configured' => filled(config('services.microsoft.client_id')) && filled(config('services.microsoft.client_secret'))],
             ],
             'preferences' => $user->only(['notify_new_login', 'notify_password_change', 'notify_provider_link']),
             'sessions' => $sessions,

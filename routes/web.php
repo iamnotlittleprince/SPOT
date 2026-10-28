@@ -33,4 +33,8 @@ Route::post('/reset-password', [NewPasswordController::class, 'store'])
     ->middleware('guest')
     ->name('password.update');
 
-Route::view('/{path?}', 'app')->where('path', '.*');
+Route::view('/', 'app')->name('login');
+Route::view('/first-access/{token?}', 'app');
+Route::view('/accept-invitation/{token}', 'app');
+Route::view('/estoque/{path?}', 'app')->where('path', '.*');
+Route::fallback(fn () => abort(404));

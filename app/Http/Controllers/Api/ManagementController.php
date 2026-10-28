@@ -174,56 +174,72 @@ class ManagementController extends Controller
 
     public function updateRate(Request $r, AnalystProjectRate $rate)
     {
-        Gate::authorize('financial.manage');
-        $this->mutable($r, Project::findOrFail($rate->project_id));
-        $data = $r->validate(['normal_cost_rate' => ['required', 'numeric', 'min:0'], 'overtime_cost_rate' => ['required', 'numeric', 'min:0'], 'overtime_sale_rate' => ['required', 'numeric', 'min:0'], 'effective_from' => ['required', 'date'], 'effective_until' => ['nullable', 'date', 'after_or_equal:effective_from']]);
-        $overlap = AnalystProjectRate::where('project_id', $rate->project_id)->where('user_id', $rate->user_id)->whereKeyNot($rate->id)->where(fn ($q) => $q->whereNull('effective_until')->orWhereDate('effective_until', '>=', $data['effective_from']))->when($data['effective_until'] ?? null, fn ($q, $end) => $q->whereDate('effective_from', '<=', $end))->exists();
-        abort_if($overlap, 422, 'A vigência conflita com uma tarifa existente.');
-        $old = $rate->toArray();
-        $rate->update($data);
-        app(AuditRecorder::class)->record('project.rate_updated', $rate, $r->user(), $old, $rate->toArray());
-        $this->pricePendingTasks($rate);
+        return DB::transaction(function () use ($r, $rate) {
+            Gate::authorize('financial.manage');
+            $this->mutable($r, Project::findOrFail($rate->project_id));
+            $data = $r->validate(['normal_cost_rate' => ['required', 'numeric', 'min:0'], 'overtime_cost_rate' => ['required', 'numeric', 'min:0'], 'overtime_sale_rate' => ['required', 'numeric', 'min:0'], 'effective_from' => ['required', 'date'], 'effective_until' => ['nullable', 'date', 'after_or_equal:effective_from']]);
+            $overlap = AnalystProjectRate::where('project_id', $rate->project_id)->where('user_id', $rate->user_id)->whereKeyNot($rate->id)->where(fn ($q) => $q->whereNull('effective_until')->orWhereDate('effective_until', '>=', $data['effective_from']))->when($data['effective_until'] ?? null, fn ($q, $end) => $q->whereDate('effective_from', '<=', $end))->exists();
+            abort_if($overlap, 422, 'A vigência conflita com uma tarifa existente.');
+            $old = $rate->toArray();
+            $rate->update($data);
+            app(AuditRecorder::class)->record('project.rate_updated', $rate, $r->user(), $old, $rate->toArray());
+            $this->pricePendingTasks($rate);
 
-        return response()->json($rate);
+            return response()->json($rate);
+        });
     }
 
     public function deleteRate(Request $r, AnalystProjectRate $rate)
     {
-        Gate::authorize('financial.manage');
-        $this->mutable($r, Project::findOrFail($rate->project_id));
-        app(AuditRecorder::class)->record('project.rate_deleted', $rate, $r->user(), $rate->toArray());
-        $rate->delete();
+        return DB::transaction(function () use ($r, $rate) {
+            Gate::authorize('financial.manage');
+            $this->mutable($r, Project::findOrFail($rate->project_id));
+            app(AuditRecorder::class)->record('project.rate_deleted', $rate, $r->user(), $rate->toArray());
+            $rate->delete();
 
-        return response()->noContent();
+            return response()->noContent();
+        });
     }
 
     public function pricePendingTasks(AnalystProjectRate $rate): void
     {
-        Task::where('project_id', $rate->project_id)->where('user_id', $rate->user_id)->whereNull('cost_rate_snapshot')->whereNotNull('worked_on')->each(fn ($task) => app(TaskCosting::class)->capture($task));
+        Task::where('project_id', $rate->project_id)->where('user_id', $rate->user_id)->whereNull('cost_rate_snapshot')->whereNotNull('worked_on')->each(function ($task) {
+            DB::transaction(function () use ($task) {
+                $old = $task->getAttributes();
+                app(TaskCosting::class)->capture($task);
+                if ($task->wasChanged(['cost_rate_snapshot', 'sale_rate_snapshot'])) {
+                    app(AuditRecorder::class)->record('task.costed', $task, request()->user(), $old, $task->getAttributes());
+                }
+            });
+        });
     }
 
     public function updateExpense(Request $r, ProjectExpense $expense)
     {
-        $this->expenseAccess($r, $expense);
-        $data = $r->validate(['analyst_id' => ['sometimes', 'integer', Rule::exists('users', 'id')->where('current_company_id', $r->user()->current_company_id)], 'expense_type_id' => ['required', 'integer', Rule::exists('expense_types', 'id')->where('company_id', $r->user()->current_company_id)], 'expense_date' => ['required', 'date'], 'description' => ['required', 'string', 'max:1000'], 'amount' => ['required', 'numeric', 'gt:0']]);
-        if (isset($data['analyst_id']) && (int) $data['analyst_id'] !== (int) $expense->analyst_id) {
-            Gate::authorize('financial.manage');
-            abort_unless($expense->project->members()->where('user_id', $data['analyst_id'])->where('active', true)->exists(), 422, 'Analista não atribuído ao projeto.');
-        }
-        $old = $expense->toArray();
-        $expense->update([...$data, 'status' => 'pending', 'reviewed_by' => null, 'reviewed_at' => null, 'review_reason' => null]);
-        app(AuditRecorder::class)->record('expense.updated', $expense, $r->user(), $old, $expense->toArray());
+        return DB::transaction(function () use ($r, $expense) {
+            $this->expenseAccess($r, $expense);
+            $data = $r->validate(['analyst_id' => ['sometimes', 'integer', Rule::exists('users', 'id')->where('current_company_id', $r->user()->current_company_id)], 'expense_type_id' => ['required', 'integer', Rule::exists('expense_types', 'id')->where('company_id', $r->user()->current_company_id)], 'expense_date' => ['required', 'date'], 'description' => ['required', 'string', 'max:1000'], 'amount' => ['required', 'numeric', 'gt:0']]);
+            if (isset($data['analyst_id']) && (int) $data['analyst_id'] !== (int) $expense->analyst_id) {
+                Gate::authorize('financial.manage');
+                abort_unless($expense->project->members()->where('user_id', $data['analyst_id'])->where('active', true)->exists(), 422, 'Analista não atribuído ao projeto.');
+            }
+            $old = $expense->toArray();
+            $expense->update([...$data, 'status' => 'pending', 'reviewed_by' => null, 'reviewed_at' => null, 'review_reason' => null]);
+            app(AuditRecorder::class)->record('expense.updated', $expense, $r->user(), $old, $expense->toArray());
 
-        return response()->json($expense);
+            return response()->json($expense);
+        });
     }
 
     public function deleteExpense(Request $r, ProjectExpense $expense)
     {
-        $this->expenseAccess($r, $expense);
-        app(AuditRecorder::class)->record('expense.deleted', $expense, $r->user(), $expense->toArray());
-        $expense->delete();
+        return DB::transaction(function () use ($r, $expense) {
+            $this->expenseAccess($r, $expense);
+            app(AuditRecorder::class)->record('expense.deleted', $expense, $r->user(), $expense->toArray());
+            $expense->delete();
 
-        return response()->noContent();
+            return response()->noContent();
+        });
     }
 
     private function expenseAccess(Request $r, ProjectExpense $expense): void
@@ -234,14 +250,16 @@ class ManagementController extends Controller
 
     public function removeMember(Request $r, Project $project, int $user)
     {
-        Gate::authorize('projects.update');
-        $this->mutable($r, $project);
-        $member = $project->members()->where('user_id', $user)->firstOrFail();
-        $old = $member->toArray();
-        $member->update(['active' => false, 'access_revoked_at' => now()]);
-        app(AuditRecorder::class)->record('project.member_removed', $member, $r->user(), $old, $member->toArray());
+        return DB::transaction(function () use ($r, $project, $user) {
+            Gate::authorize('projects.update');
+            $this->mutable($r, $project);
+            $member = $project->members()->where('user_id', $user)->firstOrFail();
+            $old = $member->toArray();
+            $member->update(['active' => false, 'access_revoked_at' => now()]);
+            app(AuditRecorder::class)->record('project.member_removed', $member, $r->user(), $old, $member->toArray());
 
-        return response()->noContent();
+            return response()->noContent();
+        });
     }
 
     private function audit(Request $r, string $action, string $table, int $id, array $old, array $new): void

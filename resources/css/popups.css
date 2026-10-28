@@ -1,0 +1,232 @@
+/* Shared Spot dialog palette. Keep scoped to popup surfaces. */
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) {
+  --popup-bg: #f5f8fb;
+  --popup-surface: #fff;
+  --popup-field: #fff;
+  --popup-text: #233c4e;
+  --popup-muted: #526b7d;
+  --popup-border: #d5e1e9;
+  --popup-tint: #eaf4fa;
+  --popup-accent: #086fa8;
+  color: var(--popup-text);
+  background: var(--popup-bg);
+  border: 1px solid var(--popup-border);
+  border-radius: 18px;
+  box-shadow: 0 28px 80px #0514214d;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  color-scheme: light;
+}
+html[data-theme="dark"] :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) {
+  --popup-bg: #1b2229;
+  --popup-surface: #232d36;
+  --popup-field: #131c24;
+  --popup-text: #f0f5fa;
+  --popup-muted: #b7c7d5;
+  --popup-border: #435563;
+  --popup-tint: #213b4d;
+  --popup-accent: #8cd5ff;
+  color: var(--popup-text);
+  background: var(--popup-bg);
+  color-scheme: dark;
+}
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > header, :root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > form > header, :root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > div > header {
+  padding: 24px;
+  border-bottom: 1px solid #ffffff1f;
+  background: radial-gradient(circle at 90% 0%, #2089ac66, transparent 55%), linear-gradient(120deg, #083c60, #086c9c);
+  color: #fff;
+}
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(h2, h3, label, legend, strong, dt, dd) { color: var(--popup-text); }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) h2 { font-size: 21px; line-height: 1.35; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(p, small) { color: var(--popup-muted); line-height: 1.65; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(label, legend) { font-size: 13px; line-height: 1.5; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) small { font-size: 12px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  color: var(--popup-text);
+  background: var(--popup-field);
+  border: 1px solid var(--popup-border);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 42px;
+}
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(input, textarea)::placeholder { color: var(--popup-muted); opacity: 1; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(input, select, textarea):focus-visible { outline: 2px solid #159ad3; outline-offset: 2px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(input[type="checkbox"], input[type="radio"]) { accent-color: #168bcc; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(fieldset, .permission-setting, .invitation-password-policy, .task-detail-grid > div, .task-detail-description, .tutorial-tip, .tutorial-index) {
+  color: var(--popup-text);
+  border-color: var(--popup-border);
+  background: var(--popup-surface);
+  border-radius: 10px;
+}
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(.invitation-password-policy, .tutorial-tip) { background: var(--popup-tint); }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(.permission-setting-icon, .permissions-modal-heading > span) { color: var(--popup-accent); background: var(--popup-tint); }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(.secondary-button, .tutorial-secondary) { color: var(--popup-text); border-color: var(--popup-border); background: var(--popup-surface); }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(.primary-action, .tutorial-primary) { color: #fff; background: #0879b7; border-color: #0879b7; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(.tutorial-link-button, .tutorial-icon-button, .tutorial-index-list button) { color: var(--popup-accent); }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(button, a):focus-visible { outline: 2px solid #75caff; outline-offset: 3px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(button, input, select, textarea):disabled { opacity: .6; cursor: not-allowed; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) footer { border-color: var(--popup-border); color: var(--popup-text); background: transparent; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) footer button { min-height: 40px; font-size: 13px; border-radius: 8px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(.invitation-error, .calendar-form-error, [role="alert"]) { color: #a2243b; background: #ffe8ed; }
+html[data-theme="dark"] :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) :is(.invitation-error, .calendar-form-error, [role="alert"]) { color: #ffb8c5; background: #48252f; }
+html[data-theme="dark"] .invitation-warning { color: #ffe0a0; background: #443920; }
+
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > header :is(h2, h3, p, span, small, button) { color: #fff; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > header p { color: #d6ebf7; font-size: 12px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > header button { background: #ffffff14; border-color: #ffffff29; border-radius: 8px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > header button:hover { background: #ffffff29; }
+
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > form > header :is(h2, h3, p, span, small, button) { color: #fff; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > form > header p { color: #d6ebf7; font-size: 12px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > form > header button { background: #ffffff14; border-color: #ffffff29; border-radius: 8px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > form > header button:hover { background: #ffffff29; }
+
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > div > header :is(h2, h3, p, span, small, button) { color: #fff; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > div > header p { color: #d6ebf7; font-size: 12px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > div > header button { background: #ffffff14; border-color: #ffffff29; border-radius: 8px; }
+:root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog, .tutorial-card) > div > header button:hover { background: #ffffff29; }
+
+:root .management-dialog { padding: 0; }
+:root .task-editor-dialog .task-editor-fields { padding: 22px 22px 0; }
+:root .task-detail-dialog .task-detail-grid { gap: 14px 18px; }
+:root .task-detail-dialog .task-detail-grid > div { padding: 12px 14px; }
+:root .task-detail-dialog .task-detail-grid dt { line-height: 1.5; }
+:root .task-detail-dialog .task-detail-grid dd { margin: 6px 0 0; line-height: 1.5; }
+:root .task-detail-dialog .task-detail-description { padding: 14px; }
+:root .task-detail-dialog .task-detail-description > strong { display: block; line-height: 1.5; }
+:root .task-detail-dialog .task-detail-description p { margin: 8px 0 0; }
+:root .management-dialog .management-fields { padding: 22px; }
+:root .management-dialog form > footer { margin: 0; padding: 16px 22px; }
+:root .management-dialog form > [role="alert"] { margin: 0 22px 16px; }
+:root .calendar-modal > form > header { margin: -21px -23px 6px; }
+:root .camera-dialog > header { margin: 0; }
+:root .tutorial-card > header { border-radius: 17px 17px 0 0; }
+:root .task-detail-grid dt { color: var(--popup-muted); }
+:root .task-detail-grid dd { color: var(--popup-text); }
+html[data-theme="dark"] :is(.page-menu, .profile-menu, .avatar-action-menu, .apps-popover, .inbox-popover, .quick-settings-popover, .calendar-event-popover, .inbox-options-menu, .inbox-item-menu, .home-task-menu) {
+  color: #f0f5fa; background: #232d36; border-color: #435563;
+  box-shadow: 0 18px 45px #050c1566;
+}
+html[data-theme="dark"] :is(.profile-menu, .avatar-action-menu, .quick-settings-popover, .calendar-event-popover, .inbox-options-menu, .inbox-item-menu, .home-task-menu) :is(button, h3, strong, label) { color: #f0f5fa; }
+html[data-theme="dark"] :is(.profile-menu, .quick-settings-popover, .calendar-event-popover) :is(p, small) { color: #b7c7d5; }
+html[data-theme="dark"] :is(.profile-menu, .avatar-action-menu, .inbox-options-menu, .inbox-item-menu, .home-task-menu) button:hover { background: #304759; color: #fff; }
+@media (max-width: 620px) {
+  :root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .task-editor-dialog, .management-dialog) { max-width: calc(100vw - 24px); }
+  :root :is(.invitation-dialog, .permissions-modal, .tutorial-card) > header { padding: 18px; }
+}
+:root :is(.apps-popover, .inbox-popover, .quick-settings-popover) { border-radius: 14px; overflow: hidden; }
+:root :is(.apps-popover, .inbox-popover, .quick-settings-popover) > header {
+  color: #fff;
+  background: linear-gradient(120deg, #083c60, #086c9c);
+  border-bottom-color: #ffffff24;
+  min-height: 44px;
+}
+:root :is(.apps-popover, .inbox-popover, .quick-settings-popover) > header :is(span, small, button, div, b) { color: #fff; }
+html[data-theme="dark"] .apps-popover > section { background: #1b2229; border-color: #435563; }
+html[data-theme="dark"] .apps-popover .app-suite-title { color: #f0f5fa; background: #293641; }
+html[data-theme="dark"] .apps-popover .app-suite-title small { color: #b7c7d5; }
+html[data-theme="dark"] .apps-popover .app-shortcuts button:hover { background: #304759; }
+html[data-theme="dark"] .quick-settings-popover select { color: #f0f5fa; background: #131c24; border-color: #435563; color-scheme: dark; }
+html[data-theme="dark"] .quick-settings-popover .quick-settings-reset { color: #8cd5ff; background: #213b4d; border-color: #435563; }
+/* Task details: a continuous information sheet with a distinct title. */
+:root .task-detail-dialog .task-detail-fields { gap: 24px; padding: 26px 28px; }
+:root .task-detail-dialog .task-detail-summary h3 { margin: 14px 0 0; font-size: 25px; line-height: 1.4; font-weight: 700; letter-spacing: -.4px; }
+.task-detail-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.task-detail-badges > span { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 650; color: var(--popup-accent); background: var(--popup-tint); }
+.task-detail-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+:root .task-detail-dialog .task-detail-priority { color: var(--popup-muted); background: transparent; border: 1px solid var(--popup-border); }
+:root .task-detail-dialog .priority-high { color: #bc354b; border-color: #dca2aa; }
+html[data-theme="dark"] .task-detail-dialog .priority-high { color: #ffb0bc; border-color: #89535c; }
+:root .task-detail-dialog .task-detail-grid { column-gap: 28px; row-gap: 0; }
+:root .task-detail-dialog .task-detail-grid > div { padding: 15px 0; border-radius: 0; border-bottom: 1px solid var(--popup-border); background: transparent; }
+:root .task-detail-dialog .task-detail-grid dt { display: flex; align-items: center; gap: 8px; color: var(--popup-muted); opacity: 1; font-size: 12px; }
+:root .task-detail-dialog .task-detail-grid dt svg { color: var(--popup-accent); flex-shrink: 0; }
+:root .task-detail-dialog .task-detail-grid dd { margin: 7px 0 0 23px; font-size: 14px; line-height: 1.6; }
+:root .task-detail-dialog .task-detail-description { padding: 0; background: transparent; border-radius: 0; }
+:root .task-detail-dialog .task-detail-description > strong { color: var(--popup-muted); font-size: 12px; opacity: 1; }
+:root .task-detail-dialog .task-detail-description p { margin-top: 10px; padding: 16px 18px; border-left: 3px solid #168bcc; border-radius: 0 8px 8px 0; background: var(--popup-surface); color: var(--popup-text); font-size: 14px; }
+:root .task-detail-dialog > div > footer { justify-content: flex-end; padding: 18px 28px; border-top: 1px solid var(--popup-border); background: var(--popup-surface); }
+@media (max-width: 560px) {
+  :root .task-detail-dialog .task-detail-fields { padding: 22px 20px; gap: 18px; }
+  :root .task-detail-dialog .task-detail-summary h3 { font-size: 22px; }
+  :root .task-detail-dialog > div > footer { padding: 16px 20px; }
+}
+/* Keep task detail content aligned above shared dialog surface rules. */
+:root .task-editor-dialog.task-detail-dialog .task-detail-grid {
+  gap: 14px 20px;
+  align-items: stretch;
+}
+:root .task-editor-dialog.task-detail-dialog .task-detail-grid > div {
+  padding: 14px 16px;
+  border: 1px solid var(--popup-border);
+  border-radius: 10px;
+  background: var(--popup-surface);
+  min-width: 0;
+}
+:root .task-editor-dialog.task-detail-dialog .task-detail-grid dt {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+:root .task-editor-dialog.task-detail-dialog .task-detail-grid dd {
+  margin: 8px 0 0 24px;
+  overflow-wrap: anywhere;
+}
+:root .task-editor-dialog.task-detail-dialog .task-detail-description {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+:root .task-editor-dialog.task-detail-dialog .task-detail-description > strong {
+  display: block;
+  margin-bottom: 10px;
+}
+:root .task-editor-dialog.task-detail-dialog .task-detail-description p {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--popup-border);
+  border-left: 3px solid #168bcc;
+  border-radius: 8px;
+}
+:root .task-participants-editor { margin: 0; padding: 16px; border: 1px solid var(--popup-border); min-width: 0; }
+:root .task-participants-editor legend { padding: 0 6px; font-weight: 700; }
+:root .task-participants-editor p { margin: 0 0 12px; font-size: 12px; }
+.task-participants-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; max-height: 180px; overflow: auto; }
+:root .task-participants-options label { display: flex; align-items: center; gap: 9px; padding: 8px; border: 1px solid var(--popup-border); border-radius: 7px; }
+:root .task-participants-options input { width: 16px; height: 16px; flex-shrink: 0; }
+.task-detail-people-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+:root .task-detail-people-heading strong { color: var(--popup-muted); font-size: 12px; }
+:root .task-detail-people-heading button { padding: 7px 10px; border: 1px solid var(--popup-border); border-radius: 7px; background: var(--popup-tint); color: var(--popup-accent); cursor: pointer; }
+.task-detail-people ul { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; margin: 12px 0 0; }
+.task-detail-people li { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; background: var(--popup-tint); color: var(--popup-text); font-size: 13px; }
+:root .task-detail-people > p { margin: 12px 0 0; font-size: 13px; }
+.task-assignment-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 16px; }
+:root .task-assignment-options label { display: flex; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--popup-border); border-radius: 9px; cursor: pointer; }
+:root .task-assignment-options label:has(input:checked) { border-color: #168bcc; background: var(--popup-tint); }
+:root .task-assignment-editor > p { margin: 12px 0 0; }
+/* Compact assignment controls and a searchable collaborator picker. */
+:root .task-editor-dialog .task-assignment-options { gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 14px; }
+:root .task-editor-dialog .task-assignment-options label { justify-content: flex-start; min-height: 48px; gap: 10px; padding: 12px; font-size: 12px; line-height: 1.5; }
+:root .task-editor-dialog .task-assignment-options input[type="radio"],
+:root .task-editor-dialog .task-participants-options input[type="checkbox"] { width: 16px; min-width: 16px; max-width: 16px; height: 16px; min-height: 16px; margin: 0; padding: 0; flex: 0 0 16px; }
+:root .task-editor-dialog .task-participants-editor { padding: 18px; background: var(--popup-surface); }
+:root .task-editor-dialog .task-people-search { display: flex; align-items: center; gap: 9px; padding: 0 12px; border: 1px solid var(--popup-border); border-radius: 8px; background: var(--popup-field); margin: 0 0 12px; color: var(--popup-muted); }
+:root .task-editor-dialog .task-people-search input { min-width: 0; min-height: 42px; flex: 1; width: 100%; border: 0; background: transparent; padding: 8px 0; outline-offset: 0; }
+:root .task-editor-dialog .task-people-search > span { flex-shrink: 0; font-size: 11px; font-weight: 500; color: var(--popup-muted); }
+:root .task-editor-dialog .task-participants-options { gap: 8px; max-height: 220px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+:root .task-editor-dialog .task-participants-options label { justify-content: flex-start; min-height: 54px; padding: 10px 12px; gap: 10px; background: var(--popup-bg); cursor: pointer; }
+:root .task-editor-dialog .task-participants-options label.is-selected { border-color: #168bcc; background: var(--popup-tint); }
+.task-person-initials { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%; background: var(--popup-tint); color: var(--popup-accent); font-size: 11px; font-weight: 700; }
+.task-person-name { min-width: 0; overflow-wrap: anywhere; font-size: 12px; }
+.task-selected-people { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+:root .task-editor-dialog .task-selected-people button { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border: 1px solid var(--popup-border); border-radius: 6px; background: var(--popup-tint); color: var(--popup-accent); font-size: 11px; cursor: pointer; }
+@media (max-width: 560px) {
+  :root .task-editor-dialog .task-assignment-options, :root .task-editor-dialog .task-participants-options { grid-template-columns: 1fr; }
+  :root .task-editor-dialog .task-people-search { flex-wrap: wrap; gap: 4px 8px; }
+  :root .task-editor-dialog .task-people-search > span { padding-bottom: 8px; width: 100%; }
+}
+:root .task-editor-dialog .task-participants-editor .task-people-search input[type="search"] { border: 0; border-radius: 0; background: transparent; }

@@ -20,9 +20,9 @@ final class ReopenProject
                 throw ValidationException::withMessages(['project' => 'O projeto não está finalizado.']);
             }
 
-            $old = ['finalized_at' => $project->finalized_at, 'finalized_by' => $project->finalized_by];
+            $old = $project->getAttributes();
             $project->forceFill(['finalized_at' => null, 'finalized_by' => null, 'finalization_reason' => null])->save();
-            $this->audit->record('project.reopened', $project, $actor, $old, ['reason' => $reason]);
+            $this->audit->record('project.reopened', $project, $actor, $old, [...$project->getAttributes(), 'reason' => $reason]);
 
             return $project->refresh();
         });

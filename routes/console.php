@@ -38,3 +38,19 @@ Artisan::command('inbox:prune {--dry-run}', function () {
     $this->info(($this->option('dry-run') ? 'Mensagens elegíveis: ' : 'Mensagens removidas: ').$total);
 })->purpose('Remove mensagens que estão na lixeira há mais de 30 dias');
 \Illuminate\Support\Facades\Schedule::command('inbox:prune')->dailyAt('03:15')->withoutOverlapping();
+
+Artisan::command('notifications:dispatch', function () {
+    app(\App\Domain\Notifications\DueReminders::class)->generate();
+    app(\App\Domain\Notifications\NotificationCenter::class)->dispatchPending();
+    $this->info('Alertas avaliados e entregas disponíveis processadas.');
+})->purpose('Gera alertas e entrega notificações, respeitando canais, fuso, resumos e silêncio');
+\Illuminate\Support\Facades\Schedule::command('notifications:dispatch')->everyMinute()->withoutOverlapping();
+
+Artisan::command('notifications:status', function () {
+    $this->table(['Estado', 'Quantidade'], [
+        ['Avisos internos pendentes', \App\Models\NotificationDelivery::whereNull('in_app_delivered_at')->count()],
+        ['E-mails pendentes', \App\Models\NotificationDelivery::where('email', true)->whereNull('email_processed_at')->count()],
+        ['Lotes com falha', \App\Models\NotificationMailBatch::whereNotNull('failed_at')->whereNull('sent_at')->count()],
+    ]);
+    $this->info(config('notifications.email_enabled') ? 'Envio de atividade por e-mail habilitado.' : 'Envio de atividade por e-mail desativado.');
+})->purpose('Consulta pendências e falhas sem enviar notificações');

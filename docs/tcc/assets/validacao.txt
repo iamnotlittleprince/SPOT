@@ -1,0 +1,14 @@
+Revisão final em 26/10/2026
+PHPUnit: 122 testes aprovados; 788 asserções; 17,437 segundos.
+Comando: ./php vendor/bin/phpunit
+Configuração: PostgreSQL, schema spot_testing; e-mail fake/array; HTTP externo simulado.
+Build: Vite 8.3.5; 1.583 módulos transformados; concluído.
+Navegador: tarefas e portfólio aprovados, incluindo 11 tipos de gráfico, CSV, negativos e mobile.
+Navegador: test-live-updates aprovado; timer, eventos, abas, filtros e desmontagem.
+Idiomas: 144 verificações, sem falhas. A suíte ainda sinaliza revisão de textos preexistentes: % concluído, Não informado: 1, Permissões e Gerenciar permissões.
+Capturas: interface real do build local, quatro telas com dados demonstrativos, sem erros JavaScript reportados.
+Migração de entregas/lotes aplicada ao ambiente local, sem seed.
+Agendamento: notifications:dispatch a cada minuto. notifications:status é somente consulta.
+Atividades por e-mail externas permanecem desativadas por padrão; dependem de SMTP e SPOT_ACTIVITY_EMAIL_ENABLED=true.
+Não houve envio real de e-mail ou acesso a contas externas durante a validação.
+Não foram executados testes de carga nem homologação de consentimentos/SMTP reais.

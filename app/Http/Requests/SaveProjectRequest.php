@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Domain\Projects\ProjectFields;
+use App\Rules\EligibleProjectManager;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -38,8 +39,10 @@ class SaveProjectRequest extends FormRequest
             'project_status_id' => [$versioned ? ($this->isMethod('POST') ? 'required' : 'sometimes') : 'nullable', 'integer', Rule::exists('project_statuses', 'id')->where('company_id', $companyId)->where('active', true)],
             'project_situation_id' => [$versioned ? ($this->isMethod('POST') ? 'required' : 'sometimes') : 'nullable', 'integer', Rule::exists('project_situations', 'id')->where('company_id', $companyId)->where('active', true)],
             'client_id' => ['nullable', 'integer', Rule::exists('clients', 'id')->where('company_id', $companyId)->where('active', true)],
-            'account_manager_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('current_company_id', $companyId)->where('active', true)],
-            'project_manager_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('current_company_id', $companyId)->where('active', true)],
+            'member_ids' => $versioned && $this->isMethod('POST') ? ['sometimes', 'array', 'max:500'] : ['prohibited'],
+            'member_ids.*' => ['bail', 'required', 'integer', 'distinct', Rule::exists('users', 'id')->where('current_company_id', $companyId)->where('active', true)->where('account_status', 'active')],
+            'account_manager_id' => ['bail', 'nullable', 'integer', new EligibleProjectManager($companyId)],
+            'project_manager_id' => ['bail', 'nullable', 'integer', new EligibleProjectManager($companyId)],
             'proposal_date' => ['nullable', 'date'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -63,6 +66,19 @@ class SaveProjectRequest extends FormRequest
             'status' => [$versioned ? 'sometimes' : 'required', Rule::in(['planning', 'in_progress', 'review', 'completed', 'paused', 'cancelled'])],
             'progress' => [$versioned ? 'sometimes' : 'required', 'integer', 'between:0,100'],
             'due_date' => ['nullable', 'date'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'member_ids.array' => 'Selecione os usuários da equipe na lista.',
+            'member_ids.max' => 'Selecione até 500 usuários para a equipe.',
+            'member_ids.prohibited' => 'Para alterar a equipe de um projeto existente, use a área Equipes.',
+            'member_ids.*.required' => 'Selecione um usuário válido para a equipe.',
+            'member_ids.*.integer' => 'Selecione um usuário válido para a equipe.',
+            'member_ids.*.distinct' => 'Não repita o mesmo usuário na equipe.',
+            'member_ids.*.exists' => 'Escolha usuários ativos e com conta ativada desta empresa.',
         ];
     }
 

@@ -10,10 +10,10 @@ try {
  await page.route('**/sanctum/csrf-cookie', r => r.fulfill({ status: 204 }));
  await page.route('**/api/v1/tasks{,/*}', async route => {
   const req = route.request(), method = req.method();
-  if (method === 'GET') return route.fulfill({ json: { tasks, projects: [project], can_create: canCreate, current_user: user, analysts: [], can_assign_others: false, activity_types: [{ id: 1, name: 'Reunião' }] } });
+  if (method === 'GET') return route.fulfill({ json: { tasks, projects: [project], can_create: canCreate, current_user: user, analysts: [], project_people: [{id:2,name:'Bruno Participante',project_id:1}], can_assign_others: false, activity_types: [{ id: 1, name: 'Reunião' }] } });
   if (method === 'DELETE') { tasks = []; return route.fulfill({ status: 204 }); }
   if (reject) return route.fulfill({ status: 422, json: { errors: { title: ['Título inválido.'] } } });
-  const task = { ...req.postDataJSON(), user_id: user.id, activity_type_name: 'Reunião', id: 1, user, project, can_edit: true, can_delete: true };
+  const task = { ...req.postDataJSON(), participants: (req.postDataJSON().participant_ids || []).map(id => ({id,name:'Bruno Participante'})), user_id: req.postDataJSON().analyst_id, activity_type_name: 'Reunião', id: 1, user: req.postDataJSON().analyst_id === user.id ? user : {id:2,name:'Bruno Participante'}, project, can_edit: true, can_delete: true };
   tasks = [task];
   return route.fulfill({ status: method === 'POST' ? 201 : 200, json: task });
  });
@@ -25,6 +25,14 @@ try {
  await navigate();
  await page.getByRole('button', { name: 'Nova tarefa', exact: true }).click();
  const dialog = page.getByRole('dialog');
+ await dialog.getByLabel('Buscar colaborador no projeto').fill('inexistente');
+ await dialog.getByText('Nenhuma pessoa encontrada para esta busca.', {exact:true}).waitFor();
+ await dialog.getByLabel('Buscar colaborador no projeto').fill('Bruno');
+ await dialog.getByLabel('Bruno Participante', { exact: true }).check();
+ await dialog.getByRole('button', {name:'Remover colaborador Bruno Participante',exact:true}).click();
+ assert.equal(await dialog.getByLabel('Bruno Participante', {exact:true}).isChecked(), false);
+ await dialog.getByLabel('Bruno Participante', {exact:true}).check();
+ await dialog.getByLabel('Buscar colaborador no projeto').fill('');
  await dialog.getByLabel('Descrição', { exact: true }).fill('Tarefa persistida');
  await dialog.locator('details').evaluate(el => el.open = true);
  await dialog.getByLabel('Status', { exact: true }).selectOption('in_progress');
@@ -41,6 +49,7 @@ try {
  await dialog.getByRole('button', { name: 'Salvar tarefa' }).click();
  await dialog.waitFor({ state: 'hidden' });
  assert.equal(tasks[0].priority, 'high');
+ assert.deepEqual(tasks[0].participant_ids, [2]);
  assert.equal(tasks[0].duration_minutes, 90);
  assert.equal(tasks[0].is_overtime, true);
  assert.equal(tasks[0].worked_on, '2026-10-10');
@@ -48,12 +57,25 @@ try {
  for (const name of ['Lista', 'Calendário', 'Quadro']) {
   await page.locator('.view-switch').getByRole('button', { name, exact: true }).click();
   await page.locator('[data-task-id="1"]').waitFor();
+  await page.locator('[data-task-id="1"] .task-open-button').click();
+  const details = page.getByRole('dialog', { name: 'Detalhes da tarefa', exact: true });
+  await details.waitFor();
+  assert.match(await details.innerText(), /Tarefa persistida/);
+  assert.match(await details.innerText(), /1h 30min/);
+  assert.match(await details.innerText(), /Bruno Participante/);
+  await page.keyboard.press('Escape');
+  await details.waitFor({ state: 'hidden' });
  }
  await page.reload();
- await page.locator('.tutorial-card').getByRole('button', { name: 'Entendi', exact: true }).click();
+ await page.locator('.dashboard-content').waitFor();
+ assert.equal(await page.locator('.tutorial-card').count(), 0);
  await navigate();
  await page.locator('[data-task-id="1"]').waitFor();
  await page.getByRole('button', { name: 'Editar tarefa', exact: true }).click();
+ assert.equal(await dialog.getByLabel('Bruno Participante', { exact: true }).isChecked(), true);
+ await dialog.getByLabel('Bruno Participante', { exact: true }).uncheck();
+ await dialog.getByLabel('Atribuir a outra pessoa', { exact: true }).check();
+ await dialog.getByLabel('Analista', { exact: true }).selectOption('2');
  await dialog.getByLabel('Descrição', { exact: true }).fill('Tarefa editada');
  await dialog.locator('details').evaluate(el => el.open = true);
  await dialog.getByLabel('Status', { exact: true }).selectOption('done');
@@ -62,6 +84,8 @@ try {
  assert.equal(tasks[0].title, 'Tarefa editada');
  assert.equal(tasks[0].status, 'done');
  await page.getByRole('button', { name: 'Excluir tarefa', exact: true }).click();
+ assert.equal(tasks[0].user_id, 2);
+ assert.deepEqual(tasks[0].participant_ids, []);
  const deleteDialog = page.getByRole('alertdialog');
  await deleteDialog.getByRole('heading', { name: 'Excluir tarefa?' }).waitFor();
  await deleteDialog.getByRole('button', { name: 'Excluir tarefa', exact: true }).click();
@@ -69,7 +93,8 @@ try {
  assert.equal(tasks.length, 0);
  canCreate = false;
  await page.reload();
- await page.locator('.tutorial-card').getByRole('button', { name: 'Entendi', exact: true }).click();
+ await page.locator('.dashboard-content').waitFor();
+ assert.equal(await page.locator('.tutorial-card').count(), 0);
  await navigate();
  await page.getByRole('button', { name: 'Nova tarefa', exact: true }).click();
  await dialog.getByRole('heading', { name: 'Área restrita' }).waitFor();

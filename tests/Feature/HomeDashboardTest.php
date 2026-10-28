@@ -23,6 +23,7 @@ class HomeDashboardTest extends TestCase
         $this->actingAs($admin)->getJson('/api/v1/home-dashboard')->assertOk()
             ->assertJsonPath('projects.0.name', 'Projeto real')
             ->assertJsonPath('tasks.0.title', 'Tarefa real')
+            ->assertJsonPath('tasks.0.creator.id', $admin->id)
             ->assertJsonPath('teams.0.count', 1)
             ->assertJsonPath('teams.0.members.0.id', $admin->id)
             ->assertJsonPath('teams.0.members.0.name', $admin->name);
@@ -30,6 +31,23 @@ class HomeDashboardTest extends TestCase
         $this->patchJson("/api/v1/home-dashboard/tasks/{$task->id}/toggle")
             ->assertOk()->assertJsonPath('status', 'done');
         $this->assertSame('done', $task->fresh()->status);
+
+        $this->patchJson("/api/v1/home-dashboard/tasks/{$task->id}/priority", ['priority' => 'low'])
+            ->assertOk()->assertJsonPath('priority', 'low');
+        $this->assertSame('low', $task->fresh()->priority);
+        $creator = User::factory()->create(['avatar_url' => '/creator-photo.png']);
+        $task->update(['created_by' => $creator->id]);
+        $this->getJson('/api/v1/home-dashboard')->assertOk()
+            ->assertJsonPath('tasks.0.creator.id', $creator->id)
+            ->assertJsonPath('tasks.0.creator.avatar_url', '/creator-photo.png');
+
+        $this->patchJson("/api/v1/home-dashboard/tasks/{$task->id}/priority", ['priority' => 'invalid'])
+            ->assertUnprocessable();
+        $project->forceFill(['finalized_at' => now()])->save();
+        $this->patchJson("/api/v1/home-dashboard/tasks/{$task->id}/priority", ['priority' => 'high'])
+            ->assertStatus(409);
+        $this->assertSame('low', $task->fresh()->priority);
+
     }
 
     public function test_dashboard_does_not_expose_another_company_project(): void

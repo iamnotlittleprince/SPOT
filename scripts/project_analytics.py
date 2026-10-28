@@ -51,9 +51,9 @@ def main() -> None:
 
     statuses = frame["status"].map(STATUS_LABELS).fillna(frame["status"].str.replace("_", " ").str.title())
     by_status = statuses.value_counts(sort=False).sort_values(ascending=False)
-    by_client = frame["client"].fillna("Sem cliente").replace("", "Sem cliente").value_counts().head(10)
-    by_account_manager = frame["account_manager"].fillna("Não atribuído").replace("", "Não atribuído").value_counts().head(10)
-    by_manager = frame["manager"].fillna("Não atribuído").replace("", "Não atribuído").value_counts().head(10)
+    by_client = frame["client"].fillna("Sem cliente").replace("", "Sem cliente").value_counts()
+    by_account_manager = frame["account_manager"].fillna("Não atribuído").replace("", "Não atribuído").value_counts()
+    by_manager = frame["manager"].fillna("Não atribuído").replace("", "Não atribuído").value_counts()
 
     starts = frame["start_date"].fillna(pd.to_datetime(frame["created_at"], errors="coerce"))
     monthly = starts.dropna().dt.to_period("M").value_counts().sort_index()
@@ -62,11 +62,13 @@ def main() -> None:
     for row in frame.sort_values(["contract_value", "name"], ascending=[False, True]).to_dict("records"):
         project_rows.append({
             "id": int(row["id"]), "name": row["name"], "client": row.get("client") or "Sem cliente",
+            "account_manager": row.get("account_manager") or "Não atribuído",
             "manager": row.get("manager") or "Não atribuído", "status": STATUS_LABELS.get(row["status"], row["status"]),
             "progress": int(row.get("progress") or 0), "contract_value": round(row["contract_value"], 2),
             "actual_revenue": round(row["actual_revenue"], 2), "actual_cost": round(row["actual_cost"], 2),
             "profit": round(row["profit"], 2), "worked_hours": round(row["worked_hours"], 1),
             "estimated_hours": round(row["estimated_hours"], 1),
+            "unpriced_tasks": int(row.get("unpriced_tasks") or 0),
         })
 
     result = {

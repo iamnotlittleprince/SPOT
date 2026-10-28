@@ -20,6 +20,7 @@ final class FinalizeProject
                 throw ValidationException::withMessages(['project' => 'O projeto já está finalizado.']);
             }
 
+            $old = [...$project->getAttributes(), 'members' => $project->members()->get()->toArray()];
             $project->forceFill(['finalized_at' => now(), 'finalized_by' => $actor->getKey(), 'finalization_reason' => $reason])->save();
             $project->members()->where('active', true)->update([
                 'active' => false,
@@ -27,7 +28,7 @@ final class FinalizeProject
                 'access_revoked_at' => now(),
                 'updated_at' => now(),
             ]);
-            $this->audit->record('project.finalized', $project, $actor, [], ['reason' => $reason, 'finalized_at' => $project->finalized_at]);
+            $this->audit->record('project.finalized', $project, $actor, $old, [...$project->getAttributes(), 'reason' => $reason, 'members' => $project->members()->get()->toArray()]);
 
             return $project->refresh();
         });

@@ -1,0 +1,15 @@
+.entity-audit-trail { margin: 20px 0; border: 1px solid #8193a544; border-radius: 10px; padding: 16px; min-width: 0; }
+.entity-audit-trail button { background: transparent; color: inherit; border: 1px solid #8193a566; border-radius: 7px; padding: 8px 12px; cursor: pointer; }
+.entity-audit-trail button:disabled { opacity: .5; cursor: default; }
+.entity-audit-content > p { font-size: 13px; }
+.entity-audit-content ol { list-style: none; padding: 0; }
+.entity-audit-content li { padding: 16px 0; border-bottom: 1px solid #8193a533; font-size: 13px; overflow-wrap: anywhere; }
+.entity-audit-content li header { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.entity-audit-content time { font-size: 12px; opacity: .75; }
+.audit-changes { margin: 10px 0; min-width: 0; }
+.audit-changes summary { cursor: pointer; font-size: 12px; }
+.audit-change-scroll { overflow: auto; max-height: 400px; margin-top: 8px; }
+.audit-changes table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.audit-changes th, .audit-changes td { padding: 8px; border: 1px solid #8193a533; text-align: left; vertical-align: top; }
+.audit-changes pre { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; font: inherit; margin: 0; min-width: 70px; max-width: 330px; max-height: 220px; overflow: auto; }
+.task-detail-fields > .entity-audit-trail { grid-column: 1 / -1; margin: 0; }

@@ -3,8 +3,20 @@ import { message, translateText, observeTranslations, getLanguage, getFormatLoca
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import InventoryApp from "./InventoryApp";
 import TasksPage from "./TasksPage";
+import DocumentsPage from "./DocumentsPage";
+import ProjectTeamPicker from "./ProjectTeamPicker";
+import TaskDetails from "./TaskDetails";
+import PortfolioDashboard from "./PortfolioDashboard";
+import { projectStatus, projectStatusLabel } from "./projectStatus";
+import { AuditChanges, auditActionLabels } from "./AuditTrail";
 import SpotTutorial from "./tutorial/SpotTutorial";
-import { sessionRequest } from "./api";
+import { sessionRequest, spotFetch } from "./api";
+import useAutoRefresh from "./useAutoRefresh";
+import useBrowserPage from "./useBrowserPage";
+import usePopoverPosition from "./usePopoverPosition";
+import { ErrorScreen } from "./ErrorScreen";
+import useModalFocus from "./useModalFocus";
+import ReadingSettings, { ReadingSettingsProvider } from "./ReadingSettings";
 import {
   Archive,
   AppWindow,
@@ -85,6 +97,7 @@ const navGroups = [
 ];
 
 function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxLeave, inboxPinned, canViewParameters }) {
+  const sidebarDialogRef = useModalFocus(open, onClose);
   const [expandedGroups, setExpandedGroups] = useState(() => navGroups.map(() => true));
   const [quickExpanded, setQuickExpanded] = useState(false);
   const [recentItems, setRecentItems] = useState(() => {
@@ -124,7 +137,7 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
   return (
     <>
       <button className={`sidebar-scrim ${open ? "is-open" : ""}`} onClick={onClose} aria-label="Fechar menu" />
-      <aside className={`dashboard-sidebar ${open ? "is-open" : ""} ${inboxPinned ? "inbox-pinned" : ""}`}>
+      <aside ref={sidebarDialogRef} id="spot-navigation" tabIndex={-1} role={open ? "dialog" : undefined} aria-modal={open ? true : undefined} aria-label="Navegação principal" className={`dashboard-sidebar ${open ? "is-open" : ""} ${inboxPinned ? "inbox-pinned" : ""}`}>
         <div className="sidebar-brand">
           <img src="/computecnica-logo.png" alt="Computécnica" />
           <button type="button" onClick={onClose} aria-label="Fechar menu"><X size={22} /></button>
@@ -140,6 +153,7 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
                 className={page && activePage === page ? "active" : ""}
                 type="button"
                 key={label}
+                aria-current={page && activePage === page ? "page" : undefined}
                 onClick={() => {
                   activate(label);
                 }}
@@ -269,8 +283,8 @@ function InboxPage() {
   const [confirmClear, setConfirmClear] = useState(false);
   const trashMode = filter === "trash";
 
-  async function load() {
-    setLoading(true); setError("");
+  async function load(background = false) {
+    if (!background) setLoading(true); setError("");
     const response = await sessionRequest(trashMode ? "/inbox?filter=trash" : "/inbox");
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Não foi possível carregar a caixa de entrada.");
@@ -280,6 +294,7 @@ function InboxPage() {
     setLoading(false);
   }
   useEffect(() => { load().catch((requestError) => { setError(requestError.message); setLoading(false); }); }, [trashMode]);
+  useAutoRefresh(() => load(true));
 
   const filtered = items.filter((item) => trashMode || filter === "all" || (filter === "unread" ? !item.read_at : item.type === filter.slice(0, -1)))
     .filter((item) => `${item.title} ${item.body || ""} ${item.project?.name || ""}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")));
@@ -337,6 +352,7 @@ function CalendarPage() {
   const [data, setData] = useState({ events: [], providers: {}, errors: [] });
   const [selected, setSelected] = useState(null);
   const [creating, setCreating] = useState(false);
+  const eventDialogRef = useModalFocus(creating, () => setCreating(false));
   const [error, setError] = useState("");
   const [createError, setCreateError] = useState("");
   const [createFieldErrors, setCreateFieldErrors] = useState({});
@@ -347,6 +363,7 @@ function CalendarPage() {
     if (!response.ok) throw new Error(result.message || "Não foi possível carregar a agenda."); setData(result);
   }
   useEffect(() => { load().catch((loadError) => setError(loadError.message)); }, [month.getTime()]);
+  useAutoRefresh(() => load().catch(e => setError(e.message)), 60000);
   const gridStart = new Date(month); gridStart.setDate(1 - gridStart.getDay());
   const days = Array.from({ length: 42 }, (_, index) => { const day = new Date(gridStart); day.setDate(gridStart.getDate() + index); return day; });
   const eventsFor = (day) => data.events.filter((event) => new Date(event.start).toDateString() === day.toDateString());
@@ -365,9 +382,9 @@ function CalendarPage() {
     <header className="calendar-heading"><div><span className="workspace-eyebrow">PLANEJAMENTO</span><h1>Agenda</h1><p>Seus compromissos do Spot, Google Calendar, Outlook e Teams em um só lugar.</p></div><button className="primary-action" type="button" onClick={() => { setCreateError(""); setCreateFieldErrors({}); setCreating(true); }}><Plus size={17} /> Novo evento</button></header>
     <div className="calendar-connections"><span><i className="spot" /> Spot</span><span className={data.providers.google ? 'connected' : ''}><i className="google" /> Google Calendar {data.providers.google ? 'conectado' : 'desconectado'}</span><span className={data.providers.microsoft ? 'connected' : ''}><i className="microsoft" /> Microsoft/Teams {data.providers.microsoft ? 'conectado' : 'desconectado'}</span>{(!data.providers.google || !data.providers.microsoft) && <button type="button" onClick={() => window.scrollTo(0,0)}>Conectar em Apps</button>}</div>
     {(error || data.errors?.length > 0) && <p className="home-state error">{error || data.errors.join(' ')}</p>}
-    <section className="calendar-shell"><header><div><button type="button" onClick={() => setMonth(new Date())}>Hoje</button><button type="button" aria-label="Mês anterior" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()-1,1))}><ChevronLeft size={18}/></button><button type="button" aria-label="Próximo mês" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()+1,1))}><ChevronRight size={18}/></button></div><h2>{month.toLocaleDateString(getFormatLocale(),{month:'long',year:'numeric'})}</h2><span>{data.events.length} eventos</span></header><div className="calendar-weekdays">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><span key={day}>{day}</span>)}</div><div className="calendar-grid">{days.map(day=><div className={`${day.getMonth()!==month.getMonth()?'outside ':''}${day.toDateString()===new Date().toDateString()?'today':''}`} key={day.toISOString()}><strong>{day.getDate()}</strong><div>{eventsFor(day).slice(0,3).map(event=><button className={event.provider} type="button" key={event.id} onClick={()=>setSelected(event)} title={event.title}><time>{new Date(event.start).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</time><span translate="no">{event.title}</span></button>)}{eventsFor(day).length>3&&<small>+{eventsFor(day).length-3} eventos</small>}</div></div>)}</div></section>
-    {selected && <div className="calendar-event-popover"><button type="button" onClick={()=>setSelected(null)}><X size={18}/></button><em className={selected.provider}>{providerLabel[selected.provider]}</em><h3 translate="no">{selected.title}</h3><p>{selected.description||'Sem descrição.'}</p><span><CalendarDays size={16}/>{new Date(selected.start).toLocaleString(getFormatLocale())} – {new Date(selected.end).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</span>{selected.url&&<a href={selected.url} target="_blank" rel="noreferrer"><Video size={16}/> Abrir reunião ou evento</a>}</div>}
-    {creating && <div className="calendar-modal" onMouseDown={event=>event.target===event.currentTarget&&setCreating(false)}><form onSubmit={createEvent}><header><div><h2>Novo evento</h2><p>Escolha em qual agenda o compromisso será criado.</p></div><button type="button" onClick={()=>setCreating(false)}><X size={19}/></button></header>{createError&&<p className="calendar-form-error" role="alert">{createError}</p>}<label>Título<input name="title" required maxLength="150" aria-invalid={Boolean(createFieldErrors.title)} />{createFieldErrors.title&&<small>{createFieldErrors.title}</small>}</label><div><label>Início<input name="starts_at" type="datetime-local" required aria-invalid={Boolean(createFieldErrors.starts_at)} />{createFieldErrors.starts_at&&<small>{createFieldErrors.starts_at}</small>}</label><label>Fim<input name="ends_at" type="datetime-local" required aria-invalid={Boolean(createFieldErrors.ends_at)} />{createFieldErrors.ends_at&&<small>{createFieldErrors.ends_at}</small>}</label></div><label>Agenda<select name="provider" required aria-invalid={Boolean(createFieldErrors.provider)}><option value="spot">Spot</option><option value="google" disabled={!data.providers.google}>Google Calendar{!data.providers.google?' — conecte a conta':''}</option><option value="microsoft" disabled={!data.providers.microsoft}>Outlook{!data.providers.microsoft?' — conecte a conta':''}</option><option value="teams" disabled={!data.providers.microsoft}>Reunião do Teams{!data.providers.microsoft?' — conecte a conta':''}</option></select>{createFieldErrors.provider&&<small>{createFieldErrors.provider}</small>}</label><label>Local<input name="location" placeholder="Sala ou endereço" aria-invalid={Boolean(createFieldErrors.location)} />{createFieldErrors.location&&<small>{createFieldErrors.location}</small>}</label><label>Descrição<textarea name="description" rows="4" aria-invalid={Boolean(createFieldErrors.description)} />{createFieldErrors.description&&<small>{createFieldErrors.description}</small>}</label><footer><button className="secondary-button" type="button" onClick={()=>setCreating(false)}>Cancelar</button><button className="primary-action" type="submit">Criar evento</button></footer></form></div>}
+    <section className="calendar-shell"><header><div><button type="button" onClick={() => setMonth(new Date())}>Hoje</button><button type="button" aria-label="Mês anterior" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()-1,1))}><ChevronLeft size={18}/></button><button type="button" aria-label="Próximo mês" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()+1,1))}><ChevronRight size={18}/></button></div><h2>{month.toLocaleDateString(getFormatLocale(),{month:'long',year:'numeric'})}</h2><span>{data.events.length} eventos</span></header><div className="calendar-weekdays">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><span key={day}>{day}</span>)}</div><div className="calendar-grid">{days.map(day=><div className={`${day.getMonth()!==month.getMonth()?'outside ':''}${day.toDateString()===new Date().toDateString()?'today':''}`} key={day.toISOString()}><strong>{day.getDate()}</strong><div>{eventsFor(day).slice(0,3).map(event=><button className={event.provider} type="button" key={event.id} onClick={()=>setSelected(event)} title={event.title}><time>{new Date(event.start).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</time><span translate="no">{event.title}</span></button>)}{eventsFor(day).length>3&&<small>+{eventsFor(day).length-3} eventos</small>}</div></div>)}</div><div className="calendar-mobile-agenda" aria-label="Eventos do mês">{data.events.length ? [...data.events].sort((a, b) => new Date(a.start) - new Date(b.start)).map(event => <button type="button" key={event.id} onClick={() => setSelected(event)}><time dateTime={event.start}>{new Date(event.start).toLocaleDateString(getFormatLocale(), { weekday: 'short', day: '2-digit', month: 'short' })} · {new Date(event.start).toLocaleTimeString(getFormatLocale(), { hour: '2-digit', minute: '2-digit' })}</time><strong translate="no">{event.title}</strong><small>{providerLabel[event.provider] || 'Spot'}</small></button>) : <p>Nenhum evento neste mês.</p>}</div></section>
+    {selected && <div className="calendar-event-popover"><button type="button" aria-label="Fechar evento" onClick={()=>setSelected(null)}><X size={18}/></button><em className={selected.provider}>{providerLabel[selected.provider]}</em><h3 translate="no">{selected.title}</h3><p>{selected.description||'Sem descrição.'}</p><span><CalendarDays size={16}/>{new Date(selected.start).toLocaleString(getFormatLocale())} – {new Date(selected.end).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</span>{selected.url&&<a href={selected.url} target="_blank" rel="noreferrer"><Video size={16}/> Abrir reunião ou evento</a>}</div>}
+    {creating && <div className="calendar-modal" onMouseDown={event=>event.target===event.currentTarget&&setCreating(false)}><form ref={eventDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="event-dialog-title" onSubmit={createEvent}><header><div><h2 id="event-dialog-title">Novo evento</h2><p>Escolha em qual agenda o compromisso será criado.</p></div><button type="button" aria-label="Fechar" onClick={()=>setCreating(false)}><X size={19}/></button></header>{createError&&<p className="calendar-form-error" role="alert">{createError}</p>}<label>Título<input name="title" required maxLength="150" aria-invalid={Boolean(createFieldErrors.title)} />{createFieldErrors.title&&<small>{createFieldErrors.title}</small>}</label><div><label>Início<input name="starts_at" type="datetime-local" required aria-invalid={Boolean(createFieldErrors.starts_at)} />{createFieldErrors.starts_at&&<small>{createFieldErrors.starts_at}</small>}</label><label>Fim<input name="ends_at" type="datetime-local" required aria-invalid={Boolean(createFieldErrors.ends_at)} />{createFieldErrors.ends_at&&<small>{createFieldErrors.ends_at}</small>}</label></div><label>Agenda<select name="provider" required aria-invalid={Boolean(createFieldErrors.provider)}><option value="spot">Spot</option><option value="google" disabled={!data.providers.google}>Google Calendar{!data.providers.google?' — conecte a conta':''}</option><option value="microsoft" disabled={!data.providers.microsoft}>Outlook{!data.providers.microsoft?' — conecte a conta':''}</option><option value="teams" disabled={!data.providers.microsoft}>Reunião do Teams{!data.providers.microsoft?' — conecte a conta':''}</option></select>{createFieldErrors.provider&&<small>{createFieldErrors.provider}</small>}</label><label>Local<input name="location" placeholder="Sala ou endereço" aria-invalid={Boolean(createFieldErrors.location)} />{createFieldErrors.location&&<small>{createFieldErrors.location}</small>}</label><label>Descrição<textarea name="description" rows="4" aria-invalid={Boolean(createFieldErrors.description)} />{createFieldErrors.description&&<small>{createFieldErrors.description}</small>}</label><footer><button className="secondary-button" type="button" onClick={()=>setCreating(false)}>Cancelar</button><button className="primary-action" type="submit">Criar evento</button></footer></form></div>}
   </div>;
 }
 
@@ -418,18 +435,19 @@ function AppsPopover({ onManage }) {
           ))}
         </div>
       </section>
-      <button className="manage-apps" type="button" onClick={onManage}><span>Gerenciar integrações</span><span aria-hidden="true">→</span></button>
+      <button className="manage-apps" type="button" onClick={onManage}><Link2 size={18} aria-hidden="true" /><span>Gerenciar integrações</span><ChevronRight size={17} aria-hidden="true" /></button>
     </aside>
   );
 }
 
 function IntegrationsModal({ onClose }) {
+  const dialogRef = useModalFocus(true, onClose);
   const [providers, setProviders] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const providerMeta = {
-    google: { name: "Google Workspace", logo: "/google-logo.svg", auth: "/auth/google", description: "Drive, Gmail, Agenda, Meet e ferramentas de produtividade.", services: ["Drive", "Gmail", "Agenda", "Meet", "Docs", "Planilhas", "Tarefas"] },
-    microsoft: { name: "Microsoft 365", logo: "/microsoft-logo.png", auth: "/auth/microsoft", description: "Outlook, Teams, OneDrive e aplicativos do Microsoft 365.", services: ["Outlook", "Teams", "OneDrive", "Word", "Excel", "Planner", "To Do"] },
+    google: { name: "Google Workspace", logo: "/google-logo.svg", auth: "/auth/google", description: "Login e leitura/criação de eventos no Google Calendar.", services: ["Login Google", "Google Calendar"] },
+    microsoft: { name: "Microsoft 365", logo: "/microsoft-logo.png", auth: "/auth/microsoft", description: "Login, calendário Outlook e criação de reuniões Teams.", services: ["Login Microsoft", "Outlook Calendar", "Reuniões Teams"] },
   };
 
   async function loadProviders() {
@@ -441,11 +459,7 @@ function IntegrationsModal({ onClose }) {
   }
 
   useEffect(() => { loadProviders().catch((loadError) => setError(loadError.message)); }, []);
-  useEffect(() => {
-    const closeOnEscape = (event) => { if (event.key === "Escape") onClose(); };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
+
 
   async function disconnect(provider) {
     if (!window.confirm(message("Desconectar sua conta {provider}?", { provider: providerMeta[provider].name }))) return;
@@ -463,8 +477,8 @@ function IntegrationsModal({ onClose }) {
   }
 
   return <div className="integrations-modal" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <section className="integrations-dialog" role="dialog" aria-modal="true" aria-labelledby="integrations-title">
-      <header><div><span className="integration-heading-icon"><Link2 size={20} /></span><span><h2 id="integrations-title">Gerenciar integrações</h2><p>Conecte suas contas e controle o acesso do Spot aos aplicativos.</p></span></div><button type="button" onClick={onClose} aria-label="Fechar"><X size={21} /></button></header>
+    <section ref={dialogRef} tabIndex={-1} className="integrations-dialog" role="dialog" aria-modal="true" aria-labelledby="integrations-title">
+      <header><div><span className="integration-heading-icon"><Link2 size={26} /></span><span><span className="integration-brand" translate="no">SPOT <span> / </span> WORKSPACE</span><h2 id="integrations-title">Gerenciar integrações</h2><p>Conecte suas contas e controle o acesso do Spot aos aplicativos.</p></span></div><button type="button" onClick={onClose} aria-label="Fechar"><X size={21} /></button></header>
       {error && <p className="integration-feedback">{error}</p>}
       <div className="integration-provider-list">
         {Object.entries(providerMeta).map(([key, meta]) => {
@@ -472,11 +486,14 @@ function IntegrationsModal({ onClose }) {
           const connected = Boolean(provider?.connected);
           return <article className="integration-provider" key={key}>
             <div className="integration-provider-main"><img src={meta.logo} alt="" /><span><strong translate="no">{meta.name}</strong><small>{meta.description}</small></span><em className={connected ? "connected" : ""}>{connected ? "Conectada" : "Não conectada"}</em></div>
+            {provider?.configured === false && <p>Integração aguardando configuração da administração.</p>}
+            {connected && provider?.calendar_connected === false && <p>Reconecte a conta para autorizar o calendário.</p>}
             <div className="integration-services">{meta.services.map((service) => <span key={service}>{service}</span>)}</div>
-            <footer><span>{connected ? <>Conta: <strong translate="no">{provider.email}</strong></> : "Conecte sua conta para ativar os aplicativos."}</span>{connected ? <button className="disconnect-integration" type="button" disabled={busy === key} onClick={() => disconnect(key)}>{busy === key ? "Desconectando..." : "Desconectar"}</button> : <button className="connect-integration" type="button" onClick={() => window.location.assign(meta.auth)}>Conectar conta</button>}</footer>
+            <footer><span>{connected ? <>Conta: <strong translate="no">{provider.email}</strong></> : "Conecte sua conta para usar a agenda integrada."}</span>{connected ? <button className="disconnect-integration" type="button" disabled={busy === key} onClick={() => disconnect(key)}>{busy === key ? "Desconectando..." : "Desconectar"}</button> : <button className="connect-integration" type="button" onClick={() => window.location.assign(meta.auth)}>Conectar conta</button>}</footer>
           </article>;
         })}
       </div>
+      <p>Os demais aplicativos do menu Apps são atalhos para os serviços externos.</p>
       <aside className="integration-security-note"><ShieldCheck size={18} /><span><strong>Conexão protegida por OAuth 2.0</strong><small>O Spot não recebe nem armazena a senha das suas contas externas. As permissões serão solicitadas pelo próprio provedor.</small></span></aside>
     </section>
   </div>;
@@ -500,9 +517,9 @@ function PageHeading({ eyebrow, title, description, action, onAction }) {
 const analyticsColors = ["#168ff0", "#65b9f7", "#0b5f9d", "#9bd4fb", "#f2a640", "#6d7f8b"];
 
 function AnalyticsBars({ items, horizontal = false, money = false }) {
-  const max = Math.max(...items.map((item) => Number(item.value)), 1);
+  const max = Math.max(...items.map((item) => Math.abs(Number(item.value))), 1);
   if (!items.length) return <p className="analytics-empty">Sem dados no período.</p>;
-  if (horizontal) return <div className="analytics-horizontal-bars">{items.map((item) => <div key={item.label}><span title={item.label}>{item.label}</span><i><b style={{ width: `${Math.max((Number(item.value) / max) * 100, 3)}%` }} /></i><strong>{money ? Number(item.value).toLocaleString(getFormatLocale(), { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) : item.value}</strong></div>)}</div>;
+  if (horizontal) return <div className="analytics-horizontal-bars">{items.map((item) => <div key={item.label}><span title={item.label}>{item.label}</span><i><b data-negative={Number(item.value) < 0} style={{ width: `${Math.abs(Number(item.value)) / max * 100}%` }} /></i><strong>{money ? Number(item.value).toLocaleString(getFormatLocale(), { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) : item.value}</strong></div>)}</div>;
   return <div className="analytics-columns">{items.map((item) => <div key={item.label}><strong>{item.value}</strong><i style={{ height: `${Math.max((Number(item.value) / max) * 100, 5)}%` }} /><span title={item.label}>{item.label}</span></div>)}</div>;
 }
 
@@ -529,12 +546,15 @@ function ProjectAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState("");
   const [range, setRange] = useState({ from: "", to: "" });
+  const appliedRange = useRef({ from: "", to: "" });
 
-  async function load() {
-    setLoading(true); setError(""); setRestricted(false);
+  async function load(background = false) {
+    const filters = background ? appliedRange.current : range;
+    if (filters.from && filters.to && filters.from > filters.to) { setError("A data final deve ser igual ou posterior à data inicial."); return; }
+    if (!background) setLoading(true); setError(""); setRestricted(false);
     try {
-      const query = new URLSearchParams(Object.entries(range).filter(([, value]) => value));
-      const response = await sessionRequest(`/reports/project-analytics${query.size ? `?${query}` : ""}`);
+      const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
+      const response = await sessionRequest(`/reports/project-analytics${query.size ? `?${query}` : ""}`, { handledStatuses: [403] });
       if (response.status === 403) {
         setData(null);
         setRestricted(true);
@@ -542,6 +562,7 @@ function ProjectAnalyticsPage() {
       }
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Não foi possível carregar os gráficos.");
+      appliedRange.current = { ...filters };
       setData(result);
       if (selectedProject && !result.projects.some((project) => String(project.id) === selectedProject)) setSelectedProject("");
     } catch (requestError) { setError(requestError.message); }
@@ -549,18 +570,18 @@ function ProjectAnalyticsPage() {
   }
 
   useEffect(() => { load(); }, []);
-  useEffect(()=>{let active=true;setFinancialDetail(null);if(selectedProject)sessionRequest(`/projects/${selectedProject}/financial-result`).then(async r=>{const result=await r.json();if(!r.ok)throw new Error(result.message);if(active)setFinancialDetail(result);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[selectedProject,data]);
+  useAutoRefresh(() => load(true));
+  useEffect(() => { setFinancialDetail(null); }, [selectedProject]);
+  useEffect(()=>{let active=true;if(!selectedProject)setFinancialDetail(null);if(selectedProject)sessionRequest(`/projects/${selectedProject}/financial-result`).then(async r=>{const result=await r.json();if(!r.ok)throw new Error(result.message);if(active)setFinancialDetail(result);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[selectedProject,data]);
   const detail = data?.projects.find((project) => String(project.id) === selectedProject);
-  const projectsForCharts = detail ? [detail] : data?.projects || [];
+  const projectsForCharts = detail ? [detail] : [];
   const summary = data?.summary;
   const currency = (value) => Number(value || 0).toLocaleString(getFormatLocale(), { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
-  const statusTotal = data?.status.reduce((sum, item) => sum + item.value, 0) || 1;
-  let statusCursor = 0;
-  const statusGradient = data?.status.map((item, index) => { const start = statusCursor; statusCursor += item.value / statusTotal * 100; return `${analyticsColors[index % analyticsColors.length]} ${start}% ${statusCursor}%`; }).join(", ");
 
   return <div className="analytics-page">
     <header className="analytics-heading"><div><span>LEVANTAMENTO DE PROJETOS</span><h1>{detail ? detail.name : "Visão de portfólio"}</h1><p>{detail ? `${detail.client} · ${detail.manager}` : "Indicadores consolidados de prazo, clientes, responsáveis e resultado financeiro."}</p></div><small><BarChart3 size={17} /> {data?.processor || "Python + Pandas"}</small></header>
-    <div className="analytics-filters"><label>Data inicial<input type="date" value={range.from} onChange={(event) => setRange({ ...range, from: event.target.value })} /></label><label>Data final<input type="date" value={range.to} onChange={(event) => setRange({ ...range, to: event.target.value })} /></label><label className="analytics-project-filter">Projeto<select value={selectedProject} onChange={(event) => setSelectedProject(event.target.value)}><option value="">Todos os projetos</option>{data?.projects.map((project) => <option key={project.id} value={project.id} translate="no">{project.name}</option>)}</select></label><button type="button" onClick={load} disabled={loading}>{loading ? "Atualizando..." : "Aplicar período"}</button></div>
+    <div className="analytics-filters"><label>Data inicial<input type="date" value={range.from} onChange={(event) => setRange({ ...range, from: event.target.value })} /></label><label>Data final<input type="date" value={range.to} onChange={(event) => setRange({ ...range, to: event.target.value })} /></label><label className="analytics-project-filter">Projeto<select value={selectedProject} onChange={(event) => setSelectedProject(event.target.value)}><option value="">Todos os projetos</option>{data?.projects.map((project) => <option key={project.id} value={project.id} translate="no">{project.name}</option>)}</select></label><button type="button" onClick={() => load()} disabled={loading}>{loading ? "Atualizando..." : "Aplicar período"}</button></div>
+    <p className="analytics-refresh-status">Atualização automática a cada 30 segundos enquanto esta tela estiver visível.</p>
     {restricted && <section className="analytics-error restricted-project-access" aria-labelledby="restricted-portfolio-title">
       <LockKeyhole size={28} aria-hidden="true" />
       <h2 id="restricted-portfolio-title">Área restrita</h2>
@@ -571,42 +592,24 @@ function ProjectAnalyticsPage() {
     {data && <>
       {!detail && <>
       <section className="analytics-kpis">{[['Em andamento', summary.in_progress, 'blue'], ['Concluídos', summary.completed, 'slate'], ['Cancelados', summary.cancelled || 0, 'red'], ['No prazo', summary.on_time, 'green'], ['Fora do prazo', summary.overdue, 'red'], ['Congelados', summary.frozen, 'purple'], ['Total de projetos', summary.total, 'strong']].map(([label, value, tone]) => <article className={tone} key={label}><span>{label}</span><strong>{value}</strong></article>)}</section>
-      <section className="analytics-grid top-row"><article className="analytics-panel status-panel"><header><h2>Situação dos projetos</h2><small>{summary.total} projetos</small></header><div className="status-chart"><div className="status-donut" style={{ background: `conic-gradient(${statusGradient || "#e5edf2 0 100%"})` }}><span><strong>{summary.total}</strong><small>Total</small></span></div><div className="status-legend">{data.status.map((item, index) => <span key={item.label}><i style={{ background: analyticsColors[index % analyticsColors.length] }} />{item.label}<strong>{item.value}</strong></span>)}</div></div></article><article className="analytics-panel monthly-panel"><header><h2>Iniciados por mês</h2><small>Evolução no período</small></header><AnalyticsLine items={data.monthly} /></article></section>
-      {summary.unpriced_tasks > 0 && <p role="alert">Resultado parcial: existem atividades sem tarifa vigente. Cadastre o custo/hora dos analistas.</p>}<section className="analytics-grid bottom-row"><article className="analytics-panel"><header><h2>Quantidade por cliente</h2><small>{summary.clients} clientes</small></header><AnalyticsBars items={data.clients} /></article><article className="analytics-panel"><header><h2>Quantidade por gerente de contas</h2><small>{summary.managers} responsáveis</small></header><AnalyticsBars items={data.account_managers || data.managers} /></article><article className="analytics-panel"><header><h2>Quantidade por gerente de projetos</h2></header><AnalyticsBars items={data.managers} /></article><article className="analytics-panel financial-panel"><header><h2>Resultado do portfólio</h2><small>Valores consolidados</small></header><AnalyticsBars horizontal money items={[{ label: "Contratos", value: summary.contract_value }, { label: "Receita", value: summary.revenue }, { label: "Custos", value: summary.cost }, { label: "Lucro", value: summary.profit }]} /></article></section>
+      {summary.unpriced_tasks > 0 && <p role="alert">Resultado parcial: existem atividades sem tarifa vigente. Cadastre o custo/hora dos analistas.</p>}
+      <PortfolioDashboard key="overview" portfolio={data} Ring={AnalyticsRing} />
       </>}
-      <section className="project-charts-section">
+      {!detail && <section className="portfolio-projects"><header><h2>Dashboards por projeto</h2><p>Abra um projeto para consultar e personalizar seus indicadores.</p></header><div className="portfolio-project-cards">{data.projects.map(project => <button type="button" key={project.id} onClick={() => setSelectedProject(String(project.id))}><span>{projectStatus(project)}</span><h3 translate="no">{project.name}</h3><p>{project.client} · {project.manager}</p><strong>{project.progress}% concluído</strong><small>Abrir dashboard →</small></button>)}</div>{!data.projects.length && <p className="analytics-empty">Nenhum projeto disponível no período.</p>}</section>}
+      {detail && <button type="button" className="portfolio-back" onClick={() => setSelectedProject("")}>← Visão de portfólio</button>}
+      {detail && <section className="project-charts-section">
         <header><div><span>PAINEL GRÁFICO</span><h2>{detail ? "Indicadores do projeto" : "Indicadores de todos os projetos"}</h2><p>{detail ? "Finanças, esforço, execução e resultado do projeto selecionado." : "Uma visão gráfica completa para cada projeto da carteira."}</p></div><strong>{projectsForCharts.length} {projectsForCharts.length === 1 ? "projeto" : "projetos"}</strong></header>
         <div className="project-charts-list">
           {projectsForCharts.map((project) => {
-            const revenueRate = project.contract_value > 0 ? project.actual_revenue / project.contract_value * 100 : 0;
-            const budgetRate = project.contract_value > 0 ? project.actual_cost / project.contract_value * 100 : 0;
-            const hoursRate = project.estimated_hours > 0 ? project.worked_hours / project.estimated_hours * 100 : 0;
-            const margin = project.actual_revenue > 0 ? project.profit / project.actual_revenue * 100 : 0;
             return <article className="project-detail-analytics" key={project.id}>
-            <header><div><span>PROJETO #{project.id}</span><h2 translate="no">{project.name}</h2><p>{project.client} · {project.manager}</p></div><em>{project.status}</em></header>
+            <header><div><span>PROJETO #{project.id}</span><h2 translate="no">{project.name}</h2><p>{project.client} · {project.manager}</p></div><em>{projectStatus(project)}</em></header>
             <div className="detail-kpis"><article><TrendingUp size={20} /><span>Valor do projeto<strong>{currency(project.contract_value)}</strong></span></article><article><Clock3 size={20} /><span>Horas estimadas<strong>{project.estimated_hours}h</strong></span></article><article><Clock3 size={20} /><span>Horas realizadas<strong>{project.worked_hours}h</strong></span></article><article><BarChart3 size={20} /><span>Progresso<strong>{project.progress}%</strong></span></article></div>
-            <div className="detail-comparison">
-              <article className="detail-chart-wide"><h3>Visão financeira</h3><AnalyticsBars horizontal money items={[{ label: "Contrato", value: project.contract_value }, { label: "Receita", value: project.actual_revenue }, { label: "Custos", value: project.actual_cost }]} /></article>
-              <article className="detail-chart-wide"><h3>Consumo de horas</h3><AnalyticsBars horizontal items={[{ label: "Estimadas", value: project.estimated_hours }, { label: "Realizadas", value: project.worked_hours }]} /><small className={hoursRate > 100 ? "chart-alert" : "chart-caption"}>{Math.round(hoursRate)}% das horas planejadas consumidas</small></article>
-              <article><h3>Execução</h3><AnalyticsRing value={project.progress} label="concluído" detail={`${project.progress}% do projeto`} /></article>
-              <article><h3>Receita realizada</h3><AnalyticsRing value={revenueRate} label="do contrato" tone="cyan" detail={`${currency(project.actual_revenue)} recebidos`} /></article>
-              <article><h3>Orçamento consumido</h3><AnalyticsRing value={budgetRate} label="em custos" tone={budgetRate > 100 ? "red" : "amber"} detail={`${currency(project.actual_cost)} utilizados`} /></article>
-              <article className={project.profit >= 0 ? "result-chart profit-positive" : "result-chart profit-negative"}><h3>Resultado e margem</h3><strong>{currency(project.profit)}</strong><AnalyticsRing value={Math.abs(margin)} label={margin >= 0 ? "de margem" : "de perda"} tone={margin >= 0 ? "green" : "red"} detail={project.profit >= 0 ? "Lucro apurado" : "Prejuízo apurado"} /></article>
-            </div>
+            {project.unpriced_tasks > 0 && <p role="alert">Resultado parcial: existem atividades sem tarifa vigente.</p>}
+            <PortfolioDashboard key={project.id} project={project} financial={financialDetail} Ring={AnalyticsRing} />
           </article>;
           })}
           {!projectsForCharts.length && <p className="analytics-empty">Nenhum projeto disponível para gerar os gráficos.</p>}
         </div>
-      </section>
-      {financialDetail && <section className="analytics-grid financial-breakdown-charts" aria-label="Detalhamento gráfico do projeto">
-        <article className="analytics-panel"><header><h2>Composição dos custos</h2><small>Valores realizados</small></header><AnalyticsBars horizontal money items={[
-          { label: "Impostos", value: financialDetail.actual.taxes },
-          { label: "Comissão", value: financialDetail.actual.commission },
-          { label: "Mão de obra", value: financialDetail.actual.labor_cost },
-          { label: "Despesas", value: financialDetail.actual.approved_expenses },
-        ]} /></article>
-        <article className="analytics-panel"><header><h2>Custo por analista</h2><small>{financialDetail.by_analyst.length} participantes</small></header><AnalyticsBars items={financialDetail.by_analyst.map((item) => ({ label: item.name, value: Number(item.cost) }))} /></article>
-        <article className="analytics-panel"><header><h2>Horas por atividade</h2><small>Distribuição do esforço</small></header><AnalyticsBars items={financialDetail.by_activity_type.map((item) => ({ label: item.name, value: Math.round(Number(item.minutes) / 60 * 10) / 10 }))} /></article>
       </section>}
       {financialDetail && <div className="management-workspace"><FinancialResult data={financialDetail}/></div>}
     </>}
@@ -614,14 +617,14 @@ function ProjectAnalyticsPage() {
 }
 
 function NewProjectPage({ onCreated, onCancel }) {
-  const [parameters,setParameters]=useState(null),[form,setForm]=useState({name:'',proposal_number:'',project_status_id:'',project_situation_id:'',client_id:'',account_manager_id:'',project_manager_id:'',proposal_date:'',start_date:'',end_date:'',billing_date:'',contract_value:0,commission_rate:0,estimated_labor_cost:0,estimated_additional_cost:0,estimated_hours:0,estimated_extra_minutes:0,cpt_scope:'',tax_type_id:'',tax_rate:0,tax_fixed:0,tax_mode:'percentage'}),[error,setError]=useState(''),[saving,setSaving]=useState(false);
+  const [parameters,setParameters]=useState(null),[form,setForm]=useState({name:'',proposal_number:'',project_status_id:'',project_situation_id:'',client_id:'',member_ids:[],account_manager_id:'',project_manager_id:'',proposal_date:'',start_date:'',end_date:'',billing_date:'',contract_value:0,commission_rate:0,estimated_labor_cost:0,estimated_additional_cost:0,estimated_hours:0,estimated_extra_minutes:0,cpt_scope:'',tax_type_id:'',tax_rate:0,tax_fixed:0,tax_mode:'percentage'}),[error,setError]=useState(''),[saving,setSaving]=useState(false);
   useEffect(()=>{sessionRequest('/parameters').then(async r=>{const data=await r.json();if(!r.ok)throw new Error(data.message);setParameters(data);setForm(f=>({...f,project_status_id:data.project_statuses[0]?.id||'',project_situation_id:data.project_situations[0]?.id||''}));}).catch(e=>setError(e.message));},[]);
   const access=key=>parameters?.field_access?.[key]||{view:true,edit:true};
-  function field(key,label,type='text',options=null,required=false,max){const permissionKey=key.startsWith('estimated_')&&['estimated_hours','estimated_extra_minutes'].includes(key)?'estimated_minutes':key;const rights=access(permissionKey);if(!rights.view)return null;return <label key={key}><span>{label}</span>{options?<select aria-label={label} disabled={!rights.edit} required={required} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}><option value="">Selecione</option>{options.map(o=><option key={o.id} value={o.id} translate="no">{o.name}</option>)}</select>:<input aria-label={label} disabled={!rights.edit} required={required} type={type} min={type==='number'?0:undefined} max={max} step={type==='number'?(permissionKey==='estimated_minutes'?'1':'0.01'):undefined} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/>}</label>;}
+  function field(key,label,type='text',options=null,required=false,max){const permissionKey=key.startsWith('estimated_')&&['estimated_hours','estimated_extra_minutes'].includes(key)?'estimated_minutes':key;const rights=access(permissionKey);if(!rights.view)return null;return <label key={key}><span>{label}</span>{options?<select aria-label={label} disabled={!rights.edit} required={required} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}><option value="">Selecione</option>{options.map(o=><option key={o.id} value={o.id} translate={key === 'project_status_id' ? undefined : "no"}>{key === 'project_status_id' ? projectStatusLabel(o.name || o.slug) : o.name}</option>)}</select>:<input aria-label={label} disabled={!rights.edit} required={required} type={type} min={type==='number'?0:undefined} max={max} step={type==='number'?(permissionKey==='estimated_minutes'?'1':'0.01'):undefined} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/>}</label>;}
   async function submit(e){e.preventDefault();setSaving(true);setError('');try{const payload={...form,estimated_minutes:Number(form.estimated_hours)*60+Number(form.estimated_extra_minutes)};if(form.tax_type_id&&access('taxes').edit)payload.taxes=[{tax_type_id:Number(form.tax_type_id),calculation_type:form.tax_mode,rate:Number(form.tax_rate),fixed_amount:Number(form.tax_fixed),calculation_basis:'contract_value'}];for(const [key,value] of Object.entries(payload)){if(!access(key).edit)delete payload[key];else if(value==='')payload[key]=null;}const r=await sessionRequest('/projects',{method:'POST',body:JSON.stringify(payload)});const result=await r.json();if(!r.ok)throw new Error(Object.values(result.errors||{}).flat()[0]||result.message);onCreated();}catch(e){setError(e.message);}finally{setSaving(false);}}
   return <div className="workspace-page new-project-page"><PageHeading eyebrow="Área de trabalho" title="Novo projeto" description="Cadastre as informações gerais, responsáveis, prazo e planejamento financeiro."/><form className="new-project-form" onSubmit={submit}>
     <section><header><span>01</span><div><h2>Identificação</h2><p>Dados principais para identificar o projeto.</p></div></header><div className="new-project-fields">{field('name','Nome do projeto','text',null,true)}{field('proposal_number','Número da proposta','text',null,true)}{field('client_id','Cliente','text',parameters?.clients||[])}{field('project_status_id','Status','text',parameters?.project_statuses||[],true)}{field('project_situation_id','Situação','text',parameters?.project_situations||[],true)}</div></section>
-    <section><header><span>02</span><div><h2>Responsáveis e período</h2><p>Defina a gestão e as datas planejadas.</p></div></header><div className="new-project-fields">{field('account_manager_id','Gerente de contas','text',parameters?.users||[])}{field('project_manager_id','Gerente do projeto','text',parameters?.users||[])}{field('proposal_date','Data da proposta','date')}{field('start_date','Data de início','date')}{field('end_date','Data de término','date')}{field('billing_date','Data de faturamento','date')}</div></section>
+    <section><header><span>02</span><div><h2>Responsáveis e período</h2><p>Defina a gestão e as datas planejadas.</p></div></header><div className="new-project-fields">{field('account_manager_id','Gerente de contas','text',parameters?.managers||[])}{field('project_manager_id','Gerente do projeto','text',parameters?.managers||[])}{field('proposal_date','Data da proposta','date')}{field('start_date','Data de início','date')}{field('end_date','Data de término','date')}{field('billing_date','Data de faturamento','date')}<ProjectTeamPicker users={parameters?.project_workers||[]} selected={form.member_ids} onChange={member_ids=>setForm(current=>({...current,member_ids}))} disabled={!parameters||saving} loading={!parameters} /></div></section>
     <section><header><span>03</span><div><h2>Planejamento</h2><p>Informe orçamento, esforço e escopo inicial.</p></div></header><div className="new-project-fields">{field('contract_value','Valor do contrato (R$)','number',null,true)}{field('commission_rate','Comissão (%)','number',null,false,100)}{field('estimated_labor_cost','Custo estimado do analista','number')}{field('estimated_additional_cost','Custo adicional estimado','number')}{field('estimated_hours','Horas estimadas','number')}{field('estimated_extra_minutes','Minutos estimados','number',null,false,59)}{access('taxes').view&&<><label>Imposto<select disabled={!access('taxes').edit} value={form.tax_type_id} onChange={e=>setForm({...form,tax_type_id:e.target.value})}><option value="">Sem imposto</option>{parameters?.tax_types?.map(t=><option key={t.id} value={t.id} translate="no">{t.name}</option>)}</select></label><label>Cálculo do imposto<select disabled={!access('taxes').edit} value={form.tax_mode} onChange={e=>setForm({...form,tax_mode:e.target.value})}><option value="percentage">Percentual</option><option value="fixed">Valor fixo</option></select></label>{field(form.tax_mode==='fixed'?'tax_fixed':'tax_rate',form.tax_mode==='fixed'?'Valor do imposto':'Imposto (%)','number',null,false,form.tax_mode==='percentage'?100:undefined)}</>}<label className="full">Escopo<textarea value={form.cpt_scope} rows={4} maxLength={5000} onChange={e=>setForm({...form,cpt_scope:e.target.value})}/></label></div></section>
     {error&&<p role="alert" className="new-project-error">{error}</p>}<footer><button type="button" className="secondary-button" onClick={onCancel}>Cancelar</button><button className="primary-action" disabled={saving||!parameters}>{saving?'Criando projeto...':'Criar projeto'}</button></footer>
   </form></div>;
@@ -836,7 +839,7 @@ function SecurityPanel() {
   return <div className="security-panel">
     <div className="form-section-heading"><div><h2>Segurança da conta</h2><p>Proteja seu acesso, conexões e sessões ativas.</p></div><span>{security.two_factor_enabled ? "2FA ativo" : "Conta protegida"}</span></div>
     {(error || message) && <p className={`security-feedback ${error ? "error" : "success"}`}>{error || message}</p>}
-    <section className="security-card"><header><span><KeyRound size={18} /><strong>Alterar senha</strong></span></header><form className="security-password-form" onSubmit={changePassword}><input name="current_password" type="password" required placeholder="Senha atual" autoComplete="current-password" /><input name="password" type="password" required minLength={10} placeholder="Nova senha" autoComplete="new-password" /><input name="password_confirmation" type="password" required minLength={10} placeholder="Confirmar nova senha" autoComplete="new-password" /><button className="primary-action" type="submit">Atualizar senha</button></form><small>Mínimo de 10 caracteres, com letras maiúsculas, minúsculas e números.</small></section>
+    <section className="security-card"><header><span><KeyRound size={18} /><strong>Alterar senha</strong></span></header><form className="security-password-form" onSubmit={changePassword}><label>Senha atual<input name="current_password" type="password" required placeholder="Senha atual" autoComplete="current-password" /></label><label>Nova senha<input name="password" type="password" required minLength={10} placeholder="Nova senha" autoComplete="new-password" /></label><label>Confirmar nova senha<input name="password_confirmation" type="password" required minLength={10} placeholder="Confirmar nova senha" autoComplete="new-password" /></label><button className="primary-action" type="submit">Atualizar senha</button></form><small>Mínimo de 10 caracteres, com letras maiúsculas, minúsculas e números.</small></section>
     <section className="security-card"><header><span><ShieldCheck size={18} /><strong>Autenticação em dois fatores</strong></span><em className={security.two_factor_enabled ? "enabled" : ""}>{security.two_factor_enabled ? "Ativa" : "Desativada"}</em></header>{!security.two_factor_enabled && !twoFactor && <><p>Use um aplicativo autenticador para gerar um código adicional no login.</p><button className="secondary-button" type="button" onClick={beginTwoFactor}>Configurar 2FA</button></>}{twoFactor && <div className="two-factor-setup"><img src={twoFactor.qr_code} alt="QR Code para configurar autenticação em dois fatores" /><div><p>Escaneie o QR Code ou informe esta chave:</p><code>{twoFactor.secret}</code><form onSubmit={confirmTwoFactor}><input name="code" inputMode="numeric" pattern="[0-9]{6}" required placeholder="Código de 6 dígitos" /><button className="primary-action" type="submit">Confirmar ativação</button></form></div></div>}{security.two_factor_enabled && <button className="secondary-button danger" type="button" onClick={disableTwoFactor}>Desativar 2FA</button>}{!!recoveryCodes.length && <div className="recovery-codes"><strong>Salve estes códigos de recuperação agora:</strong>{recoveryCodes.map((code) => <code key={code}>{code}</code>)}</div>}</section>
     <section className="security-card"><header><span><Link2 size={18} /><strong>Contas conectadas</strong></span></header><div className="provider-list"><div><img src="/google-logo.svg" alt="" /><span><strong>Google</strong><small>{security.providers.google.email || "Nenhuma conta vinculada"}</small></span><em>{security.providers.google.connected ? "Conectada" : "Não conectada"}</em></div><div><img src="/microsoft-logo.png" alt="" /><span><strong>Microsoft</strong><small>{security.providers.microsoft.email || "Nenhuma conta vinculada"}</small></span><em>{security.providers.microsoft.connected ? "Conectada" : "Não conectada"}</em></div></div></section>
     <section className="security-card"><header><span><Laptop size={18} /><strong>Sessões ativas</strong></span><button className="text-button" type="button" onClick={async () => { try { await request("/security/sessions", { method: "DELETE", body: "{}" }); await loadSecurity(); } catch (requestError) { setError(requestError.message); } }}>Encerrar outras</button></header><div className="session-list">{security.sessions.map((session) => <div key={session.id}><Laptop size={18} /><span><strong>{session.current ? "Esta sessão" : "Navegador conectado"}</strong><small>{session.ip_address || "IP não identificado"} · {new Date(session.last_activity).toLocaleString(getFormatLocale())}</small></span>{!session.current && <button type="button" onClick={() => revokeSession(session.id)}>Encerrar</button>}</div>)}</div></section>
@@ -887,8 +890,10 @@ function NotificationPanel() {
   return <div className="notification-panel">
     <div className="form-section-heading"><div><h2>Preferências de notificações</h2><p>Escolha quais eventos receber no Spot e por e-mail.</p></div><span>Fuso: {data.timezone}</span></div>
     {error && <p className="security-feedback error">{error}</p>}
+    {data.delivery?.email_enabled === false && <p role="status">O envio de e-mails ainda não foi ativado pela administração. As notificações no Spot continuam disponíveis.</p>}
+    <p>O horário de silêncio adia os avisos. Resumos usam o seu fuso; o semanal começa na segunda-feira.</p>
     <section className="notification-matrix"><header><strong>Evento</strong><span>Spot</span><span>E-mail</span></header>{Object.entries(groups).map(([group, events]) => <div className="notification-group" key={group}><h3>{group}</h3>{events.map((event) => <div className="notification-row" key={event.key}><span>{event.label}</span><input aria-label={message("{event} no Spot", { event: translateText(event.label) })} type="checkbox" checked={Boolean(data.preferences.events[event.key]?.in_app)} onChange={(e) => setPreference(["events", event.key, "in_app"], e.target.checked)} /><input aria-label={message("{event} por e-mail", { event: translateText(event.label) })} type="checkbox" checked={Boolean(data.preferences.events[event.key]?.email)} onChange={(e) => setPreference(["events", event.key, "email"], e.target.checked)} /></div>)}</div>)}</section>
-    <div className="notification-settings-grid"><section className="security-card"><header><span><Mail size={18} /><strong>Resumo de atividades</strong></span></header><label>Frequência<select value={data.preferences.digest.frequency} onChange={(e) => setPreference(["digest", "frequency"], e.target.value)}><option value="none">Não enviar</option><option value="daily">Diário</option><option value="weekly">Semanal</option></select></label><label>Horário<input type="time" value={data.preferences.digest.time} onChange={(e) => setPreference(["digest", "time"], e.target.value)} /></label></section><section className="security-card"><header><span><Bell size={18} /><strong>Horário silencioso</strong></span><label className="inline-switch"><input type="checkbox" checked={data.preferences.quiet_hours.enabled} onChange={(e) => setPreference(["quiet_hours", "enabled"], e.target.checked)} /> Ativar</label></header><label>Início<input type="time" value={data.preferences.quiet_hours.start} onChange={(e) => setPreference(["quiet_hours", "start"], e.target.value)} /></label><label>Fim<input type="time" value={data.preferences.quiet_hours.end} onChange={(e) => setPreference(["quiet_hours", "end"], e.target.value)} /></label></section></div>
+    <div className="notification-settings-grid"><section className="security-card"><header><span><Mail size={18} /><strong>Resumo de atividades</strong></span></header><label>Frequência<select value={data.preferences.digest.frequency} onChange={(e) => setPreference(["digest", "frequency"], e.target.value)}><option value="none">Imediato (sem resumo)</option><option value="daily">Diário</option><option value="weekly">Semanal</option></select></label><label>Horário<input type="time" value={data.preferences.digest.time} onChange={(e) => setPreference(["digest", "time"], e.target.value)} /></label></section><section className="security-card"><header><span><Bell size={18} /><strong>Horário silencioso</strong></span><label className="inline-switch"><input type="checkbox" checked={data.preferences.quiet_hours.enabled} onChange={(e) => setPreference(["quiet_hours", "enabled"], e.target.checked)} /> Ativar</label></header><label>Início<input type="time" value={data.preferences.quiet_hours.start} onChange={(e) => setPreference(["quiet_hours", "start"], e.target.value)} /></label><label>Fim<input type="time" value={data.preferences.quiet_hours.end} onChange={(e) => setPreference(["quiet_hours", "end"], e.target.value)} /></label></section></div>
     <div className="notification-actions">{saved && <span><CheckCircle2 size={16} /> Preferências salvas</span>}<button className="secondary-button" type="button" onClick={reset}>Restaurar padrões</button><button className="primary-action" type="button" onClick={save}>Salvar preferências</button></div>
   </div>;
 }
@@ -946,7 +951,7 @@ function ProfilePage({ user, onUserUpdate, tutorialTab }) {
     const data = new FormData(event.currentTarget);
 
     try {
-      const response = await fetch("/profile", {
+      const response = await spotFetch("/profile", {
         method: "PATCH",
         headers: {
           Accept: "application/json",
@@ -983,7 +988,7 @@ function ProfilePage({ user, onUserUpdate, tutorialTab }) {
     setUploadingAvatar(true);
 
     try {
-      const response = await fetch("/profile/avatar", {
+      const response = await spotFetch("/profile/avatar", {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -1053,7 +1058,7 @@ function ProfilePage({ user, onUserUpdate, tutorialTab }) {
     setAvatarMenuOpen(false);
     setUploadingAvatar(true);
     try {
-      const response = await fetch("/profile/avatar", {
+      const response = await spotFetch("/profile/avatar", {
         method: "DELETE",
         headers: {
           Accept: "application/json",
@@ -1142,7 +1147,7 @@ function ProfilePage({ user, onUserUpdate, tutorialTab }) {
                 {!projectsLoading && !projectsError && !assignedProjects.length && <p className="assigned-projects-state">Nenhum projeto atribuído a este perfil.</p>}
                 {!!assignedProjects.length && <div className="assigned-project-list">{assignedProjects.map((project) => {
                   const progress = Math.min(100, Math.max(0, Number(project.progress) || 0));
-                  return <article className="assigned-project-row" key={project.id}><div className="assigned-project-info"><span className="project-icon blue"><FolderKanban size={16} /></span><span><strong translate="no">{project.name}</strong><small>{project.finalized_at ? "Finalizado" : project.status === "in_progress" || project.status === "in-progress" ? "Em andamento" : project.status || "Planejamento"}</small></span></div><div className="assigned-project-progress"><span><small>Progresso</small><strong>{progress}%</strong></span><div><i style={{ width: `${progress}%` }} /></div></div></article>;
+                  return <article className="assigned-project-row" key={project.id}><div className="assigned-project-info"><span className="project-icon blue"><FolderKanban size={16} /></span><span><strong translate="no">{project.name}</strong><small>{projectStatus(project)}</small></span></div><div className="assigned-project-progress"><span><small>Progresso</small><strong>{progress}%</strong></span><div><i style={{ width: `${progress}%` }} /></div></div></article>;
                 })}</div>}
               </section>
             </div>
@@ -1363,8 +1368,21 @@ const statusPresentation = {
 };
 
 function HomeDashboard({ search, incompleteOnly, filterMode, sortAscending, onNavigate, onEditTeam, onUpdated }) {
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [taskMenu, setTaskMenu] = useState(null);
+  const [savingTask, setSavingTask] = useState(null);
+  const taskMenuRef = useRef(null);
+  useEffect(() => {
+    if (!taskMenu) return;
+    const dismiss = (event) => { if (!taskMenuRef.current?.contains(event.target)) setTaskMenu(null); };
+    const escape = (event) => { if (event.key === "Escape") { setTaskMenu(null); taskMenuRef.current?.querySelector("button")?.focus(); } };
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", dismiss); document.removeEventListener("keydown", escape); };
+  }, [taskMenu]);
 
   async function load() {
     const response = await sessionRequest("/home-dashboard");
@@ -1373,15 +1391,24 @@ function HomeDashboard({ search, incompleteOnly, filterMode, sortAscending, onNa
     setData(result);
   }
   useEffect(() => { load().catch((requestError) => setError(requestError.message)); }, []);
+  useAutoRefresh(() => load().catch(e => setError(e.message)));
   useEffect(() => { if (data?.updated_at) onUpdated?.(data.updated_at); }, [data?.updated_at, onUpdated]);
 
-  async function toggleTask(task) {
-    if (!task.mutable) return;
-    const response = await sessionRequest(`/home-dashboard/tasks/${task.id}/toggle`, { method: "PATCH", body: "{}" });
-    const result = await response.json();
-    if (!response.ok) return setError(result.message || "Não foi possível atualizar a tarefa.");
-    setData((current) => ({ ...current, tasks: current.tasks.map((item) => item.id === task.id ? { ...item, status: result.status } : item) }));
+  async function updateTask(task, priority = null) {
+    if (!task.mutable || savingTask !== null) return;
+    setSavingTask(task.id); setError("");
+    try {
+      const response = await sessionRequest(`/home-dashboard/tasks/${task.id}/${priority ? "priority" : "toggle"}`, {
+        method: "PATCH", body: JSON.stringify(priority ? { priority } : {}),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Não foi possível atualizar a tarefa.");
+      setData((current) => ({ ...current, tasks: current.tasks.map((item) => item.id === task.id ? { ...item, ...result } : item) }));
+      setTaskMenu(null);
+    } catch (error) { setError(error.message); }
+    finally { setSavingTask(null); }
   }
+  const toggleTask = (task) => updateTask(task);
 
   if (error && !data) return <div className="dashboard-main"><h1>Painel</h1><p className="home-state error">{error}</p></div>;
   if (!data) return <div className="dashboard-main"><h1>Painel</h1><p className="home-state">Carregando painel...</p></div>;
@@ -1397,11 +1424,22 @@ function HomeDashboard({ search, incompleteOnly, filterMode, sortAscending, onNa
   const formatDate = (date) => date ? new Intl.DateTimeFormat(getFormatLocale(), { day: "2-digit", month: "short" }).format(new Date(`${date}T12:00:00`)) : "Sem prazo";
 
   return <div className="dashboard-main">
+    <TaskDetails task={selectedTask ? { ...selectedTask, project: { name: selectedTask.project_name } } : null} onClose={() => setSelectedTask(null)} onEdit={task => setEditingTaskId(task.id)} />
+    {editingTaskId && <TasksPage request={sessionRequest} editTaskId={editingTaskId} onClose={() => setEditingTaskId(null)} onSaved={() => { setEditingTaskId(null); load().catch(error => setError(error.message)); }} />}
     <div className="home-heading"><h1>Painel</h1></div>
     {error && <p className="home-state error">{error}</p>}
     <div className="dashboard-grid">
       <section className="board-column status-column"><div className="column-title"><span><SlidersHorizontal size={20} /> status</span><span className="column-count">{projects.length}</span></div><div className="column-surface">{projects.map((project) => { const [label, tone] = project.finalized ? ["Feito", "done"] : statusPresentation[project.status] || [project.status || "Planejamento", "progress"]; return <button className="project-row" type="button" key={project.id} onClick={() => onNavigate("projects")}><ClipboardList size={31} strokeWidth={1.4} /><span><span translate="no">{project.name}</span><small>{message("{count}% concluído", { count: project.progress })}</small></span><strong className={tone}>{label}</strong></button>; })}{!projects.length && <p className="column-empty">Nenhum projeto encontrado.</p>}</div></section>
-      <section className="board-column tasks-column"><div className="column-title"><span><ListChecks size={20} /> tarefas</span><span className="column-count">{tasks.length}</span></div><div className={`task-list ${!tasks.length ? "empty-surface" : ""}`}>{tasks.map((task) => <article className={`task-card ${task.status === "done" ? "is-done" : ""}`} key={task.id}><button className="task-name" type="button" disabled={!task.mutable} onClick={() => toggleTask(task)} title={task.mutable ? "Alternar conclusão" : "Tarefa somente para visualização"}><Check size={17} /><span><span translate="no">{task.title}</span><small><span translate="no">{task.project_name}</span></small></span></button><div className="task-meta"><span><CircleUserRound size={31} fill="#c9c9c9" stroke="#fff" />{formatDate(task.due_date)}</span><span><i className={`priority-dot ${task.priority}`} /><MoreHorizontal size={24} /></span></div></article>)}{!tasks.length && <p className="column-empty">Nenhuma tarefa encontrada.</p>}</div></section>
+      <section className="board-column tasks-column"><div className="column-title"><span><ListChecks size={20} /> tarefas</span><span className="column-count">{tasks.length}</span></div><div className={`task-list ${!tasks.length ? "empty-surface" : ""}`}>{tasks.map((task) => <article className={`task-card home-open-task ${task.status === "done" ? "is-done" : ""}`} key={task.id} onClick={event => { if (!event.target.closest('button, a, input, select')) setSelectedTask(task); }}><div className="task-name"><button className="home-task-toggle" type="button" disabled={!task.mutable || savingTask !== null} onClick={() => toggleTask(task)} aria-label={task.status === "done" ? "Reabrir tarefa" : "Concluir tarefa"}><Check size={17} /></button><button className="home-task-open" type="button" onClick={() => setSelectedTask(task)}><span translate="no">{task.title}</span><small><span translate="no">{task.project_name}</span></small></button></div><div className="task-meta"><span><span className="home-task-creator" title={task.creator ? `Criada por ${task.creator.name}` : "Criador indisponível"}><UserAvatar user={task.creator} size={30} className="home-task-avatar" /></span><span>{formatDate(task.due_date)}</span></span><span className="home-task-actions" ref={taskMenu?.id === task.id ? taskMenuRef : null}>
+        <button type="button" className="home-task-priority" disabled={!task.mutable || savingTask !== null} aria-label={`Prioridade: ${{ low: "Baixa", medium: "Média", high: "Alta" }[task.priority]}`} title="Alterar prioridade" aria-expanded={taskMenu?.id === task.id && taskMenu.kind === "priority"} onClick={() => setTaskMenu(taskMenu?.id === task.id && taskMenu.kind === "priority" ? null : { id: task.id, kind: "priority" })}><i className={`priority-dot ${task.priority}`} /></button>
+        <button type="button" className="home-task-more" aria-label={`Opções da tarefa ${task.title}`} aria-expanded={taskMenu?.id === task.id && taskMenu.kind === "options"} onClick={() => setTaskMenu(taskMenu?.id === task.id && taskMenu.kind === "options" ? null : { id: task.id, kind: "options" })}><MoreHorizontal size={24} /></button>
+        {taskMenu?.id === task.id && <div className="home-task-menu">
+          {taskMenu.kind === "priority" ? Object.entries({ low: "Baixa", medium: "Média", high: "Alta" }).map(([value, label]) => <button type="button" key={value} disabled={savingTask !== null} aria-pressed={task.priority === value} onClick={() => updateTask(task, value)}><i className={`priority-dot ${value}`} />{label}{task.priority === value && <Check size={14} />}</button>) : <>
+            {task.mutable && <button type="button" disabled={savingTask !== null} onClick={() => toggleTask(task)}><Check size={16} />{task.status === "done" ? "Reabrir tarefa" : "Concluir tarefa"}</button>}
+            <button type="button" onClick={() => { setTaskMenu(null); onNavigate("tasks"); }}><ListChecks size={16} />Ver tarefas</button>
+          </>}
+        </div>}
+      </span></div></article>)}{!tasks.length && <p className="column-empty">Nenhuma tarefa encontrada.</p>}</div></section>
       <section className="board-column teams-column"><div className="column-title"><span><Users size={20} /> Times ativos</span><span className="column-count">{teams.length}</span></div><div className="column-surface team-surface">{teams.map((team) => <button className="team-row" type="button" key={team.project_id} onClick={() => onEditTeam(team.project_id)}><span className="team-row-icon"><Users size={24} /></span><AvatarStack members={team.members || []} count={team.count} /><span className="team-row-copy"><strong translate="no">{team.name}</strong><small>{team.count} {team.count === 1 ? "pessoa" : "pessoas"}</small></span><ChevronRight className="team-row-arrow" size={18} /></button>)}{!teams.length && <p className="column-empty">Nenhum time ativo.</p>}</div></section>
     </div>
   </div>;
@@ -1546,71 +1584,6 @@ function ClientsPage() {
   </div>;
 }
 
-function DocumentsPage() {
-  const [documents, setDocuments] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [search, setSearch] = useState("");
-  const [projectFilter, setProjectFilter] = useState("all");
-  const [uploadProject, setUploadProject] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [feedback, setFeedback] = useState(null);
-  const fileInput = useRef(null);
-
-  async function load() {
-    setLoading(true);
-    const [documentResponse, projectResponse] = await Promise.all([sessionRequest("/documents"), sessionRequest("/projects")]);
-    const documentData = await documentResponse.json();
-    const projectData = await projectResponse.json();
-    if (!documentResponse.ok) throw new Error(documentData.message || "Não foi possível carregar os documentos.");
-    setDocuments(documentData.documents || []);
-    if (projectResponse.ok) setProjects(Array.isArray(projectData) ? projectData : []);
-    setLoading(false);
-  }
-
-  useEffect(() => { load().catch((error) => { setFeedback({ type: "error", text: error.message }); setLoading(false); }); }, []);
-
-  async function uploadDocument(event) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    setUploading(true); setFeedback(null);
-    const body = new FormData();
-    body.append("file", file);
-    if (uploadProject) body.append("project_id", uploadProject);
-    try {
-      const response = await sessionRequest("/documents", { method: "POST", body });
-      const data = await response.json();
-      if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || "Não foi possível enviar o arquivo.");
-      setDocuments((current) => [data, ...current]);
-      setFeedback({ type: "success", text: message("{name} foi enviado.", { name: file.name }) });
-    } catch (error) { setFeedback({ type: "error", text: error.message }); }
-    finally { setUploading(false); }
-  }
-
-  async function removeDocument(document) {
-    if (!window.confirm(message("Excluir “{name}”?", { name: document.name }))) return;
-    const response = await sessionRequest(`/documents/${document.id}`, { method: "DELETE", body: "{}" });
-    if (response.ok) setDocuments((current) => current.filter((item) => item.id !== document.id));
-    else setFeedback({ type: "error", text: "Não foi possível excluir o documento." });
-  }
-
-  const filtered = documents.filter((document) => projectFilter === "all" || String(document.project_id || "none") === projectFilter)
-    .filter((document) => `${document.name} ${document.project?.name || ""}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")));
-  const formatSize = (bytes) => bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  const extension = (name) => name.includes(".") ? name.split(".").pop().toUpperCase() : "ARQ";
-
-  return <div className="documents-page workspace-page">
-    <div className="workspace-heading"><div><span className="workspace-eyebrow">ARQUIVOS</span><h1>Meus documentos</h1><p>Organize e encontre os arquivos vinculados aos seus projetos.</p></div><div className="documents-upload-actions"><select aria-label="Projeto do novo documento" value={uploadProject} onChange={(event) => setUploadProject(event.target.value)}><option value="">Sem projeto</option>{projects.map((project) => <option value={project.id} key={project.id} translate="no">{project.name}</option>)}</select><button className="primary-action" disabled={uploading} type="button" onClick={() => fileInput.current?.click()}><Upload size={17} /> {uploading ? "Enviando..." : "Enviar arquivo"}</button><input ref={fileInput} hidden type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.zip" onChange={uploadDocument} /></div></div>
-    {feedback && <p className={`documents-feedback ${feedback.type}`}>{feedback.text}</p>}
-    <div className="documents-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar documentos..." /></label><select value={projectFilter} onChange={(event) => setProjectFilter(event.target.value)}><option value="all">Todos os projetos</option><option value="none">Sem projeto</option>{projects.map((project) => <option value={project.id} key={project.id} translate="no">{project.name}</option>)}</select><span>{filtered.length} arquivo{filtered.length === 1 ? "" : "s"}</span></div>
-    <section className="documents-panel">
-      <header><span>Nome</span><span>Projeto</span><span>Tamanho</span><span>Enviado em</span><span>Ações</span></header>
-      {loading ? <p className="documents-empty">Carregando documentos...</p> : !filtered.length ? <div className="documents-empty"><Files size={38} /><strong>Nenhum documento encontrado</strong><span>Envie um arquivo para começar.</span></div> : filtered.map((document) => <article key={document.id}><span className="document-name"><i>{extension(document.name)}</i><strong title={document.name} translate="no">{document.name}</strong></span><span>{document.project?.name || "Sem projeto"}</span><span>{formatSize(document.size)}</span><span>{new Date(document.created_at).toLocaleDateString(getFormatLocale())}</span><span className="document-actions"><a href={`/api/v1/documents/${document.id}/download`} title="Baixar documento"><Download size={18} /></a><button type="button" title="Excluir documento" onClick={() => removeDocument(document)}><Trash2 size={18} /></button></span></article>)}
-    </section>
-    <small className="documents-hint">Arquivos permitidos: PDF, Office, texto, imagens e ZIP · limite de 10 MB.</small>
-  </div>;
-}
 
 function HistoryPage() {
   const [events, setEvents] = useState([]);
@@ -1654,9 +1627,9 @@ function HistoryPage() {
     }).catch((requestError) => setError(requestError.message)).finally(() => setLoading(false));
   }, []);
 
-  const metadata = (event) => actionMeta[event.action] || [event.action.replaceAll(".", " · "), "Atividade registrada no Spot", History, "other"];
+  const metadata = (event) => actionMeta[event.action] || [auditActionLabels[event.action] || event.action.replaceAll(".", " · "), "Atividade registrada no Spot", History, event.action.startsWith("task.") ? "work" : event.action.startsWith("project.") ? "project" : event.action.startsWith("expense.") ? "financial" : "other"];
   const visible = events.filter((event) => filter === "all" || metadata(event)[3] === filter)
-    .filter((event) => `${metadata(event)[0]} ${metadata(event)[1]} ${event.user?.name || ""}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")));
+    .filter((event) => `${metadata(event)[0]} ${metadata(event)[1]} ${event.user?.name || ""} ${event.context?.subject_name || ""}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")));
   const grouped = visible.reduce((result, event) => {
     const date = new Date(event.created_at);
     const today = new Date();
@@ -1667,17 +1640,16 @@ function HistoryPage() {
 
   return <div className="history-page workspace-page">
     <div className="workspace-heading"><div><span className="workspace-eyebrow">ATIVIDADES</span><h1>Histórico</h1><p>Acompanhe alterações, acessos e acontecimentos importantes da sua conta.</p></div></div>
-    <div className="history-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar no histórico..." /></label><div>{[["all", "Tudo"], ["project", "Projetos"], ["work", "Trabalho"], ["access", "Acessos"], ["security", "Segurança"]].map(([value, label]) => <button className={filter === value ? "active" : ""} type="button" key={value} onClick={() => setFilter(value)}>{label}</button>)}</div></div>
+    <div className="history-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar no histórico..." /></label><div>{[["all", "Tudo"], ["project", "Projetos"], ["work", "Trabalho"], ["financial", "Financeiro"], ["access", "Acessos"], ["security", "Segurança"]].map(([value, label]) => <button className={filter === value ? "active" : ""} type="button" key={value} onClick={() => setFilter(value)}>{label}</button>)}</div></div>
     {error && <p className="home-state error">{error}</p>}
     <section className="history-panel">
-      {loading ? <p className="history-empty">Carregando atividades...</p> : !visible.length ? <div className="history-empty"><History size={40} /><strong>Nenhuma atividade encontrada</strong><span>Os acontecimentos importantes aparecerão aqui.</span></div> : Object.entries(grouped).map(([date, dateEvents]) => <div className="history-day" key={date}><h2>{date}</h2><div>{dateEvents.map((event) => { const [title, description, EventIcon, tone] = metadata(event); return <article key={event.id}><span className={`history-icon ${tone}`}><EventIcon size={18} /></span><span><strong>{title}</strong><p>{description}</p>{event.new_values !== undefined && <details><summary>Detalhes da alteração</summary><pre translate="no">{JSON.stringify({antes:event.old_values,depois:event.new_values},null,2)}</pre></details>}<small>{event.user?.name || "Spot"}{event.ip_address ? ` · IP ${event.ip_address}` : ""}</small></span><time>{new Date(event.created_at).toLocaleTimeString(getFormatLocale(), { hour: "2-digit", minute: "2-digit" })}</time></article>; })}</div></div>)}
+      {loading ? <p className="history-empty">Carregando atividades...</p> : !visible.length ? <div className="history-empty"><History size={40} /><strong>Nenhuma atividade encontrada</strong><span>Os acontecimentos importantes aparecerão aqui.</span></div> : Object.entries(grouped).map(([date, dateEvents]) => <div className="history-day" key={date}><h2>{date}</h2><div>{dateEvents.map((event) => { const [title, description, EventIcon, tone] = metadata(event); return <article key={event.id}><span className={`history-icon ${tone}`}><EventIcon size={18} /></span><span><strong>{title}</strong><p>{description}</p>{event.context?.subject_name && <p translate="no">{event.context.subject_name}</p>}<AuditChanges event={event} /><small>{event.context?.actor_name || event.user?.name || "Spot"}{event.ip_address ? ` · IP ${event.ip_address}` : ""}</small></span><time>{new Date(event.created_at).toLocaleTimeString(getFormatLocale(), { hour: "2-digit", minute: "2-digit" })}</time></article>; })}</div></div>)}
     </section>{nextPage&&<button className="secondary-button" onClick={loadMore}>Carregar mais</button>}
   </div>;
 }
 
 function Dashboard({ onLogout, user, onUserUpdate }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activePage, setActivePage] = useState("home");
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [tutorialProfileTab, setTutorialProfileTab] = useState(null);
   const [pageMenuOpen, setPageMenuOpen] = useState(false);
@@ -1723,6 +1695,24 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
     ...(user?.can_view_parameters || user?.can_manage_identity ? { "parameters": [Settings, "Cadastros e configurações"] } : {}),
     ...(user?.can_manage_identity ? { "admin-users": [Users, "Usuários e acessos"] } : {}),
   };
+  const [activePage, setActivePage] = useBrowserPage(Object.keys(pageMeta));
+  useEffect(() => {
+    const closeNavigationOverlays = () => {
+      setMenuOpen(false);
+      setPageMenuOpen(false);
+      setProfileOpen(false);
+      setSearchOpen(false);
+      setInboxPlacement(null);
+      setQuickSettingsOpen(false);
+      setAppsOpen(false);
+      setAppsPinned(false);
+      setIntegrationsOpen(false);
+      window.clearTimeout(inboxTimer.current);
+      window.clearTimeout(appsTimer.current);
+    };
+    window.addEventListener("popstate", closeNavigationOverlays);
+    return () => window.removeEventListener("popstate", closeNavigationOverlays);
+  }, []);
   const [PageIcon, pageLabel] = pageMeta[activePage] || pageMeta.home;
   const normalizedSearch = homeSearch.trim().toLocaleLowerCase("pt-BR");
   const pageSearchResults = normalizedSearch ? Object.entries(pageMeta)
@@ -1799,10 +1789,18 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
     };
   }, [searchOpen]);
 
+  usePopoverPosition(quickSettingsOpen, quickSettingsRef, ".quick-settings-popover");
+  usePopoverPosition(appsOpen, appsWrapRef, ".apps-popover");
+
   useEffect(() => {
     if (!quickSettingsOpen) return undefined;
+    quickSettingsRef.current?.querySelector(".quick-settings-popover button")?.focus();
     const closeQuickSettings = (event) => {
-      if (event.type === "keydown" && event.key === "Escape") return setQuickSettingsOpen(false);
+      if (event.type === "keydown" && event.key === "Escape") {
+        setQuickSettingsOpen(false);
+        quickSettingsRef.current?.querySelector(":scope > button")?.focus();
+        return;
+      }
       if (event.type === "mousedown" && !quickSettingsRef.current?.contains(event.target)) setQuickSettingsOpen(false);
     };
     document.addEventListener("mousedown", closeQuickSettings);
@@ -1889,7 +1887,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
   }
 
   return (
-    <main className="dashboard-shell">
+    <div className="dashboard-shell">
       <Sidebar
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
@@ -1904,7 +1902,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
       <section className="dashboard-content">
         <header className="topbar">
           <div className="home-label" ref={pageMenuRef}>
-            <button className="mobile-menu" type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu">
+            <button className="mobile-menu" type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} aria-controls="spot-navigation">
               <Menu size={25} />
             </button>
             <button
@@ -1946,7 +1944,11 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
                 <label className="quick-settings-check"><span><strong>Somente pendentes</strong><small>Oculta tarefas concluídas</small></span><input type="checkbox" checked={incompleteOnly} onChange={(event) => setIncompleteOnly(event.target.checked)} /></label>
                 <label><span>Filtro de tarefas</span><select value={homeFilter} onChange={(event) => setHomeFilter(event.target.value)}><option value="all">Todas</option><option value="high">Prioridade alta</option><option value="overdue">Atrasadas</option></select></label>
                 <label><span>Ordenação</span><select value={sortAscending ? "asc" : "desc"} onChange={(event) => setSortAscending(event.target.value === "asc")}><option value="asc">A–Z</option><option value="desc">Z–A</option></select></label>
-                <button className="quick-settings-reset" type="button" onClick={() => { setIncompleteOnly(true); setHomeFilter("all"); setSortAscending(true); }}>Restaurar padrão</button>
+                <div className="mobile-preferences">
+                  <div className="language-switcher" role="group" aria-label="Idioma">{[["pt", "Português"], ["en", "English"], ["es", "Español"]].map(([code, label]) => <button type="button" key={code} aria-label={label} aria-pressed={locale === code} onClick={() => { setLanguage(code); setLocale(code); }}>{code.toUpperCase()}</button>)}</div>
+                  <button type="button" onClick={() => setTheme(current => current === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}{theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}</button>
+                </div>
+                <ReadingSettings onReset={() => { setIncompleteOnly(true); setHomeFilter("all"); setSortAscending(true); }} />
               </div>}
             </div>
             <label className={`search-box ${searchOpen ? "is-open" : ""}`} ref={searchRef}>
@@ -2045,6 +2047,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
           />
         )}
 
+        <main id="main-content" tabIndex={-1}>
         <div className={`actionbar ${activePage !== "home" ? "workspace-actionbar" : ""} ${["analytics", "new-project"].includes(activePage) ? "analytics-actionbar" : ""}`}>
           <span>{activePage === "home" ? updatedLabel() : activePage === "analytics" ? "Relatórios e indicadores" : activePage === "new-project" ? "Cadastro de projeto" : "Área de trabalho"}</span>
           {!["analytics", "new-project"].includes(activePage) && <div>
@@ -2081,9 +2084,10 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
         {activePage === "profile" && <ProfilePage user={user} onUserUpdate={onUserUpdate} tutorialTab={tutorialProfileTab} />}
         {activePage === "parameters" && <ParametersWorkspace request={sessionRequest} onUsers={() => setActivePage("admin-users")} />}
         {activePage === "admin-users" && user?.can_manage_identity && <AdminUsersPage />}
+        </main>
       </section>
       {integrationsOpen && <IntegrationsModal onClose={() => setIntegrationsOpen(false)} />}
-    </main>
+    </div>
   );
 }
 
@@ -2188,7 +2192,7 @@ function AcceptInvitationPage() {
     }
   }
 
-  return <main className="page-shell"><section className="login-card"><div className="login-panel"><div className="form-wrap"><header><h1>Aceitar convite do <strong>Spot</strong></h1><p>Este acesso será válido somente para o projeto e as permissões concedidas.</p></header><form onSubmit={accept}>
+  return <main id="main-content" tabIndex={-1} className="page-shell"><section className="login-card"><div className="login-panel"><div className="form-wrap"><header><h1>Aceitar convite do <strong>Spot</strong></h1><p>Este acesso será válido somente para o projeto e as permissões concedidas.</p></header><form onSubmit={accept}>
     {!alreadyAuthenticated && <label className="field"><span>Nome e sobrenome</span><div className="input-wrap"><UserRound size={19} /><input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></div></label>}
     {alreadyAuthenticated && <p>Você está conectado. Confirme para adicionar este projeto à sua conta.</p>}
     {requiresPassword && <><p><strong>Criação de senha obrigatória</strong><br /><small>Use no mínimo 10 caracteres, com letras maiúsculas, minúsculas e números.</small></p><label className="field"><span>Crie uma nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input required minLength={10} type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div></label><label className="field"><span>Confirme a nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input required minLength={10} type="password" autoComplete="new-password" value={form.password_confirmation} onChange={(event) => setForm({ ...form, password_confirmation: event.target.value })} /></div></label></>}
@@ -2242,7 +2246,7 @@ function LegacySpotApp() {
   if (window.location.pathname.startsWith("/reset-password/")) return <ResetPasswordPage />;
 
   return (
-    <main className="page-shell">
+    <main id="main-content" tabIndex={-1} className="page-shell">
       <div className="decor decor-one" />
       <div className="decor decor-two" />
       <div className="decor decor-three" />
@@ -2262,7 +2266,7 @@ function LegacySpotApp() {
                 <span>E-mail</span>
                 <div className="input-wrap">
                   <Mail size={19} aria-hidden="true" />
-                  <input type="email" name="email" placeholder="seu@email.com" required />
+                  <input type="email" name="email" autoComplete="username" placeholder="seu@email.com" required />
                 </div>
               </label>
 
@@ -2273,11 +2277,13 @@ function LegacySpotApp() {
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
+                    autoComplete="current-password"
                     placeholder="Digite sua senha"
                     required
                   />
                   <button
                     className="password-toggle"
+                    aria-pressed={showPassword}
                     type="button"
                     onClick={() => setShowPassword((value) => !value)}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
@@ -2299,7 +2305,7 @@ function LegacySpotApp() {
               </div>
 
               <button className="submit-button" type="submit">Entrar</button>
-              <div className="status">{loginError}</div>
+              <div className="status" role="alert" aria-atomic="true">{loginError}</div>
             </form>
 
             <div className="divider"><span>ou continue com</span></div>
@@ -2344,12 +2350,15 @@ export default function App() {
     return () => window.removeEventListener('spot:language', refreshLanguage);
   }, []);
   useEffect(() => observeTranslations(language), [language]);
-  return <LegacySpotApp />;
+  const authError = new URLSearchParams(window.location.search).get('auth_error');
+  const accountErrors = ['account_not_provisioned', 'email_mismatch', 'google_already_linked', 'microsoft_already_linked'];
+  if (authError) return <ErrorScreen code={accountErrors.includes(authError) ? 'account' : 'integration'} />;
+  return <><a className="skip-link" href="#main-content" onClick={() => document.getElementById("main-content")?.focus()}>Pular para o conteúdo</a><ReadingSettingsProvider><LegacySpotApp /></ReadingSettingsProvider></>;
 }
 
 function AuthShell({ children, className = "" }) {
   return (
-    <main className="page-shell recovery-page">
+    <main id="main-content" tabIndex={-1} className="page-shell recovery-page">
       <div className="decor decor-one" /><div className="decor decor-two" /><div className="decor decor-three" />
       <div className="decor decor-four" /><div className="decor decor-five" /><div className="decor decor-six" />
       <section className={`login-card recovery-card ${className}`}>
@@ -2373,7 +2382,7 @@ function ForgotPasswordPage() {
     setHasError(false);
     const email = new FormData(event.currentTarget).get("email");
     try {
-      const response = await fetch("/forgot-password", {
+      const response = await spotFetch("/forgot-password", {
         method: "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json", "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "" },
         body: JSON.stringify({ email }),
@@ -2412,7 +2421,7 @@ function ResetPasswordPage() {
       return;
     }
     try {
-      const response = await fetch("/reset-password", {
+      const response = await spotFetch("/reset-password", {
         method: "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json", "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "" },
         body: JSON.stringify({ token, email, password: data.get("password"), password_confirmation: data.get("password_confirmation") }),
@@ -2434,8 +2443,8 @@ function ResetPasswordPage() {
       <div className="reset-success-note"><ShieldCheck size={20} aria-hidden="true" /><span>Use sua nova senha no próximo acesso.</span></div>
       <a className="submit-button recovery-login-button" href="/">Entrar no Spot <ChevronRight size={18} aria-hidden="true" /></a>
     </section> : <><header className="recovery-heading"><span className="recovery-icon"><ShieldCheck size={24} /></span><h1>Crie uma nova senha</h1><p>Use pelo menos 8 caracteres e escolha uma senha que você não utiliza em outros serviços.</p></header><form onSubmit={submit}>
-      <label className="field"><span>Nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input type="password" name="password" minLength="8" required /></div></label>
-      <label className="field"><span>Confirmar nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input type="password" name="password_confirmation" minLength="8" required /></div></label>
+      <label className="field"><span>Nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input type="password" autoComplete="new-password" name="password" minLength="8" required /></div></label>
+      <label className="field"><span>Confirmar nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input type="password" autoComplete="new-password" name="password_confirmation" minLength="8" required /></div></label>
       <button className="submit-button" type="submit">Redefinir senha</button>
       {message && <div className="recovery-message error" role="alert">{message}</div>}
     </form><a className="back-to-login" href="/">← Voltar para o login</a></>}

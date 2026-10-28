@@ -10,6 +10,17 @@ export default defineConfig({
         }),
         react(),
     ],
+    build: {
+        rolldownOptions: {
+            output: {
+                codeSplitting: {
+                    groups: [
+                        { name: 'vendor', test: /[\\/]node_modules[\\/]/ },
+                    ],
+                },
+            },
+        },
+    },
     server: {
         // O servidor escuta em todas as interfaces, mas o navegador deve usar
         // um endereço navegável. Sem isso o plugin pode publicar 0.0.0.0 no HTML.

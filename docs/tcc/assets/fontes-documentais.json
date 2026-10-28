@@ -1,0 +1,17 @@
+[
+  {
+    "arquivo": "/home/alexander/Downloads/Capitulo_Levantamento_Pesquisa_ABNT.docx",
+    "sha256": "af9a0d8f3cccb61c99e2412712be43fd028ab61cea2e7751832fc9d87c57354b",
+    "papel": "fonte primária"
+  },
+  {
+    "arquivo": "/home/alexander/Downloads/Monografia_SPOT_documentacao_integrada.docx",
+    "sha256": "8064edcdf9bc9f173ce16e50340c386ff400fd4cf990fe8fd81f1dc9e9c0e194",
+    "papel": "fonte primária"
+  },
+  {
+    "arquivo": "/home/alexander/Downloads/Monografia.docx",
+    "sha256": "0a0780bdf9047889ccc55a80a739f9a710dfce6966c3ca7cb9c3c048e1bbf620",
+    "papel": "consulta de versão alternativa"
+  }
+]

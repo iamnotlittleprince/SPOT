@@ -1,0 +1,78 @@
+{
+  "data_revisao": "2026-10-28",
+  "fonte_recuperacao": "/home/alexander/.config/libreoffice/4/user/backup/SPOT-Defesa-TCC-15min.pptx_1.odp",
+  "fonte_sha256": "8b4caadbaeb51b1403c28ce57817d341c893808a33e2f02990685b5750c1dd2c",
+  "slides": 11,
+  "roteiro_segundos": 630,
+  "tempo_maximo_segundos": 900,
+  "ordem_usuario_preservada": true,
+  "originais_preservados": true,
+  "tempos": [
+    {
+      "slide": 1,
+      "segundos": 20,
+      "inicio": "00:00",
+      "fim": "00:20"
+    },
+    {
+      "slide": 2,
+      "segundos": 40,
+      "inicio": "00:20",
+      "fim": "01:00"
+    },
+    {
+      "slide": 3,
+      "segundos": 50,
+      "inicio": "01:00",
+      "fim": "01:50"
+    },
+    {
+      "slide": 4,
+      "segundos": 60,
+      "inicio": "01:50",
+      "fim": "02:50"
+    },
+    {
+      "slide": 5,
+      "segundos": 65,
+      "inicio": "02:50",
+      "fim": "03:55"
+    },
+    {
+      "slide": 6,
+      "segundos": 70,
+      "inicio": "03:55",
+      "fim": "05:05"
+    },
+    {
+      "slide": 7,
+      "segundos": 65,
+      "inicio": "05:05",
+      "fim": "06:10"
+    },
+    {
+      "slide": 8,
+      "segundos": 65,
+      "inicio": "06:10",
+      "fim": "07:15"
+    },
+    {
+      "slide": 9,
+      "segundos": 60,
+      "inicio": "07:15",
+      "fim": "08:15"
+    },
+    {
+      "slide": 10,
+      "segundos": 60,
+      "inicio": "08:15",
+      "fim": "09:15"
+    },
+    {
+      "slide": 11,
+      "segundos": 75,
+      "inicio": "09:15",
+      "fim": "10:30"
+    }
+  ]
+}

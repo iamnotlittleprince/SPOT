@@ -94,3 +94,14 @@ html[data-theme="dark"] .task-delete-dialog p strong { color: #eef2f4; }
 html[data-theme="dark"] .task-delete-dialog footer .secondary-button { border-color: #50575b; color: #d8dfe2; background: #2c3032; }
 
 @media (max-width: 560px) { .task-editor-fields, .task-extra-fields, .task-time-fields, .task-crud-filters { grid-template-columns: 1fr; } .task-crud-filters.toolbar-actions label { grid-column: auto; } }
+
+.task-open-card { cursor: pointer; }
+.task-open-button { padding: 0; border: 0; color: inherit; background: transparent; font: inherit; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.task-open-button:hover { text-decoration: underline; }
+.task-open-button:focus-visible { outline: 2px solid #1689c4; outline-offset: 4px; border-radius: 2px; }
+.task-detail-fields h3 { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.task-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 0; }
+.task-detail-grid dt, .task-detail-description > strong { font-size: 12px; opacity: .7; }
+.task-detail-grid dd { margin: 5px 0 0; font-size: 14px; overflow-wrap: anywhere; }
+.task-detail-description p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+@media (max-width: 560px) { .task-detail-grid { grid-template-columns: 1fr; } }

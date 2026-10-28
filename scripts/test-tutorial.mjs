@@ -42,13 +42,16 @@ try {
     const { page, context, user, requests } = await setup({ admin });
     check((await dialog(page).innerText()).includes('Bem-vindo ao Spot'), 'First visit offers tutorial');
     check((await dialog(page).innerText()).includes('Opcional, mas recomendado'), 'Tutorial is optional and recommended');
+    await page.reload();
+    await page.locator('.dashboard-content').waitFor();
+    check(await dialog(page).count() === 0, 'First notice is recorded even without dismissal');
+    await help(page);
     await dismiss(page);
     check((await saved(page, user.email)).status === 'skipped', 'Dismissal is saved');
     check(!await page.evaluate(() => document.querySelector('.dashboard-shell').inert), 'Dismissal unlocks page');
     await page.reload();
-    await dialog(page).waitFor();
-    check((await dialog(page).innerText()).includes('O tutorial está no botão ?'), 'Every opening explains help symbol');
-    await dismiss(page, 'Entendi');
+    await page.locator('.dashboard-content').waitFor();
+    check(await dialog(page).count() === 0, 'Dismissed tutorial stays closed after reload');
     await help(page);
     await dialog(page).getByRole('button', { name: 'Iniciar tutorial', exact: true }).click();
     const steps = getLessons(user);
@@ -77,8 +80,10 @@ try {
     await dismiss(page, 'Explorar o Spot');
     check(await page.locator('[data-tour="help"]').evaluate(element => element === document.activeElement), 'Focus returns to help');
     await page.reload();
-    await dialog(page).waitFor();
-    check((await dialog(page).innerText()).includes('O tutorial está no botão ?'), 'Reminder remains after completion');
+    await page.locator('.dashboard-content').waitFor();
+    check(await dialog(page).count() === 0, 'Completed tutorial stays closed after reload');
+    await help(page);
+    check(await dialog(page).isVisible(), 'Completed tutorial remains available through help');
     await dismiss(page, 'Entendi');
     check(requests.every(request => request.method === 'GET'), 'Tour never writes to APIs');
     if (!admin) check(!requests.some(request => /admin\/users/.test(request.url)), 'Analyst tour does not visit administration');
@@ -104,7 +109,9 @@ try {
   await page.waitForFunction(() => document.querySelector('#spot-tutorial-title').textContent === 'Revise perfiles, estados y permisos');
   await page.keyboard.press('Escape');
   await page.reload();
-  await dialog(page).getByRole('button', { name: 'Continuar tutorial', exact: true }).click();
+  await page.locator('.dashboard-content').waitFor();
+  check(await dialog(page).count() === 0, 'Paused tutorial stays closed after reload');
+  await help(page);
   await ensureStep(page, permissions);
   check(requests.every(request => request.method === 'GET'), 'Mobile tour also remains read-only');
   await page.screenshot({ path: '/tmp/spot-tutorial-mobile.png' });
@@ -144,11 +151,13 @@ try {
   await dialog(missing.page).locator('summary').click();
   await dialog(missing.page).getByRole('button', { name: /Proteja sua senha/ }).click();
   await dialog(missing.page).getByText('O destaque ainda não está disponível nesta tela. Você pode continuar lendo e avançar normalmente.', {exact:true}).waitFor();
+  await missing.page.getByRole('alertdialog').getByRole('button', { name: 'Voltar para a tela', exact: true }).click();
   await dialog(missing.page).getByRole('button', { name:'Próximo',exact:true }).click();
   check((await missing.page.locator('#spot-tutorial-title').textContent()) === 'Ative uma proteção adicional', 'Unavailable target does not trap navigation');
   await missing.context.close();
 
   const revoked = await setup({storage:{[keyFor('ana@example.test')]:JSON.stringify({status:'in_progress',stepId:'admin-permissions'})}});
+  await help(revoked.page);
   await dialog(revoked.page).getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
   await ensureStep(revoked.page,getLessons()[0]);
   check(!revoked.requests.some(request=>/admin\/users/.test(request.url)), 'Resume respects revoked permissions');

@@ -57,7 +57,7 @@ export default function SpotTutorial({ user, locale, onNavigate, onExit, onLangu
   const key = progressKey(user);
   const steps = useMemo(() => getLessons(user), [user?.can_create_projects, user?.can_manage_identity, user?.can_view_financial, user?.can_view_parameters]);
   const [progress, setProgress] = useState(() => readProgress(key));
-  const [mode, setMode] = useState('notice');
+  const [mode, setMode] = useState(() => progress.status === 'new' && !progress.shownAt ? 'notice' : 'closed');
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState(null);
   const [locating, setLocating] = useState(false);
@@ -75,8 +75,16 @@ export default function SpotTutorial({ user, locale, onNavigate, onExit, onLangu
   const w = name => words[name][{ pt: 0, en: 1, es: 2 }[locale] ?? 0];
   const t = value => localize(value, locale);
 
+  useEffect(() => {
+    if (mode !== 'notice' || progress.shownAt) return;
+    const next = { ...progress, shownAt: new Date().toISOString() };
+    setProgress(next);
+    try { window.localStorage.setItem(key, JSON.stringify(next)); }
+    catch { setStorageError(true); }
+  }, [key, mode, progress]);
+
   function persist(status, stepId = progress.stepId) {
-    const next = { status, stepId, updatedAt: new Date().toISOString() };
+    const next = { ...progress, status, stepId, updatedAt: new Date().toISOString() };
     setProgress(next);
     try { window.localStorage.setItem(key, JSON.stringify(next)); }
     catch { setStorageError(true); }

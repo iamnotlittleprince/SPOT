@@ -137,18 +137,74 @@ class TaskV1CrudTest extends TestCase
         $this->assertDatabaseCount('tasks', 0);
     }
 
-    public function test_analyst_can_delete_own_record_but_cannot_register_for_others(): void
+    public function test_analyst_can_delete_own_record_and_rejects_nonmember_assignee(): void
     {
         [$admin, $project] = $this->setupProject();
         $analyst = User::factory()->create(['current_company_id' => $admin->current_company_id]);
         $analyst->profiles()->attach(DB::table('profiles')->where('slug', 'analista')->value('id'), ['company_id' => $admin->current_company_id]);
         $project->members()->create(['user_id' => $analyst->id, 'role' => 'analyst', 'relationship_type' => 'cpt_internal_analyst', 'active' => true]);
         $this->actingAs($analyst);
-        $this->postJson('/api/v1/tasks', [...$this->payload($project), 'analyst_id' => $admin->id])->assertForbidden();
+        $this->postJson('/api/v1/tasks', [...$this->payload($project), 'analyst_id' => $admin->id])->assertUnprocessable();
         $this->postJson('/api/v1/tasks', [...$this->payload($project), 'duration_minutes' => 0])->assertUnprocessable();
         $this->postJson('/api/v1/tasks', [...$this->payload($project), 'duration_minutes' => 1441])->assertUnprocessable();
         $id = $this->postJson('/api/v1/tasks', [...$this->payload($project), 'is_overtime' => true])->assertCreated()->assertJsonPath('duration_minutes', 90)->assertJsonPath('is_overtime', true)->json('id');
         $this->deleteJson('/api/v1/tasks/'.$id)->assertNoContent();
         $this->actingAs($admin)->postJson('/api/v1/tasks', [...$this->payload($project), 'analyst_id' => $analyst->id])->assertCreated()->assertJsonPath('user_id', $analyst->id)->assertJsonPath('created_by', $admin->id);
     }
+    public function test_participants_are_persisted_visible_and_do_not_gain_edit_permission(): void
+    {
+        [$admin, $project] = $this->setupProject();
+        $person = User::factory()->create(['current_company_id' => $admin->current_company_id, 'active' => true]);
+        $person->profiles()->attach(DB::table('profiles')->where('slug', 'analista')->value('id'), ['company_id' => $admin->current_company_id]);
+        $project->members()->create(['user_id' => $person->id, 'role' => 'analyst', 'relationship_type' => 'cpt_internal_analyst', 'active' => true]);
+        $this->actingAs($admin);
+        $payload = [...$this->payload($project), 'participant_ids' => [$person->id]];
+        $id = $this->postJson('/api/v1/tasks', $payload)->assertCreated()->assertJsonPath('participants.0.id', $person->id)->json('id');
+        $this->assertDatabaseHas('task_participants', ['task_id' => $id, 'user_id' => $person->id]);
+        $this->actingAs($person)->getJson('/api/v1/tasks')->assertOk()->assertJsonPath('tasks.0.id', $id)->assertJsonPath('tasks.0.can_edit', false);
+        $this->getJson('/api/v1/home-dashboard')->assertOk()->assertJsonPath('tasks.0.id', $id);
+        $this->putJson('/api/v1/tasks/'.$id, $payload)->assertForbidden();
+        $this->actingAs($admin)->putJson('/api/v1/tasks/'.$id, [...$payload, 'participant_ids' => []])->assertOk()->assertJsonCount(0, 'participants');
+        $this->actingAs($person)->getJson('/api/v1/tasks')->assertOk()->assertJsonCount(0, 'tasks');
+    }
+
+    public function test_participants_must_be_active_members_of_the_same_project_and_company(): void
+    {
+        [$admin, $project] = $this->setupProject();
+        $outsider = User::factory()->create(['current_company_id' => $admin->current_company_id, 'active' => true]);
+        $this->actingAs($admin)->postJson('/api/v1/tasks', [...$this->payload($project), 'participant_ids' => [$outsider->id]])->assertUnprocessable();
+        $this->postJson('/api/v1/tasks', [...$this->payload($project), 'participant_ids' => [$outsider->id, $outsider->id]])->assertUnprocessable();
+        $project->members()->create(['user_id' => $outsider->id, 'role' => 'analyst', 'relationship_type' => 'cpt_internal_analyst', 'active' => false]);
+        $this->postJson('/api/v1/tasks', [...$this->payload($project), 'participant_ids' => [$outsider->id]])->assertUnprocessable();
+        $project->members()->where('user_id', $outsider->id)->update(['active' => true]);
+        $outsider->update(['current_company_id' => Company::create(['legal_name' => 'Empresa externa'])->id]);
+        $this->postJson('/api/v1/tasks', [...$this->payload($project), 'participant_ids' => [$outsider->id]])->assertUnprocessable();
+        $this->assertDatabaseCount('tasks', 0);
+    }
+
+    public function test_transfer_changes_ownership_and_collaboration_is_an_independent_choice(): void
+    {
+        [$admin, $project] = $this->setupProject();
+        $people = [];
+        foreach (range(1, 2) as $index) {
+            $person = User::factory()->create(['current_company_id' => $admin->current_company_id, 'active' => true]);
+            $person->profiles()->attach(DB::table('profiles')->where('slug', 'analista')->value('id'), ['company_id' => $admin->current_company_id]);
+            $project->members()->create(['user_id' => $person->id, 'role' => 'analyst', 'relationship_type' => 'cpt_internal_analyst', 'active' => true]);
+            $people[] = $person;
+        }
+        [$owner, $recipient] = $people;
+        $this->actingAs($owner);
+        $payload = $this->payload($project);
+        $id = $this->postJson('/api/v1/tasks', $payload)->assertCreated()->json('id');
+        $this->putJson('/api/v1/tasks/'.$id, [...$payload, 'participant_ids' => [$recipient->id]])->assertOk()->assertJsonPath('user_id', $owner->id);
+        $transfer = [...$payload, 'analyst_id' => $recipient->id, 'participant_ids' => []];
+        $this->putJson('/api/v1/tasks/'.$id, $transfer)->assertOk()->assertJsonPath('user_id', $recipient->id)->assertJsonPath('created_by', $owner->id)->assertJsonPath('can_view', false)->assertJsonPath('can_edit', false);
+        $this->getJson('/api/v1/tasks')->assertOk()->assertJsonCount(0, 'tasks');
+        $this->getJson('/api/v1/home-dashboard')->assertOk()->assertJsonCount(0, 'tasks');
+        $this->putJson('/api/v1/tasks/'.$id, $payload)->assertNotFound();
+        $this->actingAs($recipient)->getJson('/api/v1/tasks')->assertOk()->assertJsonPath('tasks.0.can_edit', true);
+        $this->putJson('/api/v1/tasks/'.$id, [...$transfer, 'participant_ids' => [$owner->id]])->assertOk();
+        $this->actingAs($owner)->getJson('/api/v1/tasks')->assertOk()->assertJsonPath('tasks.0.can_edit', false);
+    }
+
 }

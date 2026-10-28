@@ -116,6 +116,7 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:120,1'])->group(f
         Route::delete('notification-preferences', [NotificationPreferenceController::class, 'reset']);
         Route::get('home-dashboard', [HomeDashboardController::class, 'show']);
         Route::patch('home-dashboard/tasks/{task}/toggle', [HomeDashboardController::class, 'toggleTask']);
+        Route::patch('home-dashboard/tasks/{task}/priority', [HomeDashboardController::class, 'updatePriority']);
         Route::get('inbox', [InboxController::class, 'index']);
         Route::patch('inbox/read-all', [InboxController::class, 'readAll']);
         Route::delete('inbox', [InboxController::class, 'clear']);
@@ -127,6 +128,7 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:120,1'])->group(f
         Route::get('documents', [ProjectDocumentController::class, 'index']);
         Route::post('documents', [ProjectDocumentController::class, 'store']);
         Route::get('documents/{document}/download', [ProjectDocumentController::class, 'download']);
+        Route::patch('documents/{document}', [ProjectDocumentController::class, 'update']);
         Route::delete('documents/{document}', [ProjectDocumentController::class, 'destroy']);
         Route::get('history', [HistoryController::class, 'index']);
     });

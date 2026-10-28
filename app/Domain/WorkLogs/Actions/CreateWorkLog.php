@@ -48,7 +48,7 @@ final class CreateWorkLog
                 'sale_rate_snapshot' => $overtime ? $rate->overtime_sale_rate : 0,
                 'status' => 'submitted',
             ]);
-            $this->audit->record('work_log.created', $log, $actor, [], $log->only(['project_id', 'analyst_id', 'worked_on', 'duration_minutes', 'is_overtime', 'cost_rate_snapshot', 'sale_rate_snapshot']));
+            $this->audit->record('work_log.created', $log, $actor, [], $log->getAttributes());
 
             return $log->load('analyst:id,name');
         });

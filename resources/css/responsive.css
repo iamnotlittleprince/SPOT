@@ -1,0 +1,309 @@
+/* Shared reflow rules. Keep after component and accessibility styles. */
+body { min-width: 0; }
+#root, .dashboard-content, #main-content, .workspace-page,
+.profile-layout > *, .project-config-grid > *, .report-breakdowns > *,
+.report-footer-grid > *, .portfolio-widget-grid > *, .teams-layout > * { min-width: 0; }
+:where(input, select, textarea, fieldset) { min-width: 0; }
+:where(img, video, canvas) { max-width: 100%; }
+:where(.workspace-heading, .report-heading, .profile-form-actions, .notification-actions, .team-editor header, .client-actions) { flex-wrap: wrap; }
+:where(.workspace-heading > div, .profile-menu-user span, .provider-list span, .session-list span) { min-width: 0; overflow-wrap: anywhere; }
+.clients-panel, .report-table, .management-table, .projects-table-wrap, .task-register-table, .portfolio-table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+.mobile-preferences, .calendar-mobile-agenda { display: none; }
+.dashboard-grid { grid-template-columns: minmax(0, .95fr) minmax(0, 1.1fr) minmax(0, .95fr); }
+.project-row { grid-template-columns: 34px minmax(0, 1fr) minmax(0, 106px); }
+.task-crud-filters { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+/* Overlays track the visible viewport, including the optional reading scale. */
+:is(.invitation-modal, .clients-modal, .calendar-modal, .integrations-modal, .camera-modal, .permissions-modal-backdrop, .inbox-confirm-overlay, .task-delete-backdrop) {
+  inset: 0 auto auto 0;
+  width: calc(100vw / var(--spot-reading-zoom, 1));
+  height: calc(100dvh / var(--spot-reading-zoom, 1));
+  padding: 12px;
+  overflow: auto;
+}
+:root :is(.invitation-dialog, .clients-modal > form, .calendar-modal > form, .integrations-dialog, .camera-dialog, .permissions-modal, .inbox-confirm-dialog, .task-delete-dialog) {
+  min-width: 0;
+  max-width: 100%;
+  max-height: calc(100dvh / var(--spot-reading-zoom, 1) - 24px);
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+:root :is(dialog.management-dialog, dialog.task-editor-dialog) {
+  min-height: 0;
+  max-width: calc((100vw - 24px) / var(--spot-reading-zoom, 1));
+  max-height: calc((100dvh - 24px) / var(--spot-reading-zoom, 1));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+:is(.page-menu, .profile-menu, .apps-popover, .inbox-popover) {
+  max-width: calc((100vw - 24px) / var(--spot-reading-zoom, 1));
+  max-height: calc((100dvh - 140px) / var(--spot-reading-zoom, 1));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-shell { display: block; }
+  .dashboard-shell .dashboard-sidebar,
+  .dashboard-shell .dashboard-sidebar:hover,
+  .dashboard-shell .dashboard-sidebar:focus-within {
+    position: fixed; z-index: 300; inset: 0 auto auto 0;
+    width: min(300px, calc((100vw - 24px) / var(--spot-reading-zoom, 1)));
+    min-width: 0; height: calc(100dvh / var(--spot-reading-zoom, 1));
+    overflow-y: auto; transform: translateX(-105%); visibility: hidden;
+  }
+  .dashboard-shell .dashboard-sidebar.is-open { transform: none; visibility: visible; }
+  .dashboard-shell .dashboard-sidebar .sidebar-brand { width: 100%; height: 84px; min-height: 84px; padding: 12px 18px; }
+  .dashboard-shell .dashboard-sidebar .sidebar-brand img { width: 145px; height: auto; }
+  .dashboard-sidebar .sidebar-brand button { display: grid; place-items: center; width: 44px; height: 44px; }
+  .dashboard-shell .dashboard-sidebar .nav-group,
+  .dashboard-shell .dashboard-sidebar .quick-access-list { padding-inline: 18px; }
+  .dashboard-shell .dashboard-sidebar .nav-group button,
+  .dashboard-shell .dashboard-sidebar .quick-access-list button { width: 100%; min-height: 44px; height: auto; overflow: visible; }
+  .dashboard-shell .dashboard-sidebar .nav-group button svg,
+  .dashboard-shell .dashboard-sidebar .quick-access-list button svg { width: 20px; min-width: 20px; height: 20px; }
+  .dashboard-shell .dashboard-sidebar :is(.nav-group button span, .nav-group h3, .sidebar-toggle, .quick-access-list button span, .quick-access-empty, .quick-access-section .show-more, .quick-access span) { opacity: 1; pointer-events: auto; transform: none; white-space: normal; }
+  .dashboard-shell .dashboard-sidebar .quick-access { padding: 18px !important; }
+  .dashboard-shell .dashboard-sidebar .sidebar-rule { margin-inline: -18px; }
+  .sidebar-scrim.is-open { display: block; position: fixed; inset: 0 auto auto 0; width: calc(100vw / var(--spot-reading-zoom, 1)); height: calc(100dvh / var(--spot-reading-zoom, 1)); z-index: 299; border: 0; background: #07131cb0; }
+  .mobile-menu { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; }
+  .topbar { height: auto; min-height: 120px; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 12px max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left)); }
+  .home-label { grid-column: 1; gap: 4px; font-size: 18px; }
+  .page-menu-trigger { max-width: 100%; padding-inline: 4px; gap: 6px; min-height: 44px; }
+  .page-menu-trigger svg { flex-shrink: 0; }
+  .page-menu-trigger .home-mark { width: 24px; height: 24px; }
+  .topbar .account-tools { grid-column: 2; grid-row: 1; gap: 8px; }
+  .topbar .account-tools > .language-switcher,
+  .topbar .account-tools > button:not(.profile-button):not(.tutorial-help-button) { display: none; }
+  .topbar .profile-button { width: 44px; height: 44px; }
+  .topbar .profile-button .user-avatar { width: 40px !important; height: 40px !important; }
+  .topbar .topbar-tools { grid-column: 1 / -1; grid-row: 2; display: flex; width: 100%; min-width: 0; gap: 10px; }
+  .topbar .quick-settings-wrap { position: static; flex: 0 0 44px; }
+  .quick-settings-wrap > button { width: 44px; height: 44px; }
+  .topbar .topbar-tools > .search-box { display: flex; width: auto; min-width: 0; flex: 1; height: 44px; margin: 0; border: 1px solid #8193a555; border-radius: 9px; box-shadow: none; }
+  .search-box input { width: 100%; min-width: 0; font-size: 16px; }
+  .search-box > svg { width: 21px; flex-shrink: 0; }
+  .mobile-preferences { display: grid; gap: 12px; border-top: 1px solid #8193a555; margin-top: 14px; padding-top: 12px; }
+  .mobile-preferences .language-switcher { display: flex; justify-content: space-around; }
+  .mobile-preferences button { min-width: 44px; min-height: 44px; }
+  .mobile-preferences > button { display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #8193a555; border-radius: 7px; color: inherit; background: transparent; }
+  .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .profile-layout { grid-template-columns: minmax(0, 1fr); }
+  .workspace-heading { align-items: flex-start; }
+  .history-toolbar { flex-wrap: wrap; }
+  .history-toolbar > div { max-width: 100%; overflow-x: auto; }
+}
+
+@media (max-width: 820px) {
+  .dashboard-main, .workspace-page, .analytics-page { padding: 20px 16px 36px; }
+  .dashboard-grid, .teams-layout { grid-template-columns: minmax(0, 1fr); }
+  .teams-column { grid-column: auto; }
+  .workspace-heading, .documents-page > .workspace-heading { flex-direction: column; align-items: stretch; gap: 14px; }
+  .workspace-heading p { display: block; }
+  .workspace-toolbar, .clients-toolbar, .portfolio-builder-heading { flex-wrap: wrap; gap: 12px; }
+  .workspace-toolbar > *, .toolbar-actions, .documents-upload-actions { min-width: 0; max-width: 100%; }
+  .documents-upload-actions { width: 100%; }
+  .documents-upload-actions select, .documents-toolbar select { min-width: 0; width: 100%; }
+  .toolbar-actions { flex-wrap: wrap; }
+  .toolbar-actions label { min-width: 0; width: 100%; }
+  .primary-action, .toolbar-actions button, .view-switch button { font-size: 13px; min-height: 44px; height: auto; padding-block: 10px; white-space: normal; }
+  .primary-action { position: static; justify-content: center; }
+  .view-switch { flex-wrap: wrap; }
+  .workspace-heading h1 { font-size: 26px; }
+  .workspace-heading p, .calendar-heading p { font-size: 13px; line-height: 1.5; }
+  .actionbar { height: auto; flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+  .actionbar > div { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+  .actionbar button { min-height: 44px; }
+  .profile-tabs { display: flex; overflow-x: auto; }
+  .profile-tabs button { flex: 0 0 auto; min-height: 44px; }
+  .profile-form, .security-panel, .notification-panel { padding: 18px; }
+  .profile-form-grid { grid-template-columns: minmax(0, 1fr); }
+  .profile-form-grid .full-field { grid-column: auto; }
+  .profile-form-actions, .notification-actions { align-items: stretch; flex-direction: column; }
+  .notification-row, .notification-matrix > header { grid-template-columns: minmax(0, 1fr) 46px 46px; padding-inline: 10px; gap: 4px; }
+  .notification-row { font-size: 12px; padding-block: 10px; }
+  .notification-settings-grid .security-card { grid-template-columns: minmax(0, 1fr); }
+  .provider-list > div, .session-list > div { flex-wrap: wrap; }
+  .provider-list small, .session-list small { overflow-wrap: anywhere; }
+  .kanban-board { max-width: 100%; min-width: 0; grid-template-columns: repeat(4, min(280px, calc(100vw / var(--spot-reading-zoom, 1) - 34px))); overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-inline: contain; padding-bottom: 12px; }
+  .kanban-column { min-width: 0; scroll-snap-align: start; }
+  .client-form-grid, .management-fields, .project-config-grid, .task-editor-fields, .task-extra-fields, .task-time-fields, .task-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .task-field-wide { grid-column: auto; }
+  .management-permissions { grid-template-columns: minmax(0, 1fr); }
+  .project-config-card > header, .project-expenses > header, .report-heading { flex-direction: column; }
+  .report-highlights, .report-breakdowns, .report-footer-grid { grid-template-columns: minmax(0, 1fr); }
+  .project-member-list article { grid-template-columns: 34px minmax(0, 1fr); }
+  .project-member-list article button { grid-column: 2; justify-self: start; }
+  .team-member-list article { grid-template-columns: minmax(0, 1fr); }
+  .team-member-list select { width: 100%; min-height: 44px; }
+  .team-editor form > header, .team-members-heading { padding: 16px; flex-wrap: wrap; gap: 10px; }
+  .team-name-field { padding: 16px; }
+  .team-search, .team-member-list { margin-inline: 16px; }
+  .team-member-list { max-height: none; }
+  .portfolio-catalog-actions, .portfolio-chart-controls, .portfolio-widget-actions { flex-wrap: wrap; }
+  .portfolio-catalog-actions input { min-width: 0; width: 100%; }
+  .portfolio-project-cards, .portfolio-widget-grid { grid-template-columns: minmax(0, 1fr); }
+  .portfolio-widget-grid .widget-wide { grid-column: auto; }
+  .portfolio-pie-layout { flex-wrap: wrap; }
+  .inbox-page-toolbar > div { flex-wrap: wrap; }
+  .inbox-message-list { max-height: 340px; overflow-y: auto; }
+  .inbox-page-layout { grid-template-columns: minmax(0, 1fr); }
+  .inbox-detail-body dl { grid-template-columns: minmax(0, 1fr); }
+  .inbox-detail-body dd, .inbox-detail-body p { overflow-wrap: anywhere; }
+  .inbox-message-detail > header { flex-wrap: wrap; }
+  :is(.invitation-dialog, .integrations-dialog, .clients-modal > form, .permissions-modal, .camera-dialog) header { gap: 10px; }
+  :is(.invitation-dialog, .integrations-dialog, .clients-modal > form, .permissions-modal, .calendar-modal > form) h2 { font-size: 20px; overflow-wrap: anywhere; }
+  :is(.invitation-dialog, .clients-modal > form, .calendar-modal > form, .management-dialog, .task-editor-dialog, .permissions-modal) footer { flex-wrap: wrap; }
+  .integration-provider { flex-wrap: wrap; }
+  .integration-provider > div { min-width: 0; }
+  .integration-provider-actions { width: 100%; }
+  .invitation-grid, .invitation-dialog fieldset { grid-template-columns: minmax(0, 1fr); }
+  .invitation-link { flex-wrap: wrap; }
+  .invitation-link input { min-width: 0; width: 100%; flex-basis: 100%; }
+  .calendar-shell > header { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px; justify-items: center; }
+  .calendar-shell > header > span { justify-self: center; }
+  .calendar-shell > header button { min-width: 44px; min-height: 44px; font-size: 12px; }
+  .calendar-connections { flex-wrap: wrap; }
+}
+
+@media (max-width: 620px) {
+  .calendar-shell { overflow: visible; }
+  .calendar-weekdays, .calendar-grid { display: none; }
+  .calendar-mobile-agenda { display: grid; gap: 10px; padding: 12px; }
+  .calendar-mobile-agenda > button { display: grid; gap: 6px; width: 100%; padding: 14px; border: 1px solid #8193a555; border-radius: 9px; background: transparent; color: inherit; text-align: left; min-height: 64px; overflow-wrap: anywhere; }
+  .calendar-mobile-agenda time { font-size: 12px; font-weight: 600; }
+  .calendar-mobile-agenda strong { font-size: 15px; }
+  .calendar-mobile-agenda small, .calendar-mobile-agenda p { font-size: 13px; line-height: 1.5; }
+  .calendar-event-popover { max-width: 100%; }
+  .analytics-filters, .analytics-kpis, .detail-kpis { grid-template-columns: minmax(0, 1fr); }
+  .analytics-filters > *, .analytics-project-filter { grid-column: auto; min-width: 0; }
+  .analytics-filters { margin-inline: 0; }
+  .clients-summary { grid-template-columns: minmax(0, 1fr); }
+  .new-project-fields { padding: 14px; }
+  .new-project-fields :is(.wide, .full) { grid-column: auto; }
+  .profile-form-grid .verified-input { min-width: 0; }
+  .profile-form-grid .verified-input input { width: 100%; min-width: 0; }
+  .two-factor-setup form { flex-wrap: wrap; }
+  .recovery-codes { grid-template-columns: minmax(0, 1fr); }
+  .status-chart { height: auto; flex-wrap: wrap; }
+  .portfolio-value-cards { grid-template-columns: minmax(0, 1fr); }
+  .history-toolbar > div { flex-wrap: wrap; }
+  .inventory-header > div:last-child { flex-wrap: wrap; }
+  .inventory-shell { padding: 20px 14px; }
+  .inventory-auth section { padding: 24px 18px; }
+  .inventory-grid, .inventory-stats { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Controls remain readable and touch-friendly; no text-only action disappears. */
+@media (max-width: 820px), (pointer: coarse) {
+  :where(button, a.primary-action, .secondary-button, .submit-button) { touch-action: manipulation; }
+  :is(.workspace-page, .dashboard-main, .analytics-page, .profile-layout, .inventory-shell, .login-panel, .reading-controls, .management-dialog, .task-editor-dialog, .invitation-dialog, .calendar-modal, .clients-modal) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { font-size: 16px; min-height: 44px; }
+  :is(.workspace-page, .dashboard-main, .analytics-page, .management-dialog, .task-editor-dialog, .invitation-dialog, .clients-modal, .calendar-modal) button { min-height: 44px; }
+  .task-crud-actions button, .home-task-actions > button, .client-actions button { min-width: 44px; }
+  .primary-action, .secondary-button { font-size: 13px; }
+}
+
+/* Authentication pages also reflow instead of reserving illustration columns. */
+@media (max-width: 900px) {
+  .page-shell { width: 100%; min-height: 100dvh; padding: 24px 16px 90px; }
+  .login-card, .login-card.recovery-card, .login-card.first-access-card { width: min(560px, 100%); min-width: 0; min-height: 0; grid-template-columns: minmax(0, 1fr); }
+  .login-card .illustration-panel { display: none; }
+  .login-panel, .recovery-card .login-panel { min-width: 0; padding: 30px 22px; }
+  .form-wrap, .input-wrap { min-width: 0; max-width: 100%; }
+  .form-options { flex-wrap: wrap; gap: 12px; }
+  .first-access-passwords { grid-template-columns: minmax(0, 1fr); }
+  .page-shell > footer { max-width: 100%; }
+}
+@media (max-width: 1100px) {
+  .topbar .profile-button > img,
+  .topbar .profile-button > .user-avatar-initials { width: 40px !important; height: 40px !important; }
+}
+@media (max-width: 820px) {
+  .profile-tabs button { font-size: 13px; gap: 8px; padding-inline: 14px; }
+  :is(.profile-form-grid, .new-project-fields, .security-password-form, .client-form-grid, .task-editor-fields, .invitation-dialog, .calendar-modal, .management-dialog) label { font-size: 13px; }
+  .column-empty { font-size: 13px; line-height: 1.5; }
+  .calendar-weekdays, .calendar-grid { min-width: 0; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .calendar-grid > div { padding: 4px; }
+}
+@media (max-width: 620px) {
+  .project-row { grid-template-columns: 30px minmax(0, 1fr); gap: 8px; min-height: 0; padding: 14px 12px; }
+  .project-row > span { overflow: visible; white-space: normal; overflow-wrap: anywhere; }
+  .project-row > span > span { white-space: normal; overflow-wrap: anywhere; }
+  .project-row > strong { grid-column: 2; justify-self: start; width: auto; max-width: 100%; padding: 8px 12px; white-space: normal; }
+  .project-row small { font-size: 12px; }
+  .team-row { grid-template-columns: 34px minmax(0,1fr) 18px; }
+  .team-row .avatar-stack { grid-column: 2; grid-row: 2; }
+  .team-row .team-row-copy { grid-column: 2; grid-row: 1; }
+  .team-row .team-row-arrow { grid-column: 3; grid-row: 1; }
+  .task-meta { flex-wrap: wrap; gap: 10px; }
+}
+@media (max-width: 820px) {
+  .calendar-event-popover { right: 12px; bottom: 12px; width: min(350px, calc(100vw / var(--spot-reading-zoom, 1) - 24px)); max-height: calc(100dvh / var(--spot-reading-zoom, 1) - 24px); overflow: auto; }
+  .integrations-dialog button, .permissions-modal button { min-width: 44px; min-height: 44px; }
+}
+@media (max-width: 1100px) {
+  .dashboard-shell .dashboard-sidebar { min-height: 0; }
+}
+.workspace-page :is(h1, h2, h3, p) { overflow-wrap: anywhere; }
+.management-workspace > header h1 { white-space: normal; font-size: clamp(24px, 3vw, 31px); }
+@media (max-width: 820px) {
+  .profile-summary-card { display: block; }
+  .profile-summary-card > h2 { overflow-wrap: anywhere; padding-inline: 16px; }
+}
+@media (max-width: 820px), (pointer: coarse) {
+  :root :is(.invitation-dialog, .permissions-modal, .camera-dialog, .calendar-modal > form, .clients-modal > form, .management-dialog, .task-editor-dialog, .task-delete-dialog, .inbox-confirm-dialog) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { font-size: 16px; min-height: 44px; }
+}
+
+@media (max-width: 1100px) {
+  .dashboard-shell .dashboard-sidebar { overscroll-behavior: contain; }
+}
+@media (min-width: 821px) and (max-width: 1100px) {
+  .task-crud-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .task-crud-filters.toolbar-actions label { grid-column: 1 / -1; }
+}
+@media (max-width: 820px) {
+  .actionbar > div > button, .actionbar .apps-hover-wrap > button { display: inline-flex; }
+  .actionbar .apps-popover .app-shortcuts button { display: grid; }
+  .actionbar .apps-popover .manage-apps { display: flex; }
+  .apps-popover .app-shortcuts { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .apps-popover .app-shortcuts button { min-height: 44px; }
+  .mobile-preferences .language-switcher button[aria-pressed="true"] { background: #0879b7; color: #fff; }
+}
+@media (max-width: 820px) {
+  .actionbar .apps-popover .app-tile { display: grid; }
+  .actionbar .apps-popover .manage-apps > span { display: block; }
+}
+@media (max-width: 820px) {
+  .actionbar > div > button, .actionbar .apps-hover-wrap > button { font-size: 13px; }
+}
+
+/* Document assignment: native, labelled controls and a locally scrolling table. */
+.documents-page .workspace-heading { flex-wrap: wrap; }
+.documents-upload-actions { flex-wrap: wrap; max-width: 100%; }
+.document-assignment-fields { display: flex; flex-wrap: wrap; gap: 10px; min-width: 0; max-width: 100%; }
+.document-assignment-fields > div { display: grid; gap: 6px; min-width: 0; flex: 1 1 180px; font-size: 13px; }
+.document-assignment-fields select { width: 100%; min-width: 0; max-width: 280px; height: 44px; padding: 0 10px; border: 1px solid #798994; border-radius: 7px; color: inherit; background: var(--surface, #fff); }
+.documents-page .documents-panel { overflow-x: auto; }
+.documents-page .documents-panel > header, .documents-page .documents-panel > article { grid-template-columns: minmax(200px,2fr) minmax(160px,1fr) 80px 100px 142px; min-width: 800px; }
+.document-assignment { display: grid; gap: 5px; overflow-wrap: anywhere; padding: 12px 0; min-width: 0; }
+.document-assignment small { font-size: 12px; }
+.documents-page .document-actions a, .documents-page .document-actions button { width: 44px; height: 44px; flex: 0 0 44px; }
+.document-dialog-backdrop { position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; padding: 16px; background: #0009; }
+.document-dialog { width: min(520px, 100%); max-height: calc(100dvh / var(--spot-reading-zoom, 1) - 32px); overflow-y: auto; border: 1px solid #798994; border-radius: 12px; padding: 20px; background: #fff; color: #24313c; }
+.document-dialog header, .document-dialog footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.document-dialog header h2 { font-size: 20px; margin: 0; }
+.document-dialog header button { display: grid; place-items: center; flex: 0 0 44px; height: 44px; border: 0; background: transparent; color: inherit; cursor: pointer; }
+.document-dialog p { overflow-wrap: anywhere; }
+.document-dialog footer { margin-top: 20px; justify-content: flex-end; flex-wrap: wrap; }
+.document-dialog .document-assignment-fields { flex-direction: column; }
+.document-dialog .document-assignment-fields > div { flex: initial; }
+.document-dialog select { max-width: none; }
+html[data-theme="dark"] .document-dialog { background: #202020; color: #e6e6e6; }
+html[data-theme="dark"] .document-assignment-fields select { background: #181818; color: #e6e6e6; }
+@media (max-width: 620px) {
+  .document-assignment-fields { width: 100%; flex-direction: column; }
+  .document-assignment-fields > div { flex: initial; }
+  .document-assignment-fields select { max-width: none; font-size: 16px; }
+  .document-dialog { padding: 14px; }
+}

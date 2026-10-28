@@ -1,0 +1,23 @@
+{
+  "base":94,
+  "periodo":"18/03/2026 a 24/08/2026",
+  "metodo":"Survey aplicado, quali-quantitativo, descritivo; amostra de conveniência não probabilística.",
+  "fonte":"Capitulo_Levantamento_Pesquisa_ABNT.docx, texto e 13 figuras incorporadas; sem planilha individual disponível.",
+  "empregados":88,
+  "questoes":[
+    {"id":"idade","figura":1,"titulo":"Faixa etária","rotulos":["15 a 25 anos","25 a 35 anos","35 a 45 anos","45 a 55 anos","Acima de 55"],"valores":[28,22,19,15,10]},
+    {"id":"atuacao","figura":2,"titulo":"Atuação em gestão de projetos","rotulos":["Não atua","Atua parcialmente","Totalmente","Sim"],"valores":[65,20,4,3],"nota":"A figura separa Totalmente (4) e Sim (3); o texto agrega esses sete respondentes. Soma exibida: 92."},
+    {"id":"ferramentas","figura":3,"titulo":"Ferramentas utilizadas","rotulos":["Microsoft Office 365","Software próprio","Microsoft Office 2021","Nenhum software","Bloco de Notas","Notion"],"valores":[52,26,19,17,16,4],"multipla":true,"nota":"Menções não exclusivas; percentuais sobre 94. Não somar percentuais como uma distribuição única."},
+    {"id":"software","figura":4,"titulo":"Software de projetos na empresa","rotulos":["Não possui","Possui","Possui, mas sem foco"],"valores":[33,32,27]},
+    {"id":"satisfacao","figura":5,"titulo":"Satisfação com a solução atual","rotulos":["Sim, mas pode melhorar","Não temos","Sim, atende","Não é usado no dia a dia"],"valores":[30,29,23,7]},
+    {"id":"interface","figura":6,"titulo":"Interface atual é intuitiva?","rotulos":["Não temos software","Sim","Mais ou menos","Não","Absolutamente"],"valores":[29,28,25,4,4]},
+    {"id":"externos","figura":7,"titulo":"Fluxo de projetos externos","rotulos":["Sim","Não","Quase nunca","Absolutamente"],"valores":[42,21,18,9]},
+    {"id":"internos","figura":8,"titulo":"Fluxo de projetos internos","rotulos":["Sim","Absolutamente","Não","Quase nunca"],"valores":[57,16,9,7]},
+    {"id":"organizacao","figura":9,"titulo":"Dificuldade de organização","rotulos":["Sim","Não","Talvez","Absolutamente"],"valores":[49,16,13,11]},
+    {"id":"alinhamento","figura":10,"titulo":"Dificuldade de alinhamento","rotulos":["Não","Sim","Talvez","Absolutamente"],"valores":[31,31,20,8]},
+    {"id":"faturamento","figura":11,"titulo":"Organização ajuda no faturamento?","rotulos":["Sim","Absolutamente","Talvez","Não"],"valores":[57,26,4,4]},
+    {"id":"custos","figura":12,"titulo":"Dificuldade de registrar custos extras","rotulos":["Não","Talvez","Sim","Absolutamente"],"valores":[33,26,21,9]},
+    {"id":"necessidade","figura":13,"titulo":"Necessidade de software dedicado","rotulos":["Talvez","Sim","Não","Absolutamente"],"valores":[33,32,14,11]}
+  ],
+  "qualitativa":{"comentarios_declarados":57,"categorias":[{"tema":"Interface simples","frequencia":12},{"tema":"Controle financeiro","frequencia":6},{"tema":"Integrações e e-mail","frequencia":6},{"tema":"Dashboards","frequencia":5},{"tema":"Tarefas, agenda e prazos","frequencia":5},{"tema":"Automação e IA","frequencia":3},{"tema":"Sem sugestão específica","frequencia":12}],"nota":"A tabela publicada soma 49 frequências e o texto declara 57 comentários. Não há codificação individual para reconciliar as oito unidades de diferença ou verificar sobreposição temática. Não são falas literais."}
+}

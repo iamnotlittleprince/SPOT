@@ -2,13 +2,17 @@
   "name": "spot",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "^22.12.0"
+  },
   "scripts": {
     "build": "vite build",
     "dev": "vite",
     "test:languages": "npm run build && node scripts/test-languages.mjs",
     "test:tutorial": "npm run build && node scripts/test-tutorial.mjs",
     "test:tasks": "npm run build && node scripts/test-tasks.mjs",
-    "test:management": "npm run build && node scripts/test-management.mjs"
+    "test:management": "npm run build && node scripts/test-management.mjs",
+    "test:responsive": "npm run build && node scripts/test-responsive.mjs"
   },
   "devDependencies": {
     "@iconify-json/selfhst": "^1.2.16",

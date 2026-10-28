@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises';
 const base = process.env.SPOT_BASE_URL || 'http://localhost:8000';
 const manifest = JSON.parse(await fs.readFile('public/build/manifest.json', 'utf8'))['resources/js/app.jsx'];
-export async function createBrowserSession(browser, { admin = false, email = 'ana@example.test', viewport = {width:1440,height:1000}, onError = () => {}, storage = {}, dismissNotice = false } = {}) {
+export async function createBrowserSession(browser, { admin = false, email = 'ana@example.test', viewport = {width:1440,height:1000}, onError = () => {}, storage = {}, dismissNotice = false, mobile = false } = {}) {
  const requests = [];
- const context=await browser.newContext({viewport});
+ const context=await browser.newContext({viewport,isMobile:mobile,hasTouch:mobile});
  const page=await context.newPage();page.setDefaultTimeout(7000);page.on('pageerror',e=>onError(e.message));
  const user={id:1,name:'Ana Teste',email,timezone:'America/Sao_Paulo',can_manage_identity:admin,can_create_projects:admin,can_view_financial:admin};
  await page.addInitScript(values => {
@@ -12,17 +12,20 @@ export async function createBrowserSession(browser, { admin = false, email = 'an
    sessionStorage.setItem('fixtureStorageSeeded','1');
   }
  }, storage);
- await page.route(base+'/',r=>r.fulfill({contentType:'text/html; charset=utf-8',body:`<!doctype html><html lang="pt-BR"><head>${(manifest.css||[]).map(f=>`<link rel="stylesheet" href="/build/${f}">`).join('')}</head><body><div id="root"></div><script>window.__SPOT__=${JSON.stringify({authenticated:true,user})}</script><script type="module" src="/build/${manifest.file}"></script></body></html>`}));
+ await page.route(url=>url.origin===new URL(base).origin&&url.pathname==='/',r=>r.fulfill({contentType:'text/html; charset=utf-8',body:`<!doctype html><html lang="pt-BR"><head><meta name="viewport" content="width=device-width, initial-scale=1.0">${(manifest.css||[]).map(f=>`<link rel="stylesheet" href="/build/${f}">`).join('')}</head><body><div id="root"></div><script>window.__SPOT__=${JSON.stringify({authenticated:true,user})}</script><script type="module" src="/build/${manifest.file}"></script></body></html>`}));
  await page.route('**/api/**',async r=>{
   requests.push({method:r.request().method(),url:r.request().url()});
   const path=new URL(r.request().url()).pathname.replace('/api/v1','');
   const fixtures={
    '/home-dashboard':{updated_at:new Date().toISOString(),projects:[{id:1,name:'Planejamento',status:'planning',progress:10}],tasks:[],teams:[]},
    '/tasks':{tasks:[],projects:[],can_create:true},
-   '/management/access':{'projects.create':admin,'parameters.view':true,'financial.view':admin}, '/projects':[], '/auth/me/projects':[], '/auth/timezones':[{id:'America/Sao_Paulo',label:'America/Sao_Paulo'}],
+   '/teams':[{project_id:1,name:'Planejamento',members:[user]}],
+   '/teams/1':{project_id:1,project_name:'Planejamento',name:'Planejamento',members:[{user_id:user.id,role:'analyst'}],available_users:[user],can_edit:admin},
+   '/management/parameters/clients':[{id:1,name:'Cliente Teste',legal_name:'Cliente Teste',active:true}],
+   '/management/access':{'projects.create':admin,'parameters.view':true,'parameters.create':admin,'parameters.update':admin,'financial.view':admin}, '/projects':[], '/auth/me/projects':[], '/auth/timezones':[{id:'America/Sao_Paulo',label:'America/Sao_Paulo'}],
    '/inbox':{items:[],unread_count:0},'/documents':{documents:[]},'/history':{events:[]},
    '/calendar':{events:[],providers:{google:false,microsoft:false},errors:[]},
-   '/parameters':{clients:[],users:[],project_statuses:[],project_situations:[]},
+   '/parameters':{clients:[],users:[],project_workers:[user],project_statuses:[],project_situations:[]},
    '/admin/users':{users:[{...user,id:2,name:'Analista Teste',profiles:[{slug:'analista'}],account_status:'active',can_create_projects:false}],organizations:[],profiles:[]},
    '/security':{two_factor_enabled:false,providers:{google:{connected:false},microsoft:{connected:false}},sessions:[],events:[],preferences:{}},
    '/notification-preferences':{events:{assigned:{key:'assigned',group:'Projetos',label:'Projeto atribuído'}},timezone:'America/Sao_Paulo',preferences:{events:{assigned:{in_app:true,email:false}},digest:{frequency:'none',time:'09:00'},quiet_hours:{enabled:false,start:'22:00',end:'08:00'}}},

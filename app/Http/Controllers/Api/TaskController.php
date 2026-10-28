@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Domain\Audit\AuditRecorder;
+use Illuminate\Support\Facades\DB;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
@@ -19,27 +21,38 @@ class TaskController extends Controller
         return response()->json($query->orderBy('position')->latest()->get());
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, AuditRecorder $audit): JsonResponse
     {
         $data = $this->validated($request);
         $this->ownedProject($data['project_id']);
-        $task = Task::create([...$data, 'user_id' => Auth::guard('api')->id()]);
+        $task = DB::transaction(function () use ($data, $audit) {
+            $task = Task::create([...$data, 'user_id' => Auth::guard('api')->id()]);
+            $audit->record('task.created', $task, Auth::guard('api')->user(), [], $task->getAttributes());
+            return $task;
+        });
         return response()->json($task->load('project:id,name'), 201);
     }
 
-    public function update(Request $request, Task $task): JsonResponse
+    public function update(Request $request, Task $task, AuditRecorder $audit): JsonResponse
     {
         $this->ownedProject($task->project_id);
         $data = $this->validated($request);
         $this->ownedProject($data['project_id']);
-        $task->update($data);
+        DB::transaction(function () use ($task, $data, $audit) {
+            $old = $task->getAttributes();
+            $task->update($data);
+            $audit->record('task.updated', $task, Auth::guard('api')->user(), $old, $task->getAttributes());
+        });
         return response()->json($task->load('project:id,name'));
     }
 
-    public function destroy(Task $task): JsonResponse
+    public function destroy(Task $task, AuditRecorder $audit): JsonResponse
     {
         $this->ownedProject($task->project_id);
-        $task->delete();
+        DB::transaction(function () use ($task, $audit) {
+            $audit->record('task.deleted', $task, Auth::guard('api')->user(), $task->getAttributes());
+            $task->delete();
+        });
         return response()->json(null, 204);
     }
 

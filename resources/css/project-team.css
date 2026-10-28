@@ -1,0 +1,20 @@
+.new-project-team { grid-column: 1 / -1; min-width: 0; margin: 8px 0 0; padding: 18px; border: 1px solid #ccdbe5; border-radius: 10px; color: inherit; background: #8193a508; }
+.new-project-team legend { display: flex; align-items: center; gap: 8px; padding: 0 6px; font-size: 15px; font-weight: 700; }
+.new-project-team > p { margin: 0 0 14px; color: inherit; line-height: 1.5; font-size: 13px; }
+.new-project-team .new-project-team-search { display: grid; gap: 8px; }
+.new-project-team-search > div { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.new-project-team-search svg { flex-shrink: 0; }
+.new-project-team .new-project-team-count { margin: 14px 0 10px; font-weight: 600; }
+.new-project-team-selected { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.new-project-team-selected button { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #8193a566; border-radius: 8px; color: inherit; background: transparent; cursor: pointer; }
+.new-project-team-selected span { overflow-wrap: anywhere; }
+.new-project-team-selected svg { flex-shrink: 0; }
+.new-project-team-list { max-height: 280px; overflow-y: auto; overscroll-behavior: contain; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.new-project-team .new-project-team-list > label { display: flex; align-items: center; gap: 12px; min-width: 0; min-height: 60px; padding: 12px; border: 1px solid #8193a544; border-radius: 8px; cursor: pointer; }
+.new-project-team .new-project-team-list > label:has(input:checked) { border-color: #1684bd; background: #1684bd12; }
+.new-project-team .new-project-team-list input[type="checkbox"] { flex: 0 0 20px; width: 20px; height: 20px; min-height: 20px; margin: 0; accent-color: #0879b7; }
+.new-project-team-list label > span { display: grid; min-width: 0; gap: 4px; overflow-wrap: anywhere; }
+.new-project-team-list strong { font-size: 13px; color: inherit; }
+.new-project-team-list small { font-size: 12px; font-weight: 400; color: inherit; }
+.new-project-team-list > p { grid-column: 1 / -1; padding: 12px; margin: 0; font-size: 13px; }
+@media (max-width: 820px) { .new-project-team { padding: 14px; }.new-project-team-list { grid-template-columns: minmax(0, 1fr); } }

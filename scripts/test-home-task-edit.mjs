@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+import { createBrowserSession } from './browser-fixtures.mjs';
+const browser = await chromium.launch({ headless: true });
+try {
+  const errors = [];
+  const { page, user } = await createBrowserSession(browser, { dismissNotice: true, onError: e => errors.push(e) });
+  const project = { id: 1, name: 'Projeto exemplo' };
+  let task = { id: 1, title: 'Tarefa da Home', description: 'Descrição original', project_id: 1, project, project_name: project.name, user_id: user.id, user, status: 'todo', priority: 'medium', mutable: true, can_edit: true, worked_on: '2026-10-26', activity_type_id: 1, activity_type_name: 'Reunião', duration_minutes: 60, is_overtime: false };
+  task.creator = { id: 2, name: 'Maria Criadora', avatar_url: '/creator-photo.svg' };
+  await page.route('**/creator-photo.svg', r => r.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"><rect width="30" height="30" fill="teal"/></svg>' }));
+  await page.route('**/api/v1/home-dashboard', r => r.fulfill({ json: { projects: [], teams: [], tasks: [task] } }));
+  await page.route('**/sanctum/csrf-cookie', r => r.fulfill({ status: 204 }));
+  await page.route('**/api/v1/tasks{,/*}', r => {
+    if (r.request().method() === 'GET') return r.fulfill({ json: { tasks: [task], projects: [project], can_create: true, current_user: user, activity_types: [{ id: 1, name: 'Reunião' }] } });
+    assert.equal(r.request().method(), 'PUT');
+    task = { ...task, ...r.request().postDataJSON() };
+    return r.fulfill({ json: task });
+  });
+  await page.reload();
+  await page.locator('.tutorial-card').getByRole('button', { name: 'Entendi', exact: true }).click();
+  await page.getByAltText('Foto de Maria Criadora', { exact: true }).waitFor();
+  const titleBounds = await page.locator('.home-task-open > span').boundingBox();
+  const projectBounds = await page.locator('.home-task-open small').boundingBox();
+  assert.ok(projectBounds.y >= titleBounds.y + titleBounds.height, 'Project sits below task title');
+  await page.locator('.home-task-open').click();
+  await page.getByRole('dialog', { name: 'Detalhes da tarefa', exact: true }).getByRole('button', { name: 'Editar tarefa', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: 'Editar tarefa', exact: true });
+  await editor.getByLabel('Descrição', { exact: true }).fill('Alterada pela Home');
+  await editor.getByRole('button', { name: 'Salvar tarefa', exact: true }).click();
+  await editor.waitFor({ state: 'hidden' });
+  await page.locator('.home-task-open').filter({ hasText: 'Alterada pela Home' }).waitFor();
+  assert.equal(task.description, 'Alterada pela Home');
+  await page.locator('.home-task-open').click();
+  await page.getByRole('dialog', { name: 'Detalhes da tarefa', exact: true }).getByRole('button', { name: 'Editar tarefa', exact: true }).click();
+  await editor.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  await editor.waitFor({ state: 'hidden' });
+  assert.deepEqual(errors, []);
+  console.log('Home task editing passed: open, save, refresh and cancel.');
+} finally { await browser.close(); }

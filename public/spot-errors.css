@@ -1,0 +1,21 @@
+.spot-error-shell { box-sizing: border-box; min-height: 100dvh; display: grid; place-items: center; padding: 28px; background: #f1f5f9; color: #172b3b; font-family: Inter, Arial, sans-serif; }
+.spot-error-shell * { box-sizing: border-box; }
+.spot-error-card { width: min(100%, 900px); display: grid; grid-template-columns: minmax(0,1fr) 210px; align-items: center; gap: 36px; padding: clamp(24px,5vw,56px); border: 1px solid #cddbe5; border-radius: 24px; background: #fff; box-shadow: 0 24px 70px #173b5612; }
+.spot-error-brand { display: block; width: 136px; height: auto; padding: 10px 16px; border-radius: 10px; background: #183b54; margin-bottom: 32px; }
+.spot-error-code { display: inline-block; padding: 7px 12px; border: 1px solid #aacfe4; border-radius: 30px; background: #e9f5fc; color: #07567f; font-size: 13px; font-weight: 700; }
+.spot-error-card h1 { font-size: clamp(26px,3vw,38px); line-height: 1.18; margin: 18px 0 14px; overflow-wrap: anywhere; }
+.spot-error-card p { margin: 0; color: #425e71; font-size: 16px; line-height: 1.7; overflow-wrap: anywhere; }
+.spot-error-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.spot-error-actions a, .spot-error-actions button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; min-height: 44px; padding: 12px 18px; border: 1px solid #0c588a; border-radius: 9px; background: #0c588a; color: #fff; font: 600 14px/1.4 Arial,sans-serif; cursor: pointer; }
+.spot-error-actions .spot-error-secondary { background: transparent; color: #07567f; }
+.spot-error-actions :focus-visible { outline: 3px solid #005fcc; outline-offset: 4px; }
+.spot-error-art { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid #b8d6e9; border-radius: 50%; background: #eaf5fc; color: #0c588a; }
+.spot-error-art svg { width: 55%; height: auto; }
+.spot-error-footnote { margin-top: 22px !important; font-size: 12px !important; }
+.spot-error-overlay { position: fixed; inset: 0 auto auto 0; width: calc(100vw / var(--spot-reading-zoom, 1)); height: calc(100dvh / var(--spot-reading-zoom, 1)); min-height: 0; z-index: 200000; overflow: auto; }
+html[data-theme="dark"] .spot-error-shell { background: #14191e; color: #ecf4fa; }
+html[data-theme="dark"] .spot-error-card { background: #202c36; border-color: #486173; }
+html[data-theme="dark"] .spot-error-card p { color: #c1d0dc; }
+html[data-theme="dark"] .spot-error-actions .spot-error-secondary { color: #9cd8fc; border-color: #9cd8fc; }
+@media (max-width: 620px) { .spot-error-shell { padding: 16px; }.spot-error-card { grid-template-columns: minmax(0,1fr); gap: 24px; }.spot-error-art { display: none; }.spot-error-actions { flex-direction: column; }.spot-error-brand { margin-bottom: 24px; } }
+@media (forced-colors: active) { .spot-error-actions :focus-visible { outline-color: Highlight; } }

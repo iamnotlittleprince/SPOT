@@ -74,3 +74,13 @@ npm run build
 
 Os scripts `test:*` do `package.json` executam os fluxos de navegador de cada
 área. Eles exigem Chromium do Playwright e a aplicação em execução.
+
+## Notificações e atualização automática
+
+- `app/Domain/Notifications/`: catálogo, preferências, eventos de negócio, lembretes e outbox.
+- `app/Jobs/SendNotificationBatch.php`: entrega e revalidação de lotes de e-mail.
+- `app/Models/NotificationDelivery.php` e `NotificationMailBatch.php`: entregas e lotes persistentes.
+- `resources/js/useAutoRefresh.js`: consultas periódicas, eventos locais e entre abas.
+- `config/notifications.php`: ativação de e-mail externo e horizonte de lembretes.
+- `routes/console.php`: `notifications:dispatch` e `notifications:status`.
+- Operação: `docs/notificacoes-e-atualizacao-automatica.md`.

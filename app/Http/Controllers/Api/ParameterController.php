@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Project;
+use App\Domain\Projects\ProjectManagers;
 
 class ParameterController extends Controller
 {
@@ -33,6 +34,8 @@ class ParameterController extends Controller
             'tax_types' => $parameters('tax_types'),
             'activity_types' => $parameters('activity_types'),
             'expense_types' => $parameters('expense_types'),
+            'project_workers' => DB::table('users')->where('current_company_id', $companyId)->where('active', true)->where('account_status', 'active')->orderBy('name')->get(['id', 'name', 'email']),
+            'managers' => ProjectManagers::query($companyId)->orderBy('name')->get(['id', 'name', 'email']),
             'users' => DB::table('users')->where('current_company_id', $companyId)->where('active', true)->orderBy('name')->get(['id', 'name', 'email']),
             'clients' => $clients->orderBy('name')->get(),
         ]);

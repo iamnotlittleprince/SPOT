@@ -1,0 +1,51 @@
+SPOT — Roteiro oral e tempo
+Tempo planejado: 14min10s + margem de 50s até 15min.
+
+00:00–00:20 | Slide 1 | SPOT: pesquisa que virou sistema
+“Somos a equipe do Spot, Sistemas de Projetos, Organização e Tarefas. O projeto nasceu de uma necessidade da Computécnica: organizar a execução dos projetos com mais clareza e ligar esse trabalho ao seu resultado financeiro. Vamos mostrar como a pesquisa orientou as decisões e como elas aparecem no sistema.”
+
+00:20–01:10 | Slide 2 | Problema real e duas pesquisas
+“O ponto de partida foi um sistema com visual antigo, dificuldades de integração e controle insuficiente de responsabilidades e custos. Usamos duas bases: a pesquisa de campo, para identificar dores e expectativas, e o estudo de sistemas, para conhecer soluções existentes. O formulário reuniu 94 respostas entre março e agosto de 2026. A amostra é de conveniência: orienta nosso projeto, mas não representa estatisticamente todas as empresas. Também confrontamos essas evidências com o memorial e as necessidades específicas do cliente.”
+
+01:10–02:10 | Slide 3 | Quem respondeu e onde já trabalha
+Leitura do gráfico de linhas: cada ponto representa uma faixa etária, com percentual calculado sobre 94. A ligação mostra o perfil das faixas ordenadas; não representa evolução temporal nem acompanhamento das mesmas pessoas.
+
+“Dos 94 participantes, 88 estavam empregados. A amostra reúne diferentes idades e 65 pessoas que não atuam diretamente em gestão de projetos. Isso nos ajudou a pensar no uso cotidiano, além de especialistas. O Office 365 teve 52 menções e 17 pessoas disseram não utilizar software. As ferramentas podem aparecer juntas, por isso essas contagens não somam 94. No Spot, essa presença do Microsoft se traduz em login, agenda e integração de diretório; a diversidade de usuários levou à prioridade de interface simples e tutorial.”
+
+02:10–03:20 | Slide 4 | As dores que orientaram o núcleo
+“Os dois números centrais são 63,8% com dificuldade de organização e 88,3% que percebem relação entre organização e faturamento. Também encontramos 41,5% com dificuldade de alinhamento e 31,9% com dificuldade de registrar custos adicionais. O Spot responde com tarefas e responsáveis, equipes, despesas revisadas e resultado financeiro. Esses números são percepções da amostra, não provas de que o Spot aumentou faturamento. Usamos 94 como base e sinalizamos que algumas figuras não discriminam todos os participantes.”
+
+03:20–04:25 | Slide 5 | Existe espaço para uma solução dedicada
+Leitura do gráfico de setores: concordância = 43/94 (45,7%); talvez = 33/94 (35,1%); não = 14/94 (14,9%); diferença documental = 4/94 (4,3%). A última fatia é apenas a diferença entre a base declarada e as categorias publicadas, não uma resposta observada. As legendas também mostram as contagens.
+
+“Sobre software de projetos, 33 não têm e 27 usam uma solução cujo foco não é esse. Ao perguntar sobre uma ferramenta dedicada, 43 concordam diretamente e 33 respondem talvez. Assim, 80,9% demonstram concordância ou abertura, mas não intenção comprovada de compra. O estudo também identifica fluxos internos e externos e opiniões intermediárias sobre a interface atual. Isso levou a centralizar projetos e criar diferentes visões de trabalho. O suporte a contextos internos e externos tem base no modelo, mas não afirmamos dois fluxos completos e separados.”
+
+04:25–05:35 | Slide 6 | O que os participantes pediram
+“A análise aberta destacou interface simples, financeiro, integrações, indicadores e tarefas com agenda. Mostramos a ligação de cada tema com a entrega: tutorial e navegação; horas, tarifas e despesas; calendários; portfólio; quadro, lista e calendário de tarefas. Os alertas agora são gerados por prazo e evento, com caixa de entrada, fila de e-mail, resumos e horário de silêncio. O portfólio atualiza automaticamente. Serviços externos continuam exigindo credenciais, consentimento e SMTP; isso é condição de operação, não ausência do código. A tabela da pesquisa soma 49 frequências e o texto cita 57 comentários: registramos essa diferença e não a preenchemos com respostas inventadas.”
+
+05:35–06:50 | Slide 7 | Referências do mercado e nosso recorte
+“Estudamos Monday, Asana, Jira, Trello, ClickUp e Notion, além das ferramentas brasileiras e de automação citadas no trabalho. Eles já oferecem recursos fortes de organização, colaboração e automação. O diferencial que defendemos não é exclusividade de quadros ou dashboards: é entregar um fluxo específico da Computécnica, com tarifas por vigência, despesas aprovadas e regras de encerramento em código próprio. TaskRush também trabalha com margem, então rentabilidade não é invenção nossa. AWS é infraestrutura, não concorrente direto. Código próprio dá autonomia de evolução, mas continua exigindo hospedagem e manutenção.”
+
+06:50–07:55 | Slide 8 | Do contrato à margem
+“No núcleo financeiro, receita gerencial é contrato mais horas extras faturáveis. Dela saem impostos, comissão, mão de obra e despesas aprovadas. A tarifa é capturada na atividade, preservando o histórico quando há reajuste. Se faltar tarifa, o resultado é marcado como parcial. Neste exemplo didático, R$ 10.200 de receita, menos tributos, comissão, mão de obra e despesas, resultam em R$ 8.020. O cálculo usa aritmética decimal. Não chamamos isso de fluxo de caixa: não há comprovação de recebimento bancário.”
+
+07:55–08:55 | Slide 9 | Organização na tela de trabalho
+“Estas são telas reais com dados demonstrativos. A Home resume o que merece atenção. Em tarefas, quadro, lista e calendário mostram os mesmos registros. Cada atividade tem responsável, colaboradores, data, tipo e duração. O histórico permite consultar mudanças. Não basta esconder um botão: a API também valida acesso e estado do projeto. Tutorial, temas e três idiomas procuram reduzir a barreira de entrada; a facilidade de uso ainda precisa ser medida em testes com usuários.”
+
+08:55–09:50 | Slide 10 | Indicadores para decidir
+“O portfólio reúne a carteira e permite escolher indicadores, agrupamentos e gráficos. É possível comparar valores planejados e realizados e exportar CSV. O Laravel aplica a autorização e envia dados em JSON ao Python com Pandas; o script devolve os indicadores para o React. Preferências são salvas no navegador. A tela atualiza a cada 30 segundos quando visível e depois de alterações locais ou entre abas, mantendo os filtros aplicados. O período seleciona projetos pela data de início ou criação: não é um extrato de entradas financeiras do mês. A atualização é por consultas, não WebSocket.”
+
+09:50–10:50 | Slide 11 | Governança e integração no fluxo
+“O controle de acesso combina perfis, permissões e vínculo com projeto. Finalizar exige justificativa, bloqueia os principais lançamentos e revoga vínculos ativos; reabrir não restaura esses vínculos automaticamente. A auditoria registra ações relevantes e possui retenção configurável. Na integração, o que existe de fato é OAuth, calendários, criação de Teams e diretório Microsoft, com configuração externa. Os 24 ícones de aplicativos são atalhos. Convites usam links com validade, uso único e envio por fila.”
+
+10:50–11:50 | Slide 12 | Como a arquitetura sustenta isso
+“O Spot é um monólito organizado por camadas. React apresenta a interface; a API Laravel valida acesso e dados; ações de domínio executam regras; Eloquent persiste no PostgreSQL. Python faz a agregação analítica, sem acesso direto ao banco. Worker processa e-mails e scheduler executa manutenção. A escolha mantém uma implantação administrável para a equipe, sem exigir microserviços. Separar responsabilidades ajuda a testar e evoluir, embora alguns controllers e o componente principal ainda possam ser divididos melhor.”
+
+11:50–12:45 | Slide 13 | Uma tarefa, do clique ao banco
+“Ao salvar, TasksPage transforma horas e minutos em um número inteiro. O cliente de API prepara CSRF e envia a requisição. TaskV1Controller verifica o projeto e as pessoas. Dentro da transação, cria a tarefa, vincula participantes, captura tarifa e registra auditoria. O JSON atualiza a tela. Quando o relatório é aberto, o cálculo usa essa fotografia e evita somar novamente tarefas que já tenham apontamento associado. Esse caminho mostra que a funcionalidade existe além do desenho da tela.”
+
+12:45–13:35 | Slide 14 | O que validamos e o que falta
+“Nesta versão local, os 122 testes passaram, com 788 asserções, e o build de produção concluiu. Isso dá evidência dos comportamentos cobertos, não garantia de ausência de problemas. Completamos as notificações de atividade, os lembretes de tarefas/agenda e a atualização automática dos painéis. Permanecem a homologação com usuários e provedores reais e os ensaios de carga; o envio externo exige a configuração de operação. A monografia precisa refletir PostgreSQL e a versão técnica mais recente. A honestidade sobre o escopo evita defender algo que o código não demonstra.”
+
+13:35–14:10 | Slide 15 | Contribuição do trabalho
+“O trabalho conecta três coisas: uma necessidade real, pesquisa para priorizar requisitos e implementação verificável. O Spot organiza a execução e a relaciona ao resultado financeiro, com governança e autonomia de evolução. Nossa contribuição é uma solução adaptada à Computécnica e uma base técnica que pode amadurecer com uso e validação. Obrigado.”

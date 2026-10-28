@@ -47,6 +47,26 @@ python3 -m pip install --user -r requirements.txt
 
 Em produção, `PYTHON_BINARY` pode apontar para o executável de um ambiente virtual.
 
+Em **Portfólios → Personalizar painel**, o catálogo permite exibir todos os
+levantamentos ou selecionar indicadores individuais. Os gráficos incluem barras,
+colunas, linhas, área, pizza, rosca, radar, mapa de árvore, funil, cartões e tabela;
+indicadores percentuais individuais também oferecem indicador circular. Gráficos de
+composição exigem valores não negativos; valores negativos são apresentados em
+tabela nessas visualizações, com uma explicação. Radar exige três indicadores.
+
+A visão geral permite cruzar projetos, clientes, gerentes e situação com receitas,
+custos, lucro, horas, progresso e atividades sem tarifa, usando soma, média, mínimo
+ou máximo. O período seleciona projetos pela data de início (ou criação); os
+indicadores financeiros representam os totais desses projetos. No dashboard de cada
+projeto, estão disponíveis composição de receitas, impostos e despesas, custos e
+horas por analista e atividade, comparativos planejado/realizado e percentuais de
+consumo e margem. Dados sem base de cálculo não são convertidos em zero.
+
+Cada levantamento oferece exportação CSV; ordenação, quantidade de categorias,
+cores, valores, largura e posição são configuráveis. As preferências são salvas
+por painel no navegador. Para verificar os fluxos, execute `npm run build` e
+`node scripts/test-portfolio.mjs` com o servidor local na porta 8000.
+
 ## Estrutura principal
 
 - `app/`, `config/`, `database/` e `routes/`: aplicação Laravel.
@@ -297,3 +317,82 @@ O levantamento por página e o estado das entregas estão em [docs/memorial/leva
 - O custo das tarefas entra no relatório; atividades sem tarifa vigente deixam o resultado marcado como parcial.
 - `iniciar.sh` também inicia o agendador. `./php artisan audit:prune --dry-run` mostra quantos registros venceram a retenção, sem apagá-los.
 - A importação AAD exige credenciais da aplicação e consentimento Microsoft Graph `User.Read.All` do tipo Application. O segredo fica criptografado e não é retornado pela API.
+
+
+## Histórico de projetos e tarefas
+
+Nos detalhes de **Projetos** e de **Tarefas** (inclusive pela Home), use
+**Histórico de alterações**. O histórico identifica ação, usuário e data, com
+paginação e atualização. O histórico geral também permite buscar o nome do item.
+Os registros novos preservam o nome do item e do autor para consulta posterior,
+inclusive após exclusão do item ou mudança do nome do usuário.
+
+A auditoria abrange criação, edição e exclusão, status e prioridade pela Home,
+responsáveis e participantes, datas, duração e descrição das tarefas; finalização
+e reabertura de projetos; equipes, membros, tarifas, impostos, despesas,
+apontamentos e documentos. A precificação de tarefas pendentes também gera log.
+As mutações do banco e a auditoria são gravadas na mesma transação. Os documentos
+registram envio, download e exclusão; não se registra o conteúdo do arquivo.
+
+`GET /api/v1/history?project_id=ID` filtra o projeto;
+`&task_id=ID` restringe à tarefa e aos apontamentos vinculados. Registros legados
+são incluídos quando contêm vínculo identificável com o projeto/tarefa. Não há
+reconstrução de ações passadas que não foram registradas.
+
+O acesso continua limitado à empresa atual: `audit.view` permite consultar ações
+da empresa; os demais usuários consultam as próprias ações. Os valores anteriores
+e posteriores e o identificador da requisição continuam restritos a
+`security.manage`, conforme a regra existente. A retenção configurada da auditoria
+continua aplicável (12 meses por padrão).
+
+Validação: `./php artisan test --filter=EntityAuditTest` e, com o servidor local
+ativo, `npm run build && node scripts/test-entity-audit.mjs`.
+
+## Notificações de atividade e atualização automática
+
+Os itens funcionais antes parciais passaram a ter entrega persistente: eventos de
+negócio, lembretes de prazo de tarefa e compromisso, canais por usuário, silêncio
+por fuso e resumos diários/semanais. `notifications:dispatch` roda a cada minuto;
+`notifications:status` consulta pendências sem enviar mensagens. A migração
+`2026_10_26_160000_create_notification_delivery_tables` acrescenta a outbox e lotes.
+
+O envio externo de atividades é ativado com `SPOT_ACTIVITY_EMAIL_ENABLED=true`,
+após configurar/homologar SMTP e supervisionar a fila `emails`. O padrão é false,
+sem campanha retroativa de mensagens; os avisos internos funcionam separadamente.
+Convites e primeiro acesso preservam a fila de envio anterior.
+
+Home, caixa de entrada e portfólio atualizam a cada 30 segundos quando visíveis,
+e após alterações locais/entre abas. Agenda atualiza a cada 60 segundos. Isso é
+consulta periódica, sem WebSocket. A leitura Google/Microsoft percorre páginas,
+tem timeouts e normaliza fusos; a conexão PostgreSQL usa UTC.
+
+Detalhes de operação e limites: [Notificações e atualização automática](docs/notificacoes-e-atualizacao-automatica.md).
+Testes: `NotificationDeliveryTest`, `CalendarIntegrationTest` e
+`SPOT_BASE_URL=http://localhost:8000 node scripts/test-live-updates.mjs`.
+
+## Acessibilidade e inclusão
+
+As melhorias, critérios de aceite e limitações estão em
+[acessibilidade e inclusão](docs/acessibilidade-e-inclusao.md).
+Orientações para futuras alterações pelo Codex estão em [AGENTS.md](AGENTS.md).
+
+A navegação entre páginas suporta as setas voltar/avançar do navegador e URLs
+com a página selecionada. Consulte [navegação e histórico](docs/navegacao-e-historico.md).
+
+As telas personalizadas e os limites da recuperação de falhas estão documentados
+em [telas de erro](docs/telas-de-erro.md).
+
+## Celulares e tablets
+
+O Spot adapta navegação, formulários, tabelas, agenda e modais para telas menores,
+inclusive com a preferência de leitura ampliada. Consulte a
+[documentação de responsividade](docs/responsividade.md).
+Para repetir a verificação de layout: `npm run test:responsive` com o servidor local ativo.
+
+A seleção e a validação dos responsáveis seguem os
+[perfis permitidos para gerentes](docs/gerentes-de-projetos.md).
+
+No cadastro de projetos, a seção de responsáveis permite selecionar a
+[equipe inicial do projeto](docs/equipe-no-cadastro-do-projeto.md).
+
+- [Vínculos de documentos com projetos e tarefas](docs/vinculos-de-documentos.md)
