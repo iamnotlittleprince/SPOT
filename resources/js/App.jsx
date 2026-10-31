@@ -447,7 +447,7 @@ function IntegrationsModal({ onClose }) {
   const [busy, setBusy] = useState("");
   const providerMeta = {
     google: { name: "Google Workspace", logo: "/google-logo.svg", auth: "/auth/google", description: "Login e leitura/criação de eventos no Google Calendar.", services: ["Login Google", "Google Calendar"] },
-    microsoft: { name: "Microsoft 365", logo: "/microsoft-logo.png", auth: "/auth/microsoft", description: "Login, calendário Outlook e criação de reuniões Teams.", services: ["Login Microsoft", "Outlook Calendar", "Reuniões Teams"] },
+    microsoft: { name: "Microsoft 365", logo: "/microsoft-logo.png", auth: "/integrations/microsoft/connect", description: "Login, calendário Outlook e criação de reuniões Teams.", services: ["Login Microsoft", "Outlook Calendar", "Reuniões Teams"] },
   };
 
   async function loadProviders() {
@@ -2251,9 +2251,8 @@ function LegacySpotApp() {
   }
 
   async function handleLogout() {
-    await sessionRequest("/auth/logout", { method: "POST" });
-    setUser(null);
-    setAuthenticated(false);
+    const response = await sessionRequest("/auth/logout", { method: "POST" });
+    if (response.ok) window.location.replace("/");
   }
 
   if (authenticated) return <Dashboard onLogout={handleLogout} user={user} onUserUpdate={setUser} />;

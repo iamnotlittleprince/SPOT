@@ -54,6 +54,20 @@ Canal de relato disponível no repositório: [Issues do SPOT](https://github.com
 
 ## Resultado desta execução
 
+### Conectar Microsoft em Gerenciar integrações — 28/10/2026
+
+Complemento após nova tentativa: a rota antiga `/auth/microsoft`, usada por abas anteriores à atualização, também inicia vínculo quando já existe usuário autenticado. Teste de regressão do início ao retorno simulado aprovado; suíte Microsoft com 11 testes e 86 asserções aprovada. Também foram verificadas as duas rotas no servidor HTTP da porta 8000, com sessões temporárias: ambas preservam o usuário de destino e o estado OAuth e redirecionam à Microsoft. Essas sessões foram removidas; não foram vinculadas contas reais nem concluído consentimento externo nessa verificação. Alteração restrita ao backend, sem novo ajuste visual.
+
+O botão Microsoft agora inicia uma conexão autenticada, separada do login. O retorno OAuth vincula a conta externa ao mesmo usuário que iniciou o fluxo, permitindo e-mails diferentes e preservando nome e e-mail principal do Spot. Não altera layout, rótulos ou traduções.
+
+Verificações: build aprovado; `node scripts/test-microsoft-integration.mjs` aprovado (abertura do modal, foco inicial, Escape e destino do botão Microsoft); `node scripts/test-accessibility.mjs` aprovado com servidor na porta 8000. Os testes PHP cobrem conexão com e-mail diferente, preservação da identidade, sessão ausente/trocada, conta suspensa, conflitos de vínculo, login posterior e login de visitante sem cadastro; testes de avatar OAuth e provisionamento também passaram. OAuth é simulado nos testes; falta o consentimento real na Microsoft pelo usuário. Não houve revisão humana com leitor de tela, zoom ou pessoas com deficiência.
+
+### Correção da saída da conta — 28/10/2026
+
+O logout confirmado pelo servidor redireciona para `/`, removendo `?home`, e não dispara atualização de dados privados após encerrar a sessão. Não foram alterados layout, textos ou controles.
+
+Validação: build aprovado; `node scripts/test-logout.mjs` aprovado (ausência de evento de atualização no logout, preservação desse evento em outras gravações, saída pelo botão, login sem erro e permanência no login após recarregar). A sessão e a resposta de logout são simuladas no teste de navegador; o destino usa a página real de visitante. `node scripts/test-accessibility.mjs` foi executado com servidor na porta 8000 e falhou na linha 47, na asserção de posicionamento do painel “Ajustes rápidos”, fora dos componentes alterados. Não houve avaliação humana de teclado, leitor de tela, zoom ou telas pequenas nesta correção.
+
 - Build de produção: aprovado.
 - Teste de acessibilidade por teclado e movimento reduzido: aprovado.
 - Teste de idiomas: 144 verificações, nenhuma falha; o relatório ainda lista textos para revisão em inglês/espanhol (`% concluído`, `Não informado: 1`, `Permissões`, `Gerenciar permissões`).

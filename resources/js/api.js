@@ -56,7 +56,8 @@ export async function sessionRequest(path, options = {}) {
       ...options.headers,
     },
   }, path, handledStatuses);
-  if (changesState && response.ok && typeof window !== 'undefined') {
+  // Logout ends access to private data; refreshing subscribers would produce 401s.
+  if (changesState && response.ok && path !== '/auth/logout' && typeof window !== 'undefined') {
     // Agenda depois do retorno para não sobrescrever a atualização local do formulário.
     window.setTimeout(() => {
       window.dispatchEvent(new Event('spot:data-changed'));

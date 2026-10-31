@@ -203,6 +203,23 @@ Para iniciar somente o worker:
 ./php artisan queue:work --queue=emails,default --sleep=3 --tries=3 --timeout=60
 ```
 
+Para manter o envio ativo nesta instalação Linux, mesmo quando apenas o servidor
+web for iniciado, instale o serviço de usuário (ajuste os caminhos do arquivo se
+o projeto não estiver em `~/Documentos/Spot`):
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp scripts/systemd/spot-email-worker.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now spot-email-worker.service
+systemctl --user status spot-email-worker.service
+journalctl --user -u spot-email-worker.service
+```
+
+O serviço reinicia o worker se ele encerrar e é iniciado na sessão do usuário.
+Para funcionar também sem sessão aberta após reinicializar a máquina, um
+administrador deve habilitar `loginctl enable-linger` para o usuário da aplicação.
+
 Cada envio tem até três tentativas, com intervalos de 60 e 300 segundos após falhas.
 O SMTP tem timeout padrão de 30 segundos (`MAIL_TIMEOUT`), menor que o timeout do
 job (60 segundos) e o prazo de recuperação da fila (90 segundos). Preserve essa

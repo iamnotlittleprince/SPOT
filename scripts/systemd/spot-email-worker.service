@@ -1,0 +1,15 @@
+[Unit]
+Description=Spot email queue worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documentos/Spot
+ExecStart=%h/Documentos/Spot/php artisan queue:work --queue=emails,default --sleep=3 --tries=3 --timeout=60
+Restart=always
+RestartSec=5
+TimeoutStopSec=75
+
+[Install]
+WantedBy=default.target

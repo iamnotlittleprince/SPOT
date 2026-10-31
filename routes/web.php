@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 Route::get('/auth/microsoft', [MicrosoftAuthController::class, 'redirect'])->name('auth.microsoft');
+Route::get('/integrations/microsoft/connect', [MicrosoftAuthController::class, 'redirect'])
+    ->middleware('auth')->name('integrations.microsoft.connect');
 Route::get('/auth/microsoft/callback', [MicrosoftAuthController::class, 'callback'])->name('auth.microsoft.callback');
 Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 Route::post('/profile/avatar/microsoft', [ProfileAvatarController::class, 'microsoft'])->middleware(['auth', 'throttle:6,1']);
