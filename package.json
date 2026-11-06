@@ -9,6 +9,7 @@
     "build": "vite build",
     "dev": "vite",
     "test:languages": "npm run build && node scripts/test-languages.mjs",
+    "test:project-access": "npm run build && node scripts/test-project-access.mjs",
     "test:tutorial": "npm run build && node scripts/test-tutorial.mjs",
     "test:tasks": "npm run build && node scripts/test-tasks.mjs && node scripts/test-task-board.mjs",
     "test:management": "npm run build && node scripts/test-management.mjs",

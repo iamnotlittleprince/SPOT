@@ -28,6 +28,7 @@ final class FinalizeProject
                 'access_revoked_at' => now(),
                 'updated_at' => now(),
             ]);
+            \App\Models\ProjectAccessRequest::where('project_id', $project->id)->whereIn('status', ['pending', 'approved'])->update(['status' => 'revoked', 'revoked_at' => now()]);
             $this->audit->record('project.finalized', $project, $actor, $old, [...$project->getAttributes(), 'reason' => $reason, 'members' => $project->members()->get()->toArray()]);
 
             return $project->refresh();

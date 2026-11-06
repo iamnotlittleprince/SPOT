@@ -13,7 +13,7 @@ final class EligibleProjectManager implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! ProjectManagers::query($this->companyId)->whereKey($value)->exists()) {
-            $fail('Escolha um administrador global, gestor-administrador ou gestor ativo desta empresa.');
+            $fail('Escolha um administrador global, gerente-administrador ou gerente ativo desta empresa.');
         }
     }
 }

@@ -11,6 +11,7 @@
     <script>
         window.__SPOT__ = {{ Illuminate\Support\Js::from([
             'authenticated' => auth()->check(),
+            'two_factor_challenge' => session()->has('two_factor_challenge'),
             'user' => auth()->user() ? [
                 ...auth()->user()->only(['name', 'email', 'avatar_url', 'timezone', 'job_title', 'department']),
                 'can_view_parameters' => auth()->user()->can('parameters.view'),

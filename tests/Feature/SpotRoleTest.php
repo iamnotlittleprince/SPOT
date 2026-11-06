@@ -16,7 +16,7 @@ class SpotRoleTest extends TestCase
     {
         $this->seed();
         $company = Company::firstOrFail();
-        foreach (['administrador' => 'Administrador', 'gestor-administrador' => 'Administrador', 'gestor' => 'Gestor', 'analista' => 'Analista', 'convidado' => 'Convidado'] as $slug => $label) {
+        foreach (['administrador' => 'Administrador', 'gestor-administrador' => 'Gerente administrador', 'gestor' => 'Gerente', 'analista' => 'Analista', 'convidado' => 'Convidado'] as $slug => $label) {
             $user = User::factory()->create(['current_company_id' => $company->id, 'job_title' => 'Cargo diferente']);
             $user->profiles()->attach(Profile::where('slug', $slug)->value('id'), ['company_id' => $company->id]);
             $this->actingAs($user)->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('spot_role', $label);

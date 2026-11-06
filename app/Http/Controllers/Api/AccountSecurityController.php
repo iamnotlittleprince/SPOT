@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Audit\AuditRecorder;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -107,27 +108,34 @@ class AccountSecurityController extends Controller
 
     public function beginTwoFactor(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $google2fa = new Google2FA();
-        $secret = $google2fa->generateSecretKey(32);
-        $user->forceFill(['two_factor_secret' => $secret, 'two_factor_recovery_codes' => null, 'two_factor_confirmed_at' => null])->save();
-        $uri = $google2fa->getQRCodeUrl(config('app.name'), $user->email, $secret);
-        $svg = (new Writer(new ImageRenderer(new RendererStyle(240, 2), new SvgImageBackEnd())))->writeString($uri);
+        $request->validate(['password' => ['required', 'current_password:web']]);
+        return DB::transaction(function () use ($request) {
+            $user = User::query()->lockForUpdate()->findOrFail($request->user()->id);
+            abort_if($user->two_factor_confirmed_at !== null, 409, 'A autenticação em dois fatores já está ativa.');
+            $google2fa = new Google2FA();
+            $secret = $google2fa->generateSecretKey(32);
+            $uri = $google2fa->getQRCodeUrl(config('app.name'), $user->email, $secret);
+            $svg = (new Writer(new ImageRenderer(new RendererStyle(320, 4), new SvgImageBackEnd())))->writeString($uri);
 
-        return response()->json(['secret' => $secret, 'qr_code' => 'data:image/svg+xml;base64,'.base64_encode($svg)]);
+            $user->forceFill(['two_factor_secret' => $secret, 'two_factor_recovery_codes' => null])->save();
+            return response()->json(['secret' => $secret, 'qr_code' => 'data:image/svg+xml;base64,'.base64_encode($svg)])->header('Cache-Control', 'no-store');
+        });
     }
 
     public function confirmTwoFactor(Request $request, AuditRecorder $audit): JsonResponse
     {
         $data = $request->validate(['code' => ['required', 'digits:6']]);
-        $user = $request->user();
-        if (! $user->two_factor_secret || ! (new Google2FA())->verifyKey($user->two_factor_secret, $data['code'])) {
-            throw ValidationException::withMessages(['code' => 'Código de autenticação inválido.']);
-        }
-        $codes = collect(range(1, 8))->map(fn () => Str::upper(Str::random(5).'-'.Str::random(5)))->all();
-        $user->forceFill(['two_factor_recovery_codes' => array_map(fn ($code) => hash('sha256', $code), $codes), 'two_factor_confirmed_at' => now()])->save();
-        $audit->record('security.2fa_enabled', $user, $user);
-        return response()->json(['recovery_codes' => $codes]);
+        return DB::transaction(function () use ($request, $audit, $data) {
+            $user = User::query()->lockForUpdate()->findOrFail($request->user()->id);
+            abort_if($user->two_factor_confirmed_at !== null, 409, 'A autenticação em dois fatores já está ativa.');
+            if (! $user->two_factor_secret || ! (new Google2FA())->verifyKey($user->two_factor_secret, $data['code'])) {
+                throw ValidationException::withMessages(['code' => 'Código de autenticação inválido.']);
+            }
+            $codes = collect(range(1, 8))->map(fn () => Str::upper(Str::random(5).'-'.Str::random(5)))->all();
+            $user->forceFill(['two_factor_recovery_codes' => array_map(fn ($code) => hash('sha256', $code), $codes), 'two_factor_confirmed_at' => now()])->save();
+            $audit->record('security.2fa_enabled', $user, $user);
+            return response()->json(['recovery_codes' => $codes])->header('Cache-Control', 'no-store');
+        });
     }
 
     public function disableTwoFactor(Request $request, AuditRecorder $audit): JsonResponse

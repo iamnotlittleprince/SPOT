@@ -23,6 +23,21 @@ class MicrosoftAuthTest extends TestCase
         Socialite::shouldReceive('driver')->once()->with('microsoft')->andReturn($provider);
     }
 
+    public function test_two_factor_account_is_not_authenticated_by_oauth_alone(): void
+    {
+        $user = User::factory()->create(['email' => 'twofactor@example.test', 'two_factor_secret' => (new \PragmaRX\Google2FA\Google2FA())->generateSecretKey(), 'two_factor_confirmed_at' => now()]);
+        $remote = (new SocialiteUser)->map(['id' => 'two-factor-provider', 'name' => 'Teste', 'email' => $user->email]);
+        $remote->token = 'access-token';
+        $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('user')->once()->andReturn($remote);
+        Socialite::shouldReceive('driver')->once()->with('microsoft')->andReturn($provider);
+        $this->get('/auth/microsoft/callback')->assertRedirect('/?two_factor=required')->assertSessionHas('two_factor_challenge.user_id', $user->id);
+        $this->assertGuest('web');
+        $this->getJson('/api/v1/security')->assertUnauthorized();
+        $this->postJson('/api/v1/auth/two-factor/challenge', ['code' => (new \PragmaRX\Google2FA\Google2FA())->getCurrentOtp($user->two_factor_secret)])->assertOk();
+        $this->assertAuthenticatedAs($user);
+    }
+
     public function test_legacy_integration_url_also_records_the_authenticated_user(): void
     {
         $user = User::factory()->create(['email' => 'conta@gmail.com']);

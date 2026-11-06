@@ -15,7 +15,7 @@ class FinancialReportController extends Controller
 {
     public function show(Request $request, Project $project, ProjectFinancialSummary $summary): JsonResponse
     {
-        Gate::authorize('financial.view');
+        abort_unless(app(\App\Domain\Access\ProjectReportAccess::class)->canView($request->user(), $project), 403);
         $this->ensureCompany($request, $project);
 
         return response()->json($summary->calculate($project));

@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +27,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('spot-api', function (Request $request) {
+            $user = $request->user();
+            return Limit::perMinute($user ? 600 : 120)
+                ->by($user ? 'user:'.$user->id : 'ip:'.$request->ip());
+        });
+
         Gate::before(function (User $user, string $ability): ?bool {
             if (! $user->active) {
                 return false;

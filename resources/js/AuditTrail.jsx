@@ -5,6 +5,7 @@ import { projectStatusLabel } from './projectStatus';
 import '../css/audit.css';
 
 export const auditActionLabels = {
+  'project.access_requested': 'Acesso solicitado', 'project.access_decided': 'Solicitação de acesso respondida', 'project.access_revoked': 'Acesso revogado', 'project.report_data_updated': 'Dados dos indicadores alterados',
   'project.created': 'Projeto criado', 'project.updated': 'Projeto atualizado',
   'project.deleted': 'Projeto excluído', 'project.finalized': 'Projeto finalizado', 'project.reopened': 'Projeto reaberto',
   'project.team_updated': 'Equipe alterada', 'project.member_assigned': 'Pessoa atribuída', 'project.member_removed': 'Pessoa removida',

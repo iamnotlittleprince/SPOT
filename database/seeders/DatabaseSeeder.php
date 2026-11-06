@@ -86,8 +86,8 @@ class DatabaseSeeder extends Seeder
             $profile = Profile::query()->updateOrCreate(['slug' => $slug], [
                 'name' => match ($slug) {
                     'administrador' => 'Administrador',
-                    'gestor-administrador' => 'Gestor administrador',
-                    'gestor' => 'Gestor',
+                    'gestor-administrador' => 'Gerente administrador',
+                    'gestor' => 'Gerente',
                     'analista' => 'Analista',
                     default => 'Convidado',
                 },

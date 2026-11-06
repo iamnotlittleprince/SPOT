@@ -1,22 +1,29 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { apiJson } from "./api";
+import { apiJson, sessionRequest } from "./api";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function Auth({ onAuthenticated }) {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: "", password: "", two_factor_code: "" });
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [error, setError] = useState("");
   const submit = async (event) => {
     event.preventDefault(); setError("");
     try {
-      const data = await apiJson(`/auth/login`, { method: "POST", body: JSON.stringify(form) });
+      const response = await sessionRequest(`/auth/login`, { method: "POST", body: JSON.stringify(form) });
+      const data = await response.json();
+      if (!response.ok) {
+        if (data.two_factor_required) setTwoFactorRequired(true);
+        throw new Error(data.message);
+      }
       onAuthenticated(data.user);
     } catch (err) { setError(err.message); }
   };
   return <main className="inventory-auth"><section><span className="inventory-kicker">SPOT V2</span><h1>Controle de estoque</h1><p>Entre para registrar produtos e movimentações com segurança.</p><form onSubmit={submit}>
-    <label>E-mail<input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
-    <label>Senha<input required type="password" minLength="8" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
-    {error && <p className="inventory-error">{error}</p>}<button>Entrar</button>
+    <label>E-mail<input required autoComplete="username" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
+    <label>Senha<input required autoComplete="current-password" type="password" minLength="8" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
+    {twoFactorRequired && <label>Código de autenticação<input name="two_factor_code" autoComplete="one-time-code" required maxLength={20} placeholder="6 dígitos ou código de recuperação" value={form.two_factor_code} onChange={e => setForm({...form, two_factor_code:e.target.value})} /></label>}
+    {error && <p role="alert" className="inventory-error">{error}</p>}<button>Entrar</button>
   </form><a className="inventory-link" href="/first-access">Primeiro acesso</a></section></main>;
 }
 

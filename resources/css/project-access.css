@@ -1,0 +1,28 @@
+.project-access-launch { border: 1px solid #1481b8; border-radius: 8px; background: #0879b7; color: #fff; min-height: 44px; padding: 10px 16px; cursor: pointer; margin: 12px 0; font: inherit; }
+.project-access-overlay { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 16px; background: #08111db8; }
+.project-access-dialog { box-sizing: border-box; width: min(760px, 100%); max-height: calc(100dvh - 32px); overflow: auto; background: #fff; color: #193344; border: 1px solid #8297a5; border-radius: 16px; padding: 24px; }
+.project-access-dialog > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.project-access-dialog h2 { margin: 0; font-size: 22px; }
+.project-access-dialog p, .report-data-editor p { margin: 12px 0; line-height: 1.6; overflow-wrap: anywhere; }
+.project-access-dialog form, .report-data-editor form { display: grid; gap: 12px; margin: 16px 0; text-align: left; }
+.project-access-dialog label, .report-data-editor label { display: grid; gap: 6px; font-weight: 600; }
+.project-access-dialog :is(input, select, textarea), .report-data-editor input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 10px; color: inherit; background: inherit; border: 1px solid #8297a5; border-radius: 6px; font: inherit; }
+.project-access-dialog option { color: #193344; background: #fff; }
+.project-access-dialog textarea { min-height: 96px; resize: vertical; }
+.project-access-dialog button, .report-data-editor button { min-height: 44px; padding: 8px 14px; border: 1px solid #8297a5; border-radius: 6px; color: inherit; background: transparent; cursor: pointer; font: inherit; white-space: normal; }
+.project-access-entry { border-top: 1px solid #8297a5; padding: 16px 0; }
+.access-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.project-access-dialog :focus-visible, .report-data-editor :focus-visible, .project-access-launch:focus-visible { outline: 3px solid #168fff; outline-offset: 3px; }
+.access-field-error { color: #ad2632; }
+.report-data-editor { padding: 16px; margin: 16px 0; border: 1px solid #8297a5; border-radius: 8px; }
+.report-data-editor summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; }
+html[data-theme="dark"] .project-access-dialog { color: #eef3f7; background: #1b2229; }
+html[data-theme="dark"] .access-field-error { color: #ffb5b5; }
+@media (max-width: 620px) { .project-access-dialog { padding: 16px; } }
+.project-access-dialog > header h2 { min-width: 0; overflow-wrap: anywhere; }
+.project-access-dialog > header button { flex-shrink: 0; }
+/* A ação de acesso pertence ao mesmo painel de restrição. */
+.portfolio-access-integrated .portfolio-access-icon { display: grid; place-items: center; color: inherit; }
+.portfolio-access-integrated .portfolio-access-copy { display: grid; justify-items: center; gap: 12px; min-width: 0; text-align: center; }
+.portfolio-access-integrated .portfolio-access-copy p { line-height: 1.6; }
+.portfolio-access-integrated .project-access-launch { margin: 6px 0 0; padding: 10px 20px; font-size: 14px; font-weight: 650; }

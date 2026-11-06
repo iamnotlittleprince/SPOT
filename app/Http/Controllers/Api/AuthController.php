@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use DateTimeImmutable;
 use DateTimeZone;
-use PragmaRX\Google2FA\Google2FA;
+use App\Support\TwoFactor;
 
 class AuthController extends Controller
 {
@@ -25,29 +25,17 @@ class AuthController extends Controller
         $twoFactorCode = $credentials['two_factor_code'] ?? null;
         unset($credentials['two_factor_code']);
 
-        if (! Auth::guard('web')->attempt([...$credentials, 'active' => true, 'account_status' => 'active'], true)) {
+        if (! Auth::guard('web')->validate([...$credentials, 'active' => true, 'account_status' => 'active'])) {
             return $this->loginFailure($credentials['email']);
         }
 
-        $user = Auth::guard('web')->user();
-        if ($user->two_factor_confirmed_at) {
-            $validTotp = $twoFactorCode && preg_match('/^\d{6}$/', $twoFactorCode)
-                && (new Google2FA())->verifyKey($user->two_factor_secret, $twoFactorCode);
-            $recoveryHash = $twoFactorCode ? hash('sha256', strtoupper($twoFactorCode)) : null;
-            $recoveryCodes = $user->two_factor_recovery_codes ?? [];
-            $recoveryIndex = $recoveryHash ? array_search($recoveryHash, $recoveryCodes, true) : false;
-            if (! $validTotp && $recoveryIndex === false) {
-                Auth::guard('web')->logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                return response()->json(['message' => 'Informe o código do autenticador ou um código de recuperação.', 'two_factor_required' => true], 422);
-            }
-            if ($recoveryIndex !== false) {
-                unset($recoveryCodes[$recoveryIndex]);
-                $user->forceFill(['two_factor_recovery_codes' => array_values($recoveryCodes)])->save();
-            }
+        $user = Auth::guard('web')->getLastAttempted();
+        if (! TwoFactor::verify($user, $twoFactorCode)) {
+            return response()->json(['message' => 'Informe o código do autenticador ou um código de recuperação.', 'two_factor_required' => true], 422);
         }
 
+        $request->session()->forget('two_factor_challenge');
+        Auth::guard('web')->login($user, true);
         $request->session()->regenerate();
         app(\App\Domain\Audit\AuditRecorder::class)->record('user.login',$user,$user,[],['provider'=>'password']);
 
@@ -113,14 +101,38 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+            'two_factor_code' => ['nullable', 'string', 'max:20'],
         ]);
-
+        $code = $credentials['two_factor_code'] ?? null;
+        unset($credentials['two_factor_code']);
         $guard = Auth::guard('api');
-        if (! $token = $guard->attempt([...$credentials, 'active' => true, 'account_status' => 'active'])) {
+        if (! $guard->validate([...$credentials, 'active' => true, 'account_status' => 'active'])) {
             return $this->loginFailure($credentials['email']);
         }
+        $user = $guard->getLastAttempted();
+        if (! TwoFactor::verify($user, $code)) {
+            return response()->json(['message' => 'Informe o código do autenticador ou um código de recuperação.', 'two_factor_required' => true], 422);
+        }
+        return $this->respondWithToken($guard->login($user), $user);
+    }
 
-        return $this->respondWithToken($token, $guard->user());
+    public function challengeTwoFactor(Request $request): JsonResponse
+    {
+        $data = $request->validate(['code' => ['required', 'string', 'max:20']]);
+        $pending = $request->session()->get('two_factor_challenge');
+        if (! $pending || $pending['expires'] < time()) {
+            $request->session()->forget('two_factor_challenge');
+            return response()->json(['message' => 'Sua sessão expirou'], 419);
+        }
+        $user = User::find($pending['user_id']);
+        if (! $user || ! $user->active || $user->account_status !== 'active' || ! TwoFactor::verify($user, $data['code'])) {
+            return response()->json(['message' => 'Código de autenticação inválido.'], 422);
+        }
+        $request->session()->forget('two_factor_challenge');
+        Auth::guard('web')->login($user, true);
+        $request->session()->regenerate();
+        app(\App\Domain\Audit\AuditRecorder::class)->record('user.login', $user, $user, [], ['provider' => $pending['provider']]);
+        return response()->json(['user' => $this->sessionUser($user)]);
     }
 
     private function loginFailure(string $email): JsonResponse

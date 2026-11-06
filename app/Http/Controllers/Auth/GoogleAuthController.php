@@ -15,7 +15,7 @@ class GoogleAuthController extends Controller
     {
         return Socialite::driver('google')
             ->scopes(['https://www.googleapis.com/auth/calendar.events'])
-            ->with(['prompt' => 'consent select_account', 'access_type' => 'offline'])
+            ->with(['prompt' => 'consent select_account', 'access_type' => 'offline', 'include_granted_scopes' => 'true'])
             ->redirect();
     }
 
@@ -45,6 +45,12 @@ class GoogleAuthController extends Controller
 
         app(\App\Domain\Profile\OAuthAvatar::class)->sync($user, 'google', $googleUser);
 
+        if ($user->two_factor_confirmed_at && (! Auth::check() || Auth::id() !== $user->id)) {
+            if (Auth::check()) Auth::logout();
+            request()->session()->regenerate();
+            request()->session()->put('two_factor_challenge', ['user_id' => $user->id, 'provider' => 'google', 'expires' => time() + 300]);
+            return redirect('/?two_factor=required');
+        }
         Auth::login($user, remember: true);
         app(\App\Domain\Audit\AuditRecorder::class)->record('user.login',$user,$user,[],['provider'=>'google']);
         $user->forceFill(['last_login_at' => now()])->save();

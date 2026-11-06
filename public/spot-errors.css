@@ -3,7 +3,8 @@
 .spot-error-card { width: min(100%, 900px); display: grid; grid-template-columns: minmax(0,1fr) 210px; align-items: center; gap: 36px; padding: clamp(24px,5vw,56px); border: 1px solid #cddbe5; border-radius: 24px; background: #fff; box-shadow: 0 24px 70px #173b5612; }
 .spot-error-brand { display: block; width: 136px; height: auto; padding: 10px 16px; border-radius: 10px; background: #183b54; margin-bottom: 32px; }
 .spot-error-code { display: inline-block; padding: 7px 12px; border: 1px solid #aacfe4; border-radius: 30px; background: #e9f5fc; color: #07567f; font-size: 13px; font-weight: 700; }
-.spot-error-card h1 { font-size: clamp(26px,3vw,38px); line-height: 1.18; margin: 18px 0 14px; overflow-wrap: anywhere; }
+.spot-error-card > div { min-width: 0; }
+.spot-error-card h1 { color: inherit; text-align: left; white-space: normal; font-size: clamp(26px,3vw,38px); line-height: 1.18; margin: 18px 0 14px; overflow-wrap: anywhere; }
 .spot-error-card p { margin: 0; color: #425e71; font-size: 16px; line-height: 1.7; overflow-wrap: anywhere; }
 .spot-error-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .spot-error-actions a, .spot-error-actions button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; min-height: 44px; padding: 12px 18px; border: 1px solid #0c588a; border-radius: 9px; background: #0c588a; color: #fff; font: 600 14px/1.4 Arial,sans-serif; cursor: pointer; }
@@ -19,3 +20,10 @@ html[data-theme="dark"] .spot-error-card p { color: #c1d0dc; }
 html[data-theme="dark"] .spot-error-actions .spot-error-secondary { color: #9cd8fc; border-color: #9cd8fc; }
 @media (max-width: 620px) { .spot-error-shell { padding: 16px; }.spot-error-card { grid-template-columns: minmax(0,1fr); gap: 24px; }.spot-error-art { display: none; }.spot-error-actions { flex-direction: column; }.spot-error-brand { margin-bottom: 24px; } }
 @media (forced-colors: active) { .spot-error-actions :focus-visible { outline-color: Highlight; } }
+
+.spot-error-preview-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 24px; background: #fff; color: #172b3b; font: 16px/1.5 Arial, sans-serif; border-bottom: 1px solid #aacfe4; }
+.spot-error-preview-toolbar label { min-width: 0; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.spot-error-preview-toolbar select { min-width: 0; max-width: 100%; min-height: 44px; padding: 8px; font: inherit; }
+.spot-error-preview-toolbar a { color: #07567f; }
+.spot-error-preview-toolbar :focus-visible { outline: 3px solid #005fcc; outline-offset: 3px; }
+.spot-error-preview .spot-error-shell { min-height: calc(100dvh - 110px); }

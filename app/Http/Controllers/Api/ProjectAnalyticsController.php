@@ -14,7 +14,10 @@ class ProjectAnalyticsController extends Controller
 {
     public function __invoke(Request $request, ProjectFinancialSummary $calculator): JsonResponse
     {
-        Gate::authorize('financial.view');
+        $access = app(\App\Domain\Access\ProjectReportAccess::class);
+        $fullAccess = $request->user()->can('financial.view');
+        $allowed = $fullAccess ? [] : $access->allowedIds($request->user());
+        if (! $fullAccess && ! count($allowed)) return response()->json(['message' => 'Área restrita', 'can_request_access' => $access->canRequest($request->user())], 403);
         $filters = $request->validate([
             'from' => ['nullable', 'date'], 'to' => ['nullable', 'date', 'after_or_equal:from'],
             'project_id' => ['nullable', 'integer'],
@@ -22,6 +25,7 @@ class ProjectAnalyticsController extends Controller
 
         $projects = Project::query()
             ->where('company_id', $request->user()->current_company_id)
+            ->when(! $fullAccess, fn ($query) => $query->whereIn('id', $allowed))
             ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate(\Illuminate\Support\Facades\DB::raw('COALESCE(start_date, created_at)'), '>=', $date))
             ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate(\Illuminate\Support\Facades\DB::raw('COALESCE(start_date, created_at)'), '<=', $date))
             ->when($filters['project_id'] ?? null, fn ($query, $id) => $query->whereKey($id))
@@ -59,6 +63,7 @@ class ProjectAnalyticsController extends Controller
 
         return response()->json([
             ...json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR),
+            'access' => ['visual_project_ids' => $fullAccess ? $projects->pluck('id') : $access->allowedIds($request->user(), 'visual'), 'data_project_ids' => $access->allowedIds($request->user(), 'data'), 'full_access' => $fullAccess, 'can_request_access' => $access->canRequest($request->user())],
             'generated_at' => now()->toIso8601String(), 'processor' => 'Python + Pandas',
         ]);
     }

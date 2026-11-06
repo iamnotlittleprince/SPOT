@@ -46,5 +46,29 @@ class TeamManagementTest extends TestCase
         $this->actingAs($analyst)->getJson("/api/v1/teams/{$project->id}")
             ->assertOk()->assertJsonPath('can_edit', false);
         $this->putJson("/api/v1/teams/{$project->id}", ['name' => 'Sem permissão', 'members' => []])->assertForbidden();
+    }    public function test_analyst_only_receives_members_of_assigned_teams_even_with_permission_overrides(): void
+    {
+        $this->seed();
+        $admin=User::where('email','admin@computecnica.com.br')->firstOrFail();
+        $analyst=User::factory()->create(['current_company_id'=>$admin->current_company_id]);
+        $analyst->profiles()->attach(Profile::where('slug','analista')->value('id'),['company_id'=>$admin->current_company_id]);
+        foreach (['projects.view_all','projects.update'] as $permission) {
+            \Illuminate\Support\Facades\DB::table('user_permission_overrides')->insert(['user_id'=>$analyst->id,'permission_id'=>\App\Models\Permission::where('slug',$permission)->value('id'),'allowed'=>true,'reason'=>'Verificação de restrição do analista']);
+        }
+        $peer=User::factory()->create(['current_company_id'=>$admin->current_company_id]);
+        $outsider=User::factory()->create(['current_company_id'=>$admin->current_company_id]);
+        $project=Project::create(['company_id'=>$admin->current_company_id,'user_id'=>$admin->id,'name'=>'Minha equipe']);
+        $other=Project::create(['company_id'=>$admin->current_company_id,'user_id'=>$admin->id,'name'=>'Outra equipe']);
+        foreach ([$analyst,$peer] as $person) $project->members()->create(['user_id'=>$person->id,'role'=>'analyst','active'=>true]);
+        $project->members()->create(['user_id'=>$outsider->id,'role'=>'analyst','active'=>true,'access_revoked_at'=>now()]);
+        $other->members()->create(['user_id'=>$outsider->id,'role'=>'analyst','active'=>true]);
+        $this->actingAs($analyst)->getJson('/api/v1/teams')->assertOk()->assertJsonCount(1)->assertJsonCount(2,'0.members');
+        $this->getJson("/api/v1/teams/{$project->id}")->assertOk()->assertJsonPath('can_edit',false)->assertJsonCount(0,'available_users')->assertJsonCount(2,'members');
+        $this->getJson("/api/v1/teams/{$other->id}")->assertNotFound();
+        $this->putJson("/api/v1/teams/{$project->id}",['name'=>'Tentativa','members'=>[]])->assertForbidden();
+        $project->members()->where('user_id',$analyst->id)->update(['access_revoked_at'=>now()]);
+        $this->getJson('/api/v1/teams')->assertOk()->assertJsonCount(0);
+        $this->getJson("/api/v1/teams/{$project->id}")->assertNotFound();
     }
+
 }

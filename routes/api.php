@@ -30,12 +30,13 @@ use App\Http\Controllers\Api\ManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthController::class, 'login']);
+    Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 });
 
 // API principal da SPA. Usa a sessao web protegida por Sanctum e CSRF.
-Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:120,1'])->group(function () {
+Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:spot-api'])->group(function () {
     Route::prefix('auth')->group(function () {
+        Route::post('two-factor/challenge', [AuthController::class, 'challengeTwoFactor'])->middleware(['guest', 'throttle:5,1']);
         Route::post('login', [AuthController::class, 'loginSession'])->middleware(['guest', 'throttle:5,1']);
     });
     Route::post('first-access/{token}', [FirstAccessController::class, 'activate'])->middleware('throttle:5,1')->name('first-access.activate');
@@ -67,6 +68,12 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:120,1'])->group(f
         Route::post('projects/{project}/invitations', [ProjectInvitationController::class, 'store'])->name('projects.invitations.store');
         Route::post('invitations/{invitation}/revoke', [ProjectInvitationController::class, 'revoke'])->name('invitations.revoke');
         Route::get('reports/portfolio', [FinancialReportController::class, 'portfolio'])->name('reports.portfolio');
+        Route::get('project-access', [\App\Http\Controllers\Api\ProjectAccessController::class, 'index']);
+        Route::post('project-access', [\App\Http\Controllers\Api\ProjectAccessController::class, 'store'])->middleware('throttle:10,1');
+        Route::get('project-access/meetings', [\App\Http\Controllers\Api\ProjectAccessController::class, 'meetings']);
+        Route::post('project-access/{accessRequest}/decision', [\App\Http\Controllers\Api\ProjectAccessController::class, 'decide']);
+        Route::post('project-access/{accessRequest}/revoke', [\App\Http\Controllers\Api\ProjectAccessController::class, 'revoke']);
+        Route::patch('project-access/projects/{project}/data', [\App\Http\Controllers\Api\ProjectAccessController::class, 'updateData']);
         Route::get('reports/project-analytics', ProjectAnalyticsController::class)->name('reports.project-analytics');
         Route::get('projects/{project}/financial-result', [FinancialReportController::class, 'show'])->name('projects.financial-result');
         // Administração operacional: diretório, parâmetros e ajustes financeiros.

@@ -20,11 +20,11 @@ class TeamController extends Controller
         $query = Project::query()->where('company_id', $user->current_company_id)
             ->whereNull('deleted_at')
             ->whereHas('members', fn ($members) => $members->where('active', true))
-            ->with(['members' => fn ($members) => $members->where('active', true)->with('user:id,name,email,avatar_url')]);
+            ->with(['members' => fn ($members) => $members->where('active', true)->whereNull('access_revoked_at')->with('user:id,name,email,avatar_url')]);
 
-        if (! $user->can('projects.view_all')) {
+        if ($this->analyst($request) || ! $user->can('projects.view_all')) {
             Gate::authorize('projects.view_assigned');
-            $query->whereHas('members', fn ($members) => $members->where('user_id', $user->id)->where('active', true));
+            $query->whereHas('members', fn ($members) => $members->where('user_id', $user->id)->where('active', true)->whereNull('access_revoked_at'));
         }
 
         return response()->json($query->orderBy('name')->get()->map(fn (Project $project) => $this->team($project, $request)));
@@ -33,18 +33,19 @@ class TeamController extends Controller
     public function show(Request $request, Project $project): JsonResponse
     {
         $this->viewable($request, $project);
-        $project->load(['members' => fn ($members) => $members->where('active', true)->with('user:id,name,email,avatar_url')]);
+        $project->load(['members' => fn ($members) => $members->where('active', true)->whereNull('access_revoked_at')->with('user:id,name,email,avatar_url')]);
 
         return response()->json([
             ...$this->team($project, $request),
-            'available_users' => User::query()->where('current_company_id', $request->user()->current_company_id)
-                ->where('active', true)->orderBy('name')->get(['id', 'name', 'email', 'avatar_url']),
+            'available_users' => $this->canEdit($request, $project) ? User::query()->where('current_company_id', $request->user()->current_company_id)
+                ->where('active', true)->orderBy('name')->get(['id', 'name', 'email', 'avatar_url']) : [],
         ]);
     }
 
     public function update(Request $request, Project $project, AuditRecorder $audit): JsonResponse
     {
         return DB::transaction(function () use ($request, $project, $audit) {
+            abort_if($this->analyst($request), 403);
             Gate::authorize('projects.update');
             $this->sameCompany($request, $project);
             abort_if($project->isFinalized(), 409, 'Projeto finalizado não permite editar o time.');
@@ -82,6 +83,17 @@ class TeamController extends Controller
         });
     }
 
+    private function analyst(Request $request): bool
+    {
+        $roles = $request->user()->profiles()->wherePivot('company_id', $request->user()->current_company_id)->pluck('slug');
+        return $roles->contains('analista') && $roles->intersect(['administrador', 'gestor-administrador', 'gestor'])->isEmpty();
+    }
+
+    private function canEdit(Request $request, Project $project): bool
+    {
+        return ! $this->analyst($request) && $request->user()->can('projects.update') && ! $project->isFinalized();
+    }
+
     private function team(Project $project, Request $request): array
     {
         return [
@@ -89,7 +101,7 @@ class TeamController extends Controller
             'project_name' => $project->name,
             'name' => $project->team_name ?: 'Time - '.$project->name,
             'finalized' => $project->isFinalized(),
-            'can_edit' => $request->user()->can('projects.update') && ! $project->isFinalized(),
+            'can_edit' => $this->canEdit($request, $project),
             'members' => $project->members->map(fn ($member) => [
                 'user_id' => $member->user_id, 'role' => $member->role,
                 'name' => $member->user?->name, 'email' => $member->user?->email, 'avatar_url' => $member->user?->avatar_url,
@@ -100,8 +112,8 @@ class TeamController extends Controller
     private function viewable(Request $request, Project $project): void
     {
         $this->sameCompany($request, $project);
-        if (! $request->user()->can('projects.view_all')) {
-            abort_unless($project->members()->where('user_id', $request->user()->id)->where('active', true)->exists(), 404);
+        if ($this->analyst($request) || ! $request->user()->can('projects.view_all')) {
+            abort_unless($project->members()->where('user_id', $request->user()->id)->where('active', true)->whereNull('access_revoked_at')->exists(), 404);
         }
     }
 

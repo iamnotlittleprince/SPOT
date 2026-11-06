@@ -30,9 +30,10 @@
 .tutorial-progress::-webkit-progress-bar { background: var(--tour-soft); }
 .tutorial-progress::-webkit-progress-value { background: #168bd0; }
 .tutorial-progress::-moz-progress-bar { background: #168bd0; }
-.tutorial-index { border-top: 1px solid var(--tour-border); padding-top: 12px; }
-.tutorial-index summary { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #127bb8; font-weight: 650; font-size: 12px; }
-.tutorial-index-list { max-height: 210px; overflow-y: auto; padding-top: 10px; }
+.tutorial-index { border: 1px solid var(--tour-border); border-radius: 8px; background: var(--tour-soft); }
+.tutorial-index summary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 12px 15px; box-sizing: border-box; line-height: 1.5; cursor: pointer; color: #127bb8; font-weight: 650; font-size: 12px; }
+.tutorial-index summary svg { flex-shrink: 0; }
+.tutorial-index-list { max-height: 210px; overflow-y: auto; padding: 0 15px 12px; }
 .tutorial-index-list h3 { margin: 14px 0 6px; font-size: 11px; text-transform: uppercase; color: var(--tour-muted); }
 .tutorial-index-list button { display: flex; width: 100%; align-items: baseline; gap: 10px; padding: 8px 6px; border: 0; border-radius: 5px; background: transparent; color: var(--tour-text); text-align: left; font-size: 12px; cursor: pointer; }
 .tutorial-index-list button span { color: var(--tour-muted); font-size: 10px; font-variant-numeric: tabular-nums; }

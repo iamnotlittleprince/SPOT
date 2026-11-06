@@ -4,6 +4,8 @@ import { createBrowserSession } from './browser-fixtures.mjs';
 const browser=await chromium.launch({headless:true});
 const errors=[];
 let checks=0;
+let diagnosticPage;
+let diagnosticLabel;
 const long='Planejamento e acompanhamento de projetos com equipe e atendimento regional';
 async function fit(page, label) {
  const result=await page.evaluate(()=>{
@@ -25,7 +27,7 @@ async function fit(page, label) {
  assert.ok(result.scroll<=result.width+2,`${label}: page overflow ${JSON.stringify(result)}`);
  assert.deepEqual(result.failures,[],`${label}: clipped controls`);checks++;
 }
-async function navigate(page,label){await page.locator('.home-label > button').last().click();await page.getByRole('menuitem',{name:label,exact:true}).click();await page.waitForTimeout(90);}
+async function navigate(page,label){diagnosticPage=page; diagnosticLabel=label;await page.locator('.home-label > button').last().click();await page.getByRole('menuitem',{name:label,exact:true}).click();await page.waitForTimeout(90);}
 async function dialogFits(page,dialog,label){
  await dialog.waitFor();
  await dialog.evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished.catch(()=>{}))));
@@ -34,7 +36,7 @@ async function dialogFits(page,dialog,label){
  assert.equal(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+2),true,`${label}: dialog contents overflow`);checks++;
 }
 try {
- for(const [width,height,scale] of [[320,740,120],[390,420,120],[320,740,100],[390,844,100],[768,1024,100],[1024,768,100],[1440,900,100],[844,390,100],[740,320,120],[1280,900,120],[1440,900,120]]){
+ for(const [width,height,scale] of [[320,740,120],[390,420,120],[320,740,100],[390,844,100],[768,1024,100],[1024,768,100],[1440,900,100],[844,390,100],[740,320,120],[1101,900,120],[1180,900,100],[1280,900,120],[1440,900,120]]){
   const {page,context,user}=await createBrowserSession(browser,{admin:true,dismissNotice:true,mobile:Math.min(width,height)<=390,viewport:{width,height},storage:{'spot.reading-settings':JSON.stringify({scale,font:'verdana'})},onError:e=>errors.push(e)});
   await page.route('**/api/v1/home-dashboard',r=>r.fulfill({json:{projects:[{id:1,name:long,status:'planning',progress:10}],tasks:[],teams:[{project_id:1,name:long,count:1,members:[user]}]}}));
   const project={id:1,name:long,status:'planning',client_name:long,manager_name:user.name,progress:10};
@@ -45,11 +47,29 @@ try {
   await page.route('**/api/v1/documents',r=>r.fulfill({json:{documents:[{id:1,name:long+'.pdf',original_name:long+'.pdf',project,uploaded_by:user,size:1024,created_at:start}]}}));
   for(const label of ['Agenda','Home','Portfólios','Novo projeto','Projetos','Tarefas','Meus documentos','Histórico','Equipes','Clientes','Meu perfil','Usuários e acessos','Cadastros e configurações','Caixa de entrada']){
    await navigate(page,label);await fit(page,`${width}x${height} @${scale}% ${label}`);
+   if(width<=620) {
+    const title=page.locator('.page-menu-trigger > span');
+    assert.equal(await title.evaluate(el=>el.scrollWidth<=el.clientWidth+1&&getComputedStyle(el).textOverflow!=='ellipsis'),true,'Page title must remain readable');
+    for(const button of ['.tutorial-help-button','.profile-button']) {
+     const box=await page.locator('.topbar '+button).boundingBox();
+     assert.ok(box.x>=0&&box.y>=0&&box.x+box.width<=width+1,'Header actions remain inside viewport');
+    }
+    for(const button of await page.locator('.actionbar > div > button').all()) assert.equal(await button.isVisible(),true,'Task actions remain available');
+    checks++;
+   }
+
   }
   if(width<=390){
    await page.getByRole('textbox',{name:'Pesquisar no Spot',exact:true}).fill('Agenda');
    await page.getByRole('option').filter({hasText:'Agenda'}).first().click();
    await page.getByRole('heading',{name:'Agenda',exact:true}).waitFor();checks++;
+   await page.getByRole('button',{name:'Abrir menu do perfil',exact:true}).click();
+   const profile=page.locator('.profile-menu');
+   const profileBounds=await profile.boundingBox();
+   const avatarBounds=await page.locator('.topbar .profile-button').boundingBox();
+   assert.ok(profileBounds.y>=avatarBounds.y+avatarBounds.height, 'Profile menu opens below the avatar');
+   await page.getByRole('button',{name:'Abrir menu do perfil',exact:true}).click();
+   assert.equal(await profile.count(),0);
    await page.getByRole('button',{name:'Abrir menu',exact:true}).click();
    const nav=page.getByRole('dialog',{name:'Navegação principal'});
    await dialogFits(page,nav,'mobile navigation');
@@ -61,11 +81,14 @@ try {
    assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
    await page.keyboard.press('Escape');
    await navigate(page,'Home');
+   await page.locator('.apps-hover-wrap > button').hover();
+   assert.equal(await page.locator('.apps-popover').isVisible(),false,'Compact apps menu requires explicit activation');
    await page.locator('.apps-hover-wrap > button').click();
    await dialogFits(page,page.locator('.apps-popover'),'apps');
    await page.getByRole('button',{name:'Gerenciar integrações',exact:true}).click();
    await dialogFits(page,page.getByRole('dialog',{name:'Gerenciar integrações',exact:true}),'integrations');
    await page.keyboard.press('Escape');
+   assert.equal(await page.locator('.apps-popover').isVisible(),false,'Apps stay closed after integration dialog returns focus');
    await navigate(page,'Agenda');
    assert.equal(await page.locator('.calendar-mobile-agenda button').count(),1);
    await page.locator('.calendar-mobile-agenda button').click();
@@ -90,6 +113,11 @@ try {
    await navigate(page,'Meu perfil');
    for(const tab of ['Segurança','Notificações','Informações pessoais']){
     await page.locator('.profile-tabs').getByRole('button',{name:tab,exact:true}).click();await page.waitForTimeout(80);await fit(page,tab);
+    for(const button of await page.locator('.profile-tabs button').all()) {
+     const box=await button.boundingBox();
+     assert.ok(box.x>=0&&box.x+box.width<=width+1,'All profile tabs fit without scrolling');
+    }
+
    }
    await page.getByRole('button',{name:'Convidar pessoa',exact:true}).click();
    await dialogFits(page,page.locator('.invitation-dialog'),'invitation');
@@ -125,4 +153,10 @@ try {
  await publicContext.close();
  assert.deepEqual(errors,[]);
  console.log(JSON.stringify({checks,errors,viewports:'320–1440px, portrait/landscape, 100% and 120%, public pages and populated dashboard'}));
+} catch(error) {
+ if(diagnosticPage&&!diagnosticPage.isClosed()) {
+  console.error('Responsive failure:',diagnosticPage.viewportSize(),diagnosticLabel,await diagnosticPage.locator('.apps-hover-wrap').getAttribute('class'));
+  await diagnosticPage.screenshot({path:'/tmp/spot-responsive-failure.png',fullPage:true});
+ }
+ throw error;
 } finally {await browser.close();}

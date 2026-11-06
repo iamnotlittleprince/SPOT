@@ -44,7 +44,7 @@ class User extends Authenticatable implements JWTSubject
     public function spotRoleLabel(): string
     {
         $roles = $this->profiles()->wherePivot('company_id', $this->current_company_id)->pluck('slug');
-        foreach (['administrador' => 'Administrador', 'gestor-administrador' => 'Administrador', 'gestor' => 'Gestor', 'analista' => 'Analista', 'convidado' => 'Convidado'] as $slug => $label) {
+        foreach (['administrador' => 'Administrador', 'gestor-administrador' => 'Gerente administrador', 'gestor' => 'Gerente', 'analista' => 'Analista', 'convidado' => 'Convidado'] as $slug => $label) {
             if ($roles->contains($slug)) {
                 return $label;
             }

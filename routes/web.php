@@ -40,4 +40,8 @@ Route::view('/', 'app')->name('login');
 Route::view('/first-access/{token?}', 'app');
 Route::view('/accept-invitation/{token}', 'app');
 Route::view('/estoque/{path?}', 'app')->where('path', '.*');
+if (app()->environment('local')) {
+    Route::view('/preview/errors', 'app');
+}
+
 Route::fallback(fn () => abort(404));
