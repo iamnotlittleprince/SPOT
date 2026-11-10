@@ -1,11 +1,11 @@
 import fs from 'node:fs/promises';
 const base = process.env.SPOT_BASE_URL || 'http://localhost:8000';
 const manifest = JSON.parse(await fs.readFile('public/build/manifest.json', 'utf8'))['resources/js/app.jsx'];
-export async function createBrowserSession(browser, { admin = false, email = 'ana@example.test', viewport = {width:1440,height:1000}, onError = () => {}, storage = {}, dismissNotice = false, mobile = false } = {}) {
+export async function createBrowserSession(browser, { admin = false, email = 'ana@example.test', viewport = {width:1440,height:1000}, onError = () => {}, storage = {}, dismissNotice = false, mobile = false, userOverrides = {} } = {}) {
  const requests = [];
  const context=await browser.newContext({viewport,isMobile:mobile,hasTouch:mobile});
  const page=await context.newPage();page.setDefaultTimeout(7000);page.on('pageerror',e=>onError(e.message));
- const user={id:1,name:'Ana Teste',email,timezone:'America/Sao_Paulo',can_manage_identity:admin,can_create_projects:admin,can_view_financial:admin};
+ const user={id:1,name:'Ana Teste',email,timezone:'America/Sao_Paulo',can_manage_identity:admin,can_create_projects:admin,can_view_financial:admin,...userOverrides};
  await page.addInitScript(values => {
   if (!sessionStorage.getItem('fixtureStorageSeeded')) {
    for(const [key,value] of Object.entries(values)) localStorage.setItem(key,value);
@@ -18,12 +18,13 @@ export async function createBrowserSession(browser, { admin = false, email = 'an
   const path=new URL(r.request().url()).pathname.replace('/api/v1','');
   const fixtures={
    '/home-dashboard':{updated_at:new Date().toISOString(),projects:[{id:1,name:'Planejamento',status:'planning',progress:10}],tasks:[],teams:[]},
+   '/chat':{contacts:[],requests:[],reviewers:[],can_review:admin,reviewers_available:false,translation_available:false},
    '/tasks':{tasks:[],projects:[],can_create:true},
    '/teams':[{project_id:1,name:'Planejamento',members:[user]}],
    '/teams/1':{project_id:1,project_name:'Planejamento',name:'Planejamento',members:[{user_id:user.id,role:'analyst'}],available_users:[user],can_edit:admin},
    '/management/parameters/clients':[{id:1,name:'Cliente Teste',legal_name:'Cliente Teste',active:true}],
    '/management/access':{'projects.create':admin,'parameters.view':true,'parameters.create':admin,'parameters.update':admin,'financial.view':admin}, '/projects':[], '/auth/me/projects':[], '/auth/timezones':[{id:'America/Sao_Paulo',label:'America/Sao_Paulo'}],
-   '/inbox':{items:[],unread_count:0},'/documents':{documents:[]},'/history':{events:[]},
+   '/auth/locale':{locale:'pt'},'/inbox':{items:[],unread_count:0},'/documents':{documents:[]},'/history':{events:[]},
    '/calendar':{events:[],providers:{google:false,microsoft:false},errors:[]},
    '/parameters':{clients:[],users:[],project_workers:[user],project_statuses:[],project_situations:[]},
    '/admin/users':{users:[{...user,id:2,name:'Analista Teste',profiles:[{slug:'analista'}],account_status:'active',can_create_projects:false}],organizations:[],profiles:[]},
@@ -34,6 +35,7 @@ export async function createBrowserSession(browser, { admin = false, email = 'an
    if(!admin)return r.fulfill({status:403,json:{message:'This action is unauthorized.'}});
    return r.fulfill({json:{projects:[{id:1,name:'Projeto Teste',client:'Cliente Teste',manager:'Ana Teste',status:'planning',progress:25,contract_value:12000,actual_revenue:1000,actual_cost:500,profit:500,worked_hours:10,estimated_hours:40}],summary:{total:1,in_progress:1,completed:0,on_time:1,overdue:0,frozen:0,clients:1,managers:1,contract_value:12000,revenue:1000,cost:500,profit:500},status:[{label:'Planejamento',value:1}],monthly:[{label:'2026-09',value:1}],clients:[{label:'Cliente Teste',value:1}],managers:[{label:'Ana Teste',value:1}],processor:'Python + Pandas'}});
   }
+  if(/^\/projects\/\d+\/resources$/.test(path)) return r.fulfill({json:{tasks:[],documents:[]}});
   if(!(path in fixtures)) onError('Unexpected API request: '+path);
   return r.fulfill({json:fixtures[path]||{}});
  });

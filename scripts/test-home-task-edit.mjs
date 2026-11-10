@@ -18,7 +18,7 @@ try {
     return r.fulfill({ json: task });
   });
   await page.reload();
-  await page.locator('.tutorial-card').getByRole('button', { name: 'Entendi', exact: true }).click();
+  if (await page.locator('.tutorial-card').isVisible()) await page.locator('.tutorial-card').getByRole('button', { name: 'Entendi', exact: true }).click();
   await page.getByAltText('Foto de Maria Criadora', { exact: true }).waitFor();
   const titleBounds = await page.locator('.home-task-open > span').boundingBox();
   const projectBounds = await page.locator('.home-task-open small').boundingBox();

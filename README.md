@@ -417,3 +417,12 @@ No cadastro de projetos, a seção de responsáveis permite selecionar a
 - [Movimentação de tarefas no quadro](docs/quadro-de-tarefas.md)
 
 - [Diagnóstico e importação de fotos do Google e Microsoft](docs/fotos-oauth.md)
+
+## Revisão para produção
+
+Veja [a revisão de prontidão](docs/revisao-producao-2026-11-10.md) e o
+[roteiro Docker](docs/implantacao-docker.md). Há verificações reproduzíveis para
+navegador e imagem com PostgreSQL descartável. No servidor final,
+`php scripts/check-production.php` confere a configuração sem enviar e-mails
+nem imprimir credenciais. Homologue integrações e responsáveis dos projetos
+antes da publicação.

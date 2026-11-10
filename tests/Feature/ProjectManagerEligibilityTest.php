@@ -75,6 +75,7 @@ class ProjectManagerEligibilityTest extends TestCase
             $this->postJson('/api/v1/projects', $payload)->assertUnprocessable()->assertJsonValidationErrors(['account_manager_id', 'project_manager_id']);
             $this->putJson('/api/v1/projects/'.$project['id'], ['account_manager_id' => $invalid->id, 'project_manager_id' => $invalid->id])->assertUnprocessable()->assertJsonValidationErrors(['account_manager_id', 'project_manager_id']);
         }
-        $this->putJson('/api/v1/projects/'.$project['id'], ['account_manager_id' => null, 'project_manager_id' => null])->assertOk();
+        $this->putJson('/api/v1/projects/'.$project['id'], ['account_manager_id' => null, 'project_manager_id' => null])->assertUnprocessable()->assertJsonValidationErrors('project_manager_id');
+        $this->postJson('/api/v1/projects', $base)->assertUnprocessable()->assertJsonValidationErrors('project_manager_id');
     }
 }

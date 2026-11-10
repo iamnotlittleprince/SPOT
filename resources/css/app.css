@@ -3702,7 +3702,7 @@ html[data-theme="dark"] .avatar-action-menu button:hover {
   }
 
   .nav-group h3,
-  .nav-group button span,
+  .nav-group button > span:not(.notification-icon),
   .nav-group small,
   .show-more,
   .quick-access span {
@@ -3714,12 +3714,12 @@ html[data-theme="dark"] .avatar-action-menu button:hover {
   }
 
   .dashboard-sidebar:hover .nav-group h3,
-  .dashboard-sidebar:hover .nav-group button span,
+  .dashboard-sidebar:hover .nav-group button > span:not(.notification-icon),
   .dashboard-sidebar:hover .nav-group small,
   .dashboard-sidebar:hover .show-more,
   .dashboard-sidebar:hover .quick-access span,
   .dashboard-sidebar:focus-within .nav-group h3,
-  .dashboard-sidebar:focus-within .nav-group button span,
+  .dashboard-sidebar:focus-within .nav-group button > span:not(.notification-icon),
   .dashboard-sidebar:focus-within .nav-group small,
   .dashboard-sidebar:focus-within .show-more,
   .dashboard-sidebar:focus-within .quick-access span {
@@ -3931,19 +3931,19 @@ html[data-theme="dark"] .avatar-action-menu button:hover {
   .dashboard-shell .dashboard-sidebar .quick-access-list button svg { width: 28px; min-width: 28px; height: 28px; }
   .dashboard-sidebar .sidebar-toggle,
   .dashboard-sidebar .quick-access-section .show-more,
-  .dashboard-sidebar .quick-access-list button span,
+  .dashboard-sidebar .quick-access-list button > span:not(.notification-icon),
   .dashboard-sidebar .quick-access-empty { opacity: 0; pointer-events: none; white-space: nowrap; transform: translateX(-7px); transition: opacity 130ms ease, transform 180ms ease; }
   .dashboard-sidebar:hover .sidebar-toggle,
   .dashboard-sidebar:focus-within .sidebar-toggle,
   .dashboard-sidebar:hover .quick-access-section .show-more,
   .dashboard-sidebar:focus-within .quick-access-section .show-more,
-  .dashboard-sidebar:hover .quick-access-list button span,
-  .dashboard-sidebar:focus-within .quick-access-list button span,
+  .dashboard-sidebar:hover .quick-access-list button > span:not(.notification-icon),
+  .dashboard-sidebar:focus-within .quick-access-list button > span:not(.notification-icon),
   .dashboard-sidebar:hover .quick-access-empty,
   .dashboard-sidebar:focus-within .quick-access-empty,
   .dashboard-sidebar.inbox-pinned .sidebar-toggle,
   .dashboard-sidebar.inbox-pinned .quick-access-section .show-more,
-  .dashboard-sidebar.inbox-pinned .quick-access-list button span,
+  .dashboard-sidebar.inbox-pinned .quick-access-list button > span:not(.notification-icon),
   .dashboard-sidebar.inbox-pinned .quick-access-empty { opacity: 1; pointer-events: auto; transform: translateX(0); }
   .dashboard-shell .dashboard-sidebar:hover .quick-access-list,
   .dashboard-shell .dashboard-sidebar:focus-within .quick-access-list,
@@ -6339,7 +6339,7 @@ html[data-theme="dark"] .page-menu-trigger.is-open .home-mark {
   }
 
   .dashboard-sidebar.inbox-pinned .nav-group h3,
-  .dashboard-sidebar.inbox-pinned .nav-group button span,
+  .dashboard-sidebar.inbox-pinned .nav-group button > span:not(.notification-icon),
   .dashboard-sidebar.inbox-pinned .nav-group small,
   .dashboard-sidebar.inbox-pinned .show-more,
   .dashboard-sidebar.inbox-pinned .quick-access span {

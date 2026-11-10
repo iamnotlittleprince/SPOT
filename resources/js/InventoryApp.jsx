@@ -24,7 +24,7 @@ function Auth({ onAuthenticated }) {
     <label>Senha<input required autoComplete="current-password" type="password" minLength="8" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
     {twoFactorRequired && <label>Código de autenticação<input name="two_factor_code" autoComplete="one-time-code" required maxLength={20} placeholder="6 dígitos ou código de recuperação" value={form.two_factor_code} onChange={e => setForm({...form, two_factor_code:e.target.value})} /></label>}
     {error && <p role="alert" className="inventory-error">{error}</p>}<button>Entrar</button>
-  </form><a className="inventory-link" href="/first-access">Primeiro acesso</a></section></main>;
+  </form></section></main>;
 }
 
 export default function InventoryApp() {

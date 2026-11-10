@@ -1,0 +1,182 @@
+[
+  {
+    "script": "test-browser-navigation.mjs",
+    "exit_code": 0,
+    "seconds": 2.8
+  },
+  {
+    "script": "test-accessibility.mjs",
+    "exit_code": 0,
+    "seconds": 4.1
+  },
+  {
+    "script": "test-calendar-agendas.mjs",
+    "exit_code": 0,
+    "seconds": 3.6
+  },
+  {
+    "script": "test-calendar-delete.mjs",
+    "exit_code": 0,
+    "seconds": 3.3
+  },
+  {
+    "script": "test-calendar-details.mjs",
+    "exit_code": 0,
+    "seconds": 3.5
+  },
+  {
+    "script": "test-calendar-edit.mjs",
+    "exit_code": 0,
+    "seconds": 3.7
+  },
+  {
+    "script": "test-calendar-multiple.mjs",
+    "exit_code": 0,
+    "seconds": 3.6
+  },
+  {
+    "script": "test-chat-formatting.mjs",
+    "exit_code": 0,
+    "seconds": 8.4
+  },
+  {
+    "script": "test-document-assignment.mjs",
+    "exit_code": 0,
+    "seconds": 3.2
+  },
+  {
+    "script": "test-entity-audit.mjs",
+    "exit_code": 0,
+    "seconds": 1.9
+  },
+  {
+    "script": "test-chat.mjs",
+    "exit_code": 0,
+    "seconds": 12.2
+  },
+  {
+    "script": "test-errors.mjs",
+    "exit_code": 0,
+    "seconds": 7.6
+  },
+  {
+    "script": "test-home-task-edit.mjs",
+    "exit_code": 1,
+    "seconds": 8.4
+  },
+  {
+    "script": "test-live-updates.mjs",
+    "exit_code": 0,
+    "seconds": 1.5
+  },
+  {
+    "script": "test-logout.mjs",
+    "exit_code": 0,
+    "seconds": 2.5
+  },
+  {
+    "script": "test-management.mjs",
+    "exit_code": 0,
+    "seconds": 2.7
+  },
+  {
+    "script": "test-microsoft-integration.mjs",
+    "exit_code": 0,
+    "seconds": 1.9
+  },
+  {
+    "script": "test-microsoft-photo.mjs",
+    "exit_code": 0,
+    "seconds": 3.0
+  },
+  {
+    "script": "test-notifications.mjs",
+    "exit_code": 0,
+    "seconds": 3.7
+  },
+  {
+    "script": "test-oauth-avatar.mjs",
+    "exit_code": 0,
+    "seconds": 2.7
+  },
+  {
+    "script": "test-languages.mjs",
+    "exit_code": 0,
+    "seconds": 27.5
+  },
+  {
+    "script": "test-portfolio.mjs",
+    "exit_code": 1,
+    "seconds": 8.4
+  },
+  {
+    "script": "test-project-managers.mjs",
+    "exit_code": 0,
+    "seconds": 1.6
+  },
+  {
+    "script": "test-project-access.mjs",
+    "exit_code": 0,
+    "seconds": 7.2
+  },
+  {
+    "script": "test-project-status.mjs",
+    "exit_code": 0,
+    "seconds": 1.6
+  },
+  {
+    "script": "test-project-resources.mjs",
+    "exit_code": 0,
+    "seconds": 6.7
+  },
+  {
+    "script": "test-project-team.mjs",
+    "exit_code": 1,
+    "seconds": 8.5
+  },
+  {
+    "script": "test-public-accessibility.mjs",
+    "exit_code": 0,
+    "seconds": 8.7
+  },
+  {
+    "script": "test-recovery-layout.mjs",
+    "exit_code": 0,
+    "seconds": 11.6
+  },
+  {
+    "script": "test-system-mail-layout.mjs",
+    "exit_code": 0,
+    "seconds": 3.0
+  },
+  {
+    "script": "test-task-board.mjs",
+    "exit_code": 0,
+    "seconds": 3.5
+  },
+  {
+    "script": "test-tasks.mjs",
+    "exit_code": 0,
+    "seconds": 3.5
+  },
+  {
+    "script": "test-teams-readonly.mjs",
+    "exit_code": 0,
+    "seconds": 2.1
+  },
+  {
+    "script": "test-tutorial.mjs",
+    "exit_code": 1,
+    "seconds": 10.6
+  },
+  {
+    "script": "test-two-factor.mjs",
+    "exit_code": 0,
+    "seconds": 4.6
+  },
+  {
+    "script": "test-responsive.mjs",
+    "exit_code": 0,
+    "seconds": 62.2
+  }
+]

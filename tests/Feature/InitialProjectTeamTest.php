@@ -16,7 +16,7 @@ class InitialProjectTeamTest extends TestCase
 
     private function payload(User $admin): array
     {
-        return ['name' => 'Projeto com equipe inicial', 'proposal_number' => 'EQUIPE-001', 'contract_value' => 100,
+        return ['name' => 'Projeto com equipe inicial', 'proposal_number' => 'EQUIPE-001', 'contract_value' => 100, 'project_manager_id' => $admin->id,
             'project_status_id' => DB::table('project_statuses')->where('company_id', $admin->current_company_id)->value('id'),
             'project_situation_id' => DB::table('project_situations')->where('company_id', $admin->current_company_id)->value('id')];
     }
@@ -40,7 +40,7 @@ class InitialProjectTeamTest extends TestCase
         $stored = Project::findOrFail($project['id']);
         $this->assertSame(['tasks.view', 'files.view'], $stored->members()->where('user_id', $guest->id)->firstOrFail()->permissions);
         $this->assertDatabaseHas('audit_logs', ['action' => 'project.member_assigned', 'auditable_id' => $stored->members()->where('user_id', $analyst->id)->value('id')]);
-        $this->getJson('/api/v1/teams/'.$project['id'])->assertOk()->assertJsonCount(2, 'members');
+        $this->getJson('/api/v1/teams/'.$project['id'])->assertOk()->assertJsonCount(3, 'members');
         $this->actingAs($analyst)->getJson('/api/v1/projects')->assertOk()->assertJsonFragment(['id' => $project['id']]);
     }
 
@@ -90,7 +90,7 @@ class InitialProjectTeamTest extends TestCase
         $this->assertContains($active->id, $ids);
         $this->assertNotContains($pending->id, $ids);
         $project = $this->postJson('/api/v1/projects', $this->payload($admin))->assertCreated()->json();
-        $this->assertSame(0, Project::findOrFail($project['id'])->members()->count());
+        $this->assertSame(1, Project::findOrFail($project['id'])->members()->count());
         $this->putJson('/api/v1/projects/'.$project['id'], ['member_ids' => [$active->id]])->assertUnprocessable()->assertJsonValidationErrors('member_ids');
     }
 }

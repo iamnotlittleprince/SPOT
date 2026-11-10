@@ -40,7 +40,6 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:spot-api'])->grou
         Route::post('login', [AuthController::class, 'loginSession'])->middleware(['guest', 'throttle:5,1']);
     });
     Route::post('first-access/{token}', [FirstAccessController::class, 'activate'])->middleware('throttle:5,1')->name('first-access.activate');
-    Route::post('first-access', [FirstAccessController::class, 'requestLink'])->middleware(['guest', 'throttle:3,10'])->name('first-access.request');
     Route::get('invitations/{token}', [ProjectInvitationController::class, 'showAcceptance'])->middleware('throttle:30,1')->name('invitations.show');
     Route::post('invitations/{token}/accept', [ProjectInvitationController::class, 'accept'])->middleware('throttle:10,1')->name('invitations.accept');
 
@@ -48,6 +47,7 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:spot-api'])->grou
         Route::prefix('auth')->group(function () {
             Route::post('logout', [AuthController::class, 'logoutSession']);
             Route::get('me', [AuthController::class, 'meSession']);
+            Route::patch('locale', [AuthController::class, 'updateLocale']);
             Route::get('me/projects', [AuthController::class, 'myProjects']);
             Route::get('timezones', [AuthController::class, 'timezones']);
         });
@@ -98,7 +98,19 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:spot-api'])->grou
         Route::post('admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
         Route::patch('admin/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
         Route::delete('admin/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
+        Route::get('projects/{project}/resources', [ProjectConfigurationController::class, 'resources']);
         Route::get('projects/{project}/configuration', [ProjectConfigurationController::class, 'show'])->name('projects.configuration.show');
+        Route::get('chat', [\App\Http\Controllers\Api\ChatController::class, 'index']);
+        Route::get('chat/users/{user}/messages', [\App\Http\Controllers\Api\ChatController::class, 'messages']);
+        Route::post('chat/users/{user}/messages', [\App\Http\Controllers\Api\ChatController::class, 'send'])->middleware('throttle:60,1');
+        Route::post('chat/users/{user}/requests', [\App\Http\Controllers\Api\ChatController::class, 'requestAccess'])->middleware('throttle:10,1');
+        Route::get('chat/attachments/{attachment}/preview', [\App\Http\Controllers\Api\ChatController::class, 'preview']);
+        Route::get('chat/attachments/{attachment}/download', [\App\Http\Controllers\Api\ChatController::class, 'download']);
+        Route::patch('chat/messages/{message}', [\App\Http\Controllers\Api\ChatController::class, 'edit']);
+        Route::get('chat/messages/{message}/revisions', [\App\Http\Controllers\Api\ChatController::class, 'revisions']);
+        Route::post('chat/messages/{message}/translate', [\App\Http\Controllers\Api\ChatController::class, 'translate'])->middleware('throttle:20,1');
+        Route::post('chat/requests/{chatRequest}/decision', [\App\Http\Controllers\Api\ChatController::class, 'decide']);
+        Route::post('chat/requests/{chatRequest}/revoke', [\App\Http\Controllers\Api\ChatController::class, 'revoke']);
         Route::get('teams', [TeamController::class, 'index'])->name('teams.index');
         Route::get('teams/{project}', [TeamController::class, 'show'])->name('teams.show');
         Route::put('teams/{project}', [TeamController::class, 'update'])->name('teams.update');
@@ -133,6 +145,9 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:spot-api'])->grou
         Route::delete('inbox/{inboxItem}', [InboxController::class, 'archive']);
         Route::get('calendar', [CalendarController::class, 'index']);
         Route::post('calendar/events', [CalendarController::class, 'store']);
+        Route::patch('calendar/events/{eventId}/agendas', [CalendarController::class, 'changeAgendas'])->whereNumber('eventId');
+        Route::patch('calendar/events/{calendarEvent}', [CalendarController::class, 'update']);
+        Route::delete('calendar/events/{calendarEvent}', [CalendarController::class, 'destroy']);
         Route::get('documents', [ProjectDocumentController::class, 'index']);
         Route::post('documents', [ProjectDocumentController::class, 'store']);
         Route::get('documents/{document}/download', [ProjectDocumentController::class, 'download']);

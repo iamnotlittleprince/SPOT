@@ -15,6 +15,8 @@ export default defineConfig({
             output: {
                 codeSplitting: {
                     groups: [
+                        { name: 'translations', test: /[\\/]resources[\\/]js[\\/]translations\.js$/, priority: 30, includeDependenciesRecursively: false },
+                        { name: 'chat-editor-vendor', test: /[\\/]node_modules[\\/](?:@tiptap|prosemirror-|orderedmap|rope-sequence|w3c-keyname|crelt)/, priority: 20, includeDependenciesRecursively: false },
                         { name: 'vendor', test: /[\\/]node_modules[\\/]/ },
                     ],
                 },

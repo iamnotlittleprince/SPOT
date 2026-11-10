@@ -1,8 +1,11 @@
+import LanguageSwitcher from './LanguageSwitcher';
+import AuthAccessibility from './AuthAccessibility';
+import useNotifications from './useNotifications';
 import ProjectAccess, { ReportDataEditor } from './ProjectAccess';
 import TwoFactorSettings from "./TwoFactorSettings";
 import { ProjectWorkspace, ParametersWorkspace, FinancialResult } from './Management';
 import { message, translateText, observeTranslations, getLanguage, getFormatLocale, setLanguage } from "./i18n";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import InventoryApp from "./InventoryApp";
 import TasksPage from "./TasksPage";
 import DocumentsPage from "./DocumentsPage";
@@ -57,6 +60,7 @@ import {
   Laptop,
   Link2,
   Mail,
+  MessageSquare,
   Menu,
   MoreHorizontal,
   Plus,
@@ -73,6 +77,8 @@ import {
   X,
 } from "lucide-react";
 
+const ChatPage = lazy(() => import("./ChatPage"));
+
 // Fonte única da navegação lateral. O segundo item de cada entrada é também
 // usado pelo catálogo de traduções; altere os dois em conjunto ao renomeá-lo.
 const navGroups = [
@@ -80,6 +86,7 @@ const navGroups = [
     items: [
       [HomeIcon, "Home", true],
       [Bell, "Caixa de entrada"],
+      [MessageSquare, "Chat"],
       [LayoutDashboard, "Portfólios"],
       [CalendarDays, "Agenda"],
     ],
@@ -98,7 +105,7 @@ const navGroups = [
   },
 ];
 
-function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxLeave, inboxPinned, canViewParameters }) {
+function Sidebar({ unreadNotifications, open, onClose, activePage, onNavigate, onInboxEnter, onInboxLeave, inboxPinned, canViewParameters, canChat }) {
   const sidebarDialogRef = useModalFocus(open, onClose);
   const [expandedGroups, setExpandedGroups] = useState(() => navGroups.map(() => true));
   const [quickExpanded, setQuickExpanded] = useState(false);
@@ -109,6 +116,7 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
   const pageByLabel = {
     Home: "home",
     "Caixa de entrada": "inbox",
+    Chat: "chat",
     "Portfólios": "analytics",
     Agenda: "calendar",
     "Meus Projetos": "projects",
@@ -119,6 +127,7 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
     "Meus documentos": "documents",
     "Histórico": "history",
   };
+  const visibleItem = ([, label]) => (label !== "Clientes" || canViewParameters) && (label !== "Chat" || canChat);
   const itemByLabel = Object.fromEntries(navGroups.flatMap((group) => group.items).map((item) => [item[1], item]));
 
   function remember(label) {
@@ -150,7 +159,7 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
         {navGroups.map((group, groupIndex) => (
           <nav className="nav-group" key={group.title || "principal"}>
             {group.title && <h3>{group.title}</h3>}
-            {(expandedGroups[groupIndex] ? group.items.filter(([, label]) => label !== "Clientes" || canViewParameters) : group.items.filter(([, label]) => label !== "Clientes" || canViewParameters).slice(0, 3)).map(([Icon, label]) => {
+            {(expandedGroups[groupIndex] ? group.items.filter(visibleItem) : group.items.filter(visibleItem).slice(0, 3)).map(([Icon, label]) => {
               const page = pageByLabel[label];
               return (
               <button
@@ -164,7 +173,7 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
                 onMouseEnter={() => label === "Caixa de entrada" && onInboxEnter("sidebar")}
                 onMouseLeave={() => label === "Caixa de entrada" && onInboxLeave()}
               >
-                <Icon size={18} strokeWidth={1.6} />
+                <span className="notification-icon"><Icon size={18} strokeWidth={1.6} aria-hidden="true" />{label === "Caixa de entrada" && unreadNotifications > 0 && <span className="notification-dot" aria-label={message("Notificações não lidas: {count}", { count: unreadNotifications })} role="img" />}</span>
                 <span>{label}</span>
               </button>
               );
@@ -179,9 +188,9 @@ function Sidebar({ open, onClose, activePage, onNavigate, onInboxEnter, onInboxL
           <nav className="quick-access-list" aria-label="Acessos recentes">
             {(quickExpanded ? recentItems : recentItems.slice(0, 3)).map((label) => {
               const item = itemByLabel[label];
-              if (!item || (label === "Clientes" && !canViewParameters)) return null;
+              if (!item || !visibleItem(item)) return null;
               const [Icon] = item;
-              return <button type="button" key={label} onClick={() => activate(label)} title={label}><Icon size={18} strokeWidth={1.6} /><span>{label}</span></button>;
+              return <button type="button" key={label} onClick={() => activate(label)} title={label}><span className="notification-icon"><Icon size={18} strokeWidth={1.6} aria-hidden="true" />{label === "Caixa de entrada" && unreadNotifications > 0 && <span className="notification-dot" aria-label={message("Notificações não lidas: {count}", { count: unreadNotifications })} role="img" />}</span><span>{label}</span></button>;
             })}
             {!recentItems.length && <small className="quick-access-empty">Os últimos acessos aparecerão aqui.</small>}
           </nav>
@@ -345,18 +354,86 @@ function InboxPage() {
     <div className="inbox-page-toolbar"><label><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar mensagens..." /></label>{!trashMode && <div>{[["all", "Todas"], ["unread", message("Não lidas ({count})", { count: unread })], ["tasks", "Tarefas"], ["documents", "Documentos"], ["mentions", "Menções"]].map(([key, label]) => <button className={filter === key ? "active" : ""} type="button" key={key} onClick={() => setFilter(key)}>{label}</button>)}</div>}</div>
     <div className="inbox-page-layout">
       <section className="inbox-message-list" aria-label="Mensagens">{loading && <p className="inbox-page-empty">Carregando mensagens...</p>}{!loading && !filtered.length && <p className="inbox-page-empty">{trashMode ? "A lixeira está vazia." : "Nenhuma mensagem encontrada."}</p>}{filtered.map((item) => { const [TypeIcon, typeLabel] = typeMeta[item.type] || typeMeta.update; return <button className={`${selectedId === item.id ? "selected" : ""} ${!item.read_at && !trashMode ? "unread" : ""}`} type="button" key={item.id} onClick={() => trashMode ? setSelectedId(item.id) : markRead(item)}><span className={`inbox-type-icon ${item.type}`}><TypeIcon size={18} /></span><span><strong translate="no">{item.title}</strong><small>{item.project?.name || typeLabel}</small><em translate="no">{item.body}</em></span><time>{new Date(item.created_at).toLocaleDateString(getFormatLocale(), { day: "2-digit", month: "short" })}</time></button>; })}</section>
-      <section className="inbox-message-detail">{!selected ? <div className="inbox-detail-empty"><Mail size={35} /><strong>Selecione uma mensagem</strong><span>Os detalhes aparecerão aqui.</span></div> : (() => { const [TypeIcon, typeLabel] = typeMeta[selected.type] || typeMeta.update; return <><header><span className={`inbox-type-icon ${selected.type}`}><TypeIcon size={19} /></span><span><small>{typeLabel}</small><h2 translate="no">{selected.title}</h2></span>{trashMode ? <button type="button" title="Restaurar" aria-label="Restaurar mensagem" onClick={() => restore(selected)}><Archive size={19} /></button> : <button type="button" title="Mover para a lixeira" aria-label="Mover mensagem para a lixeira" onClick={() => archive(selected)}><Trash2 size={19} /></button>}</header><div className="inbox-detail-body"><p translate="no">{selected.body || "Sem informações adicionais."}</p>{selected.data?.access_request_id && <ProjectAccess initialRequestId={selected.data.access_request_id} />}{trashMode && <p className="inbox-trash-retention">Esta mensagem será excluída definitivamente 30 dias após ter sido movida para a lixeira.</p>}<dl><div><dt>Projeto</dt><dd>{selected.project?.name || "Geral"}</dd></div><div><dt>Enviado por</dt><dd>{selected.actor_name || "Spot"}</dd></div><div><dt>Recebido em</dt><dd>{new Date(selected.created_at).toLocaleString(getFormatLocale())}</dd></div></dl></div></>; })()}</section>
+      <section className="inbox-message-detail">{!selected ? <div className="inbox-detail-empty"><Mail size={35} /><strong>Selecione uma mensagem</strong><span>Os detalhes aparecerão aqui.</span></div> : (() => { const [TypeIcon, typeLabel] = typeMeta[selected.type] || typeMeta.update; return <><header><span className={`inbox-type-icon ${selected.type}`}><TypeIcon size={19} /></span><span><small>{typeLabel}</small><h2 translate="no">{selected.title}</h2></span>{trashMode ? <button type="button" title="Restaurar" aria-label="Restaurar mensagem" onClick={() => restore(selected)}><Archive size={19} /></button> : <button type="button" title="Mover para a lixeira" aria-label="Mover mensagem para a lixeira" onClick={() => archive(selected)}><Trash2 size={19} /></button>}</header><div className="inbox-detail-body"><p translate="no">{selected.body || "Sem informações adicionais."}</p>{selected.data?.access_request_id && <ProjectAccess initialRequestId={selected.data.access_request_id} />}{(selected.data?.chat_request_id || selected.data?.chat_user_id) && <button className="inbox-chat-action" type="button" onClick={() => window.dispatchEvent(new CustomEvent("spot:open-chat", { detail: { userId: selected.data.chat_user_id, requests: Boolean(selected.data.chat_request_id) } }))}>Abrir chat e solicitações</button>}{trashMode && <p className="inbox-trash-retention">Esta mensagem será excluída definitivamente 30 dias após ter sido movida para a lixeira.</p>}<dl><div><dt>Projeto</dt><dd>{selected.project?.name || "Geral"}</dd></div><div><dt>Enviado por</dt><dd>{selected.actor_name || "Spot"}</dd></div><div><dt>Recebido em</dt><dd>{new Date(selected.created_at).toLocaleString(getFormatLocale())}</dd></div></dl></div></>; })()}</section>
     </div>
     {confirmClear && <div className="inbox-confirm-overlay" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setConfirmClear(false)}><section role="alertdialog" aria-modal="true" aria-labelledby="clear-inbox-title" className="inbox-confirm-dialog"><span className="inbox-confirm-icon"><Trash2 size={24} /></span><h2 id="clear-inbox-title">Limpar a caixa de entrada?</h2><p>Todas as mensagens serão movidas para a lixeira. Você poderá restaurá-las durante 30 dias.</p><footer><button className="secondary-button" type="button" onClick={() => setConfirmClear(false)}>Cancelar</button><button className="inbox-confirm-action" type="button" onClick={clearInbox}><Trash2 size={16} /> Sim, limpar caixa</button></footer></section></div>}
   </div>;
 }
 
-function CalendarPage({ onManageIntegrations }) {
+function CalendarPage({ onManageIntegrations, user }) {
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [data, setData] = useState({ events: [], providers: {}, errors: [] });
   const [selected, setSelected] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deletingEvent, setDeletingEvent] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const deleteBusy = useRef(false);
+  const currentDeleteTarget = useRef(null);
+  currentDeleteTarget.current = deleteTarget;
+  const newEventButton = useRef(null);
+  const deleteDialogRef = useModalFocus(Boolean(deleteTarget), () => setDeleteTarget(null));
+  function askDelete(event) {
+    setDeleteError("");
+    setDeleteTarget({...event, edit_id:event.edit_id || Number(event.id.split(":")[1])});
+  }
+  async function deleteEvent(event) {
+    event.preventDefault();
+    if (deleteBusy.current || !deleteTarget) return;
+    const target = deleteTarget;
+    deleteBusy.current = true; setDeletingEvent(true); setDeleteError("");
+    try {
+      const response = await sessionRequest(`/calendar/events/${target.edit_id}`, {method:"DELETE"});
+      const result = await response.json();
+      if (!response.ok && response.status !== 404) {
+        if (currentDeleteTarget.current?.id === target.id) setDeleteError(result.message || "Não foi possível excluir o evento. Tente novamente.");
+        return;
+      }
+      const restoreFocus = currentDeleteTarget.current?.id === target.id;
+      setDeleteTarget(current => current?.edit_id === target.edit_id ? null : current);
+      setSelected(current => current?.id === target.id ? null : current);
+      setData(current => ({...current, events:current.events.filter(item => item.id !== target.id)}));
+      setEventNotice("Evento excluído.");
+      requestAnimationFrame(() => { if (restoreFocus && !document.querySelector(".calendar-modal")) newEventButton.current?.focus(); });
+      load().catch(loadError => setError(loadError.message));
+    } catch { if (currentDeleteTarget.current?.id === target.id) setDeleteError("Não foi possível confirmar a exclusão. Confira a agenda e tente novamente."); }
+    finally { deleteBusy.current = false; setDeletingEvent(false); }
+  }
   const [creating, setCreating] = useState(false);
-  const eventDialogRef = useModalFocus(creating, () => setCreating(false));
+  const [editingEvent, setEditingEvent] = useState(null);
+  function eventInputTime(value) {
+    if (!value) return "";
+    const parts = new Intl.DateTimeFormat("en-CA", {timeZone:user?.timezone || "UTC",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(new Date(value));
+    const values = Object.fromEntries(parts.map(part => [part.type,part.value]));
+    return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}:${values.second}`;
+  }
+  function editEvent(event) {
+    const editId = event.edit_id || (event.provider === "spot" && /^spot:\d+$/.test(event.id) ? Number(event.id.split(":")[1]) : null);
+    if (!editId) return;
+    setEditingEvent({...event, edit_id:editId});
+    setEventProject(String(event.project?.id || ""));
+    setEventTask(String(event.task?.id || ""));
+    setEventProviders(event.providers?.length ? event.providers : [event.provider]);
+    setCreateError(""); setCreateFieldErrors({}); setDeliveryResults([]); setEventNotice("");
+    eventSubmission.current = null; eventRequestKey.current = crypto.randomUUID();
+    setCreating(true);
+  }
+  const [eventProject, setEventProject] = useState("");
+  const [eventTask, setEventTask] = useState("");
+  const [savingEvent, setSavingEvent] = useState(false);
+  const [eventProviders, setEventProviders] = useState(["spot"]);
+  const [deliveryResults, setDeliveryResults] = useState([]);
+  const [eventNotice, setEventNotice] = useState("");
+  const eventSubmission = useRef(null);
+  const eventRequestKey = useRef(null);
+  const eventColors = [["#0879b7", "Azul"], ["#328052", "Verde"], ["#8b5cc7", "Roxo"], ["#b96516", "Laranja"], ["#c03949", "Vermelho"], ["#66717e", "Cinza"]];
+  const extraError = field => createFieldErrors[field] && <small id={`event-${field}-error`}>{createFieldErrors[field]}</small>;
+  const extraAttributes = field => ({ "aria-invalid": Boolean(createFieldErrors[field]), "aria-describedby": createFieldErrors[field] ? `event-${field}-error` : undefined });
+  function closeEventForm() {
+    eventRequestKey.current = null;
+    setSavingEvent(false);
+    setCreating(false);
+  }
+  const eventDialogRef = useModalFocus(creating, closeEventForm);
   const [error, setError] = useState("");
   const [createError, setCreateError] = useState("");
   const [createFieldErrors, setCreateFieldErrors] = useState({});
@@ -373,22 +450,84 @@ function CalendarPage({ onManageIntegrations }) {
   const eventsFor = (day) => data.events.filter((event) => new Date(event.start).toDateString() === day.toDateString());
   async function createEvent(event) {
     event.preventDefault(); setError(""); setCreateError(""); setCreateFieldErrors({}); const form = new FormData(event.currentTarget);
-    const response = await sessionRequest('/calendar/events', { method: 'POST', body: JSON.stringify(Object.fromEntries(form)) }); const result = await response.json();
+    if (savingEvent) return;
+    const submissionKey = eventRequestKey.current;
+    setSavingEvent(true);
+    try {
+    if (!eventSubmission.current) {
+      if (!eventProviders.length) {
+        setCreateFieldErrors({providers: "Selecione pelo menos uma agenda."});
+        setCreateError("Selecione pelo menos uma agenda.");
+        return;
+      }
+      eventSubmission.current = {...Object.fromEntries(form), providers: eventProviders, request_key: eventRequestKey.current};
+    }
+    const response = await sessionRequest(editingEvent ? `/calendar/events/${editingEvent.edit_id}/agendas` : '/calendar/events', {
+      method: editingEvent ? 'PATCH' : 'POST',
+      body: JSON.stringify(eventSubmission.current),
+    }); const result = await response.json();
+    if (eventRequestKey.current !== submissionKey) { load().catch(() => {}); return; }
     if (!response.ok) {
+      if (response.status === 422) eventSubmission.current = null;
       const errors = result.errors || {};
       setCreateFieldErrors(Object.fromEntries(Object.entries(errors).map(([field, messages]) => [field, Array.isArray(messages) ? messages[0] : messages])));
       return setCreateError(Object.values(errors).flat()[0] || result.message || 'Não foi possível criar o evento.');
     }
-    setCreating(false); await load();
+    setDeliveryResults(result.results || []);
+    if (result.complete === false) {
+      setCreateError("Confira o resultado de cada agenda. Tentar novamente preserva os eventos já gravados.");
+      await load();
+      return;
+    }
+    setCreating(false);
+    setEventNotice(editingEvent ? "Evento atualizado." : "Evento criado nas agendas selecionadas.");
+    if (editingEvent) setSelected(result.event || null);
+    await load();
+    } catch { if (eventRequestKey.current === submissionKey) setCreateError("Não foi possível criar o evento. Tente novamente."); }
+    finally { if (eventRequestKey.current === submissionKey) setSavingEvent(false); }
   }
   const providerLabel = { spot: 'Spot', google: 'Google', microsoft: 'Outlook', teams: 'Teams' };
   return <div className="calendar-page workspace-page">
-    <header className="calendar-heading"><div><span className="workspace-eyebrow">PLANEJAMENTO</span><h1>Agenda</h1><p>Seus compromissos do Spot, Google Calendar, Outlook e Teams em um só lugar.</p></div><button className="primary-action" type="button" onClick={() => { setCreateError(""); setCreateFieldErrors({}); setCreating(true); }}><Plus size={17} /> Novo evento</button></header>
+    <header className="calendar-heading"><div><span className="workspace-eyebrow">PLANEJAMENTO</span><h1>Agenda</h1><p>Seus compromissos do Spot, Google Calendar, Outlook e Teams em um só lugar.</p></div><button ref={newEventButton} className="primary-action" type="button" onClick={() => { setEditingEvent(null); setCreateError(""); setCreateFieldErrors({}); setEventProject(""); setEventTask(""); setEventProviders(["spot"]); setDeliveryResults([]); setEventNotice(""); eventSubmission.current = null; eventRequestKey.current = crypto.randomUUID(); setCreating(true); }}><Plus size={17} /> Novo evento</button></header>
+    <p className="calendar-save-notice" role="status">{eventNotice}</p>
     <div className="calendar-connections"><span><i className="spot" /> Spot</span><span className={data.providers.google ? 'connected' : ''}><i className="google" /> Google Calendar {data.providers.google ? 'conectado' : 'desconectado'}</span><span className={data.providers.microsoft ? 'connected' : ''}><i className="microsoft" /> Microsoft/Teams {data.providers.microsoft ? 'conectado' : 'desconectado'}</span>{(!data.providers.google || !data.providers.microsoft) && <button type="button" onClick={onManageIntegrations}>Conectar em Apps</button>}</div>
     {(error || data.errors?.length > 0) && <p className="home-state error">{error || data.errors.join(' ')}</p>}
-    <section className="calendar-shell"><header><div><button type="button" onClick={() => setMonth(new Date())}>Hoje</button><button type="button" aria-label="Mês anterior" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()-1,1))}><ChevronLeft size={18}/></button><button type="button" aria-label="Próximo mês" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()+1,1))}><ChevronRight size={18}/></button></div><h2>{month.toLocaleDateString(getFormatLocale(),{month:'long',year:'numeric'})}</h2><span>{data.events.length} eventos</span></header><div className="calendar-weekdays">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><span key={day}>{day}</span>)}</div><div className="calendar-grid">{days.map(day=><div className={`${day.getMonth()!==month.getMonth()?'outside ':''}${day.toDateString()===new Date().toDateString()?'today':''}`} key={day.toISOString()}><strong>{day.getDate()}</strong><div>{eventsFor(day).slice(0,3).map(event=><button className={event.provider} type="button" key={event.id} onClick={()=>setSelected(event)} title={event.title}><time>{new Date(event.start).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</time><span translate="no">{event.title}</span></button>)}{eventsFor(day).length>3&&<small>+{eventsFor(day).length-3} eventos</small>}</div></div>)}</div><div className="calendar-mobile-agenda" aria-label="Eventos do mês">{data.events.length ? [...data.events].sort((a, b) => new Date(a.start) - new Date(b.start)).map(event => <button type="button" key={event.id} onClick={() => setSelected(event)}><time dateTime={event.start}>{new Date(event.start).toLocaleDateString(getFormatLocale(), { weekday: 'short', day: '2-digit', month: 'short' })} · {new Date(event.start).toLocaleTimeString(getFormatLocale(), { hour: '2-digit', minute: '2-digit' })}</time><strong translate="no">{event.title}</strong><small>{providerLabel[event.provider] || 'Spot'}</small></button>) : <p>Nenhum evento neste mês.</p>}</div></section>
-    {selected && <div className="calendar-event-popover"><button type="button" aria-label="Fechar evento" onClick={()=>setSelected(null)}><X size={18}/></button><em className={selected.provider}>{providerLabel[selected.provider]}</em><h3 translate="no">{selected.title}</h3><p>{selected.description||'Sem descrição.'}</p><span><CalendarDays size={16}/>{new Date(selected.start).toLocaleString(getFormatLocale())} – {new Date(selected.end).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</span>{selected.url&&<a href={selected.url} target="_blank" rel="noreferrer"><Video size={16}/> Abrir reunião ou evento</a>}</div>}
-    {creating && <div className="calendar-modal" onMouseDown={event=>event.target===event.currentTarget&&setCreating(false)}><form ref={eventDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="event-dialog-title" onSubmit={createEvent}><header><div><h2 id="event-dialog-title">Novo evento</h2><p>Escolha em qual agenda o compromisso será criado.</p></div><button type="button" aria-label="Fechar" onClick={()=>setCreating(false)}><X size={19}/></button></header>{createError&&<p className="calendar-form-error" role="alert">{createError}</p>}<label>Título<input name="title" required maxLength="150" aria-invalid={Boolean(createFieldErrors.title)} />{createFieldErrors.title&&<small>{createFieldErrors.title}</small>}</label><div><label>Início<input name="starts_at" type="datetime-local" required aria-invalid={Boolean(createFieldErrors.starts_at)} />{createFieldErrors.starts_at&&<small>{createFieldErrors.starts_at}</small>}</label><label>Fim<input name="ends_at" type="datetime-local" required aria-invalid={Boolean(createFieldErrors.ends_at)} />{createFieldErrors.ends_at&&<small>{createFieldErrors.ends_at}</small>}</label></div><label>Agenda<select name="provider" required aria-invalid={Boolean(createFieldErrors.provider)}><option value="spot">Spot</option><option value="google" disabled={!data.providers.google}>Google Calendar{!data.providers.google?' — conecte a conta':''}</option><option value="microsoft" disabled={!data.providers.microsoft}>Outlook{!data.providers.microsoft?' — conecte a conta':''}</option><option value="teams" disabled={!data.providers.microsoft}>Reunião do Teams{!data.providers.microsoft?' — conecte a conta':''}</option></select>{createFieldErrors.provider&&<small>{createFieldErrors.provider}</small>}</label><label>Local<input name="location" placeholder="Sala ou endereço" aria-invalid={Boolean(createFieldErrors.location)} />{createFieldErrors.location&&<small>{createFieldErrors.location}</small>}</label><label>Descrição<textarea name="description" rows="4" aria-invalid={Boolean(createFieldErrors.description)} />{createFieldErrors.description&&<small>{createFieldErrors.description}</small>}</label><footer><button className="secondary-button" type="button" onClick={()=>setCreating(false)}>Cancelar</button><button className="primary-action" type="submit">Criar evento</button></footer></form></div>}
+    <section className="calendar-shell"><header><div><button type="button" onClick={() => setMonth(new Date())}>Hoje</button><button type="button" aria-label="Mês anterior" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()-1,1))}><ChevronLeft size={18}/></button><button type="button" aria-label="Próximo mês" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()+1,1))}><ChevronRight size={18}/></button></div><h2>{month.toLocaleDateString(getFormatLocale(),{month:'long',year:'numeric'})}</h2><span>{data.events.length} eventos</span></header><div className="calendar-weekdays">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><span key={day}>{day}</span>)}</div><div className="calendar-grid">{days.map(day=><div className={`${day.getMonth()!==month.getMonth()?'outside ':''}${day.toDateString()===new Date().toDateString()?'today':''}`} key={day.toISOString()}><strong>{day.getDate()}</strong><div>{eventsFor(day).slice(0,3).map(event=><button className={event.provider} style={event.color ? {borderInlineStart: `4px solid ${event.color}`} : undefined} type="button" key={event.id} onClick={()=>setSelected(event)} title={event.title}><time>{new Date(event.start).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</time><span translate="no">{event.title}</span></button>)}{eventsFor(day).length>3&&<small>+{eventsFor(day).length-3} eventos</small>}</div></div>)}</div><div className="calendar-mobile-agenda" aria-label="Eventos do mês">{data.events.length ? [...data.events].sort((a, b) => new Date(a.start) - new Date(b.start)).map(event => <button type="button" style={event.color ? {borderInlineStart: `4px solid ${event.color}`} : undefined} key={event.id} onClick={() => setSelected(event)}><time dateTime={event.start}>{new Date(event.start).toLocaleDateString(getFormatLocale(), { weekday: 'short', day: '2-digit', month: 'short' })} · {new Date(event.start).toLocaleTimeString(getFormatLocale(), { hour: '2-digit', minute: '2-digit' })}</time><strong translate="no">{event.title}</strong><small>{providerLabel[event.provider] || 'Spot'}</small></button>) : <p>Nenhum evento neste mês.</p>}</div></section>
+    {selected && <div className="calendar-event-popover"><button type="button" aria-label="Fechar evento" onClick={()=>setSelected(null)}><X size={18}/></button><em className={selected.provider}>{providerLabel[selected.provider]}</em><h3 translate="no">{selected.title}</h3><p translate="no">{selected.description||'Sem descrição.'}</p>
+      {selected.color && <p className="calendar-color-description"><i style={{backgroundColor:selected.color}} aria-hidden="true" /><span><span>Cor do evento</span>: <span>{eventColors.find(([color]) => color === selected.color)?.[1] || selected.color}</span></span></p>}
+      {selected.location && <p><span>Local</span>: <span translate="no">{selected.location}</span></p>}
+      {selected.project && <p><span>Projeto</span>: <span translate="no">{selected.project.name}</span></p>}
+      {selected.task && <p><span>Tarefa</span>: <span translate="no">{selected.task.title}</span></p>}<span><CalendarDays size={16}/>{new Date(selected.start).toLocaleString(getFormatLocale())} – {new Date(selected.end).toLocaleTimeString(getFormatLocale(),{hour:'2-digit',minute:'2-digit'})}</span>{selected.url&&<a href={selected.url} target="_blank" rel="noreferrer"><Video size={16}/> Abrir reunião ou evento</a>}
+      {(selected.edit_id || (selected.provider === "spot" && /^spot:\d+$/.test(selected.id))) ? <div className="calendar-event-actions"><button type="button" className="primary-action" onClick={() => editEvent(selected)}>Editar evento</button><button type="button" className="calendar-delete-action" onClick={() => askDelete(selected)}><Trash2 size={16} aria-hidden="true" /> Excluir evento</button></div> : selected.source_url && <a href={selected.source_url} target="_blank" rel="noreferrer">Editar ou excluir na agenda de origem</a>}
+      </div>}
+    {creating && <div className="calendar-modal" onMouseDown={event=>event.target===event.currentTarget&&closeEventForm()}><form ref={eventDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="event-dialog-title" onSubmit={createEvent}><header><div><h2 id="event-dialog-title">{editingEvent ? "Editar evento" : "Novo evento"}</h2><p>{editingEvent ? "Marque as agendas em que este evento deve ficar. As cópias vinculadas serão atualizadas." : "Selecione uma ou mais agendas para gravar o evento."}</p></div><button type="button" aria-label="Fechar" onClick={closeEventForm}><X size={19}/></button></header>{createError&&<p className="calendar-form-error" role="alert">{createError}</p>}<fieldset className="calendar-event-fields" disabled={savingEvent || Boolean(eventSubmission.current)}><label><span id="event-title-label">Título</span><input aria-labelledby="event-title-label" translate="no" name="title" defaultValue={editingEvent?.title || ""} required maxLength="150" {...extraAttributes("title")} />{extraError("title")}</label><div><label><span id="event-starts_at-label">Início</span><input aria-labelledby="event-starts_at-label" name="starts_at" defaultValue={eventInputTime(editingEvent?.start)} type="datetime-local" step="1" required {...extraAttributes("starts_at")} />{extraError("starts_at")}</label><label><span id="event-ends_at-label">Fim</span><input aria-labelledby="event-ends_at-label" name="ends_at" defaultValue={eventInputTime(editingEvent?.end)} type="datetime-local" step="1" required {...extraAttributes("ends_at")} />{extraError("ends_at")}</label></div><fieldset className="calendar-agenda-options" aria-describedby={createFieldErrors.providers ? "event-providers-error event-providers-help" : "event-providers-help"}>
+        <legend>Agendas</legend>
+        {[["spot", "Spot", true], ["google", "Google Calendar", data.providers.google], ["microsoft", "Outlook", data.providers.microsoft], ["teams", "Reunião do Teams", data.providers.microsoft]].map(([value, label, connected]) =>
+          <label key={value}><input type="checkbox" name="providers" value={value} checked={eventProviders.includes(value)} disabled={!connected && !(editingEvent?.providers || [editingEvent?.provider]).includes(value)} aria-invalid={Boolean(createFieldErrors.providers)} onChange={event => setEventProviders(current => event.target.checked ? [...current, value] : current.filter(provider => provider !== value))} /><span>{label}{!connected && <small>Conecte a conta em Apps.</small>}</span></label>)}
+        <p id="event-providers-help">Outlook e Teams usam a mesma agenda. Ao marcar os dois, será criada uma única reunião do Teams no Outlook.</p>
+        {editingEvent && <p>Desmarcar uma agenda remove a cópia desse evento nela. Mantenha pelo menos uma agenda selecionada.</p>}
+        {editingEvent?.providers?.includes("teams") && <p>Uma reunião Teams mantida no Outlook continua sendo uma reunião online.</p>}
+        {createFieldErrors.providers && <small id="event-providers-error">{createFieldErrors.providers}</small>}
+      </fieldset><label><span id="event-color-label">Cor do evento</span><select aria-labelledby="event-color-label" name="color" defaultValue={editingEvent ? editingEvent.color || "" : "#0879b7"} {...extraAttributes("color")}><option value="">Cor padrão</option>{eventColors.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{extraError("color")}</label>
+      <label><span id="event-meeting_url-label">Link da reunião (opcional)</span><input aria-labelledby="event-meeting_url-label" translate="no" name="meeting_url" defaultValue={editingEvent?.meeting_url || ""} type="url" maxLength={2000} placeholder="https://" {...extraAttributes("meeting_url")} />{extraError("meeting_url")}</label>
+      <label><span id="event-project_id-label">Projeto (opcional)</span><select aria-labelledby="event-project_id-label" name="project_id" value={eventProject} onChange={event => {setEventProject(event.target.value);setEventTask("");}} {...extraAttributes("project_id")}><option value="">Sem projeto</option>{(data.projects || []).map(project => <option translate="no" key={project.id} value={project.id}>{project.name}</option>)}</select>{extraError("project_id")}</label>
+      <label><span id="event-task_id-label">Tarefa (opcional)</span><select aria-labelledby="event-task_id-label" name="task_id" value={eventTask} onChange={event => {const id=event.target.value;setEventTask(id);if(id) setEventProject(String((data.tasks || []).find(task => String(task.id) === id).project_id));}} {...extraAttributes("task_id")}><option value="">Sem tarefa</option>{(data.tasks || []).filter(task => !eventProject || String(task.project_id) === eventProject).map(task => <option translate="no" key={task.id} value={task.id}>{task.title}</option>)}</select>{extraError("task_id")}</label>
+      <p className="calendar-event-help">Cor e vínculos são exibidos no Spot. O link também acompanha a descrição nas agendas conectadas.</p><label><span id="event-location-label">Local</span><input aria-labelledby="event-location-label" translate="no" name="location" defaultValue={editingEvent?.location || ""} placeholder="Sala ou endereço" {...extraAttributes("location")} />{extraError("location")}</label><label><span id="event-description-label">Descrição</span><textarea aria-labelledby="event-description-label" translate="no" name="description" defaultValue={editingEvent?.description || ""} rows="4" {...extraAttributes("description")} />{extraError("description")}</label></fieldset>
+      {deliveryResults.length > 0 && <section className="calendar-delivery-results" aria-label="Resultado por agenda" role="status">
+        {deliveryResults.map(result => <p key={result.provider}><strong>{providerLabel[result.provider]}: </strong><span>{result.status === "saved" ? "Gravado" : result.status === "removed" ? "Removido desta agenda" : result.status === "waiting" ? "Aguardando a gravação nas agendas selecionadas." : result.status === "failed" ? (result.action === "remove" ? "Não foi possível remover desta agenda. Confira a conexão em Apps e tente novamente." : "Não gravado. Confira a conexão em Apps e tente novamente.") : "Resultado pendente de confirmação. Confira a agenda antes de criar outro evento."}</span></p>)}
+      </section>}
+      {eventSubmission.current && !savingEvent && <p className="calendar-event-help">Os dados desta tentativa foram mantidos para evitar duplicações. Para alterar o evento, feche e abra um novo formulário.</p>}
+      <footer><button className="secondary-button" type="button" onClick={closeEventForm}>Cancelar</button><button className="primary-action" type="submit" disabled={savingEvent}>{savingEvent ? (editingEvent ? "Salvando alterações..." : "Criando evento...") : eventSubmission.current ? "Tentar novamente" : editingEvent ? "Salvar alterações" : "Criar evento"}</button></footer></form></div>}
+    {deleteTarget && <div className="calendar-modal" onMouseDown={event => event.target === event.currentTarget && setDeleteTarget(null)}>
+      <form ref={deleteDialogRef} tabIndex={-1} role="alertdialog" aria-modal="true" aria-labelledby="delete-event-title" aria-describedby="delete-event-description" aria-busy={deletingEvent} onSubmit={deleteEvent}>
+        <header><h2 id="delete-event-title">Excluir evento?</h2></header>
+        <p translate="no">{deleteTarget.title}</p>
+        <p><span>Agenda</span>: <strong>{providerLabel[deleteTarget.provider]}</strong></p>
+        <p id="delete-event-description">Esta ação exclui apenas a cópia selecionada, inclusive da agenda conectada. As outras cópias permanecem nas respectivas agendas.</p>
+        {deleteError && <p role="alert" className="calendar-form-error">{deleteError}</p>}
+        <footer><button type="button" className="secondary-button" onClick={() => setDeleteTarget(null)}>Cancelar</button><button type="submit" className="calendar-delete-action" disabled={deletingEvent}>{deletingEvent ? "Excluindo evento..." : "Sim, excluir evento"}</button></footer>
+      </form>
+    </div>}
   </div>;
 }
 
@@ -581,19 +720,19 @@ function ProjectAnalyticsPage() {
   useEffect(() => { load(); }, []);
   useAutoRefresh(() => load(true));
   useEffect(() => { setFinancialDetail(null); }, [selectedProject]);
-  useEffect(()=>{let active=true;if(!selectedProject)setFinancialDetail(null);if(selectedProject)sessionRequest(`/projects/${selectedProject}/financial-result`).then(async r=>{const result=await r.json();if(!r.ok)throw new Error(result.message);if(active)setFinancialDetail(result);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[selectedProject,data]);
+  useEffect(()=>{let active=true;if(!selectedProject)setFinancialDetail(null);if(selectedProject)sessionRequest(`/projects/${selectedProject}/financial-result`, { handledStatuses: [503] }).then(async r=>{const result=await r.json();if(!r.ok)throw new Error(result.message);if(active)setFinancialDetail(result);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[selectedProject,data]);
   const detail = data?.projects.find((project) => String(project.id) === selectedProject);
   const projectsForCharts = detail ? [detail] : [];
   const summary = data?.summary;
   const currency = (value) => Number(value || 0).toLocaleString(getFormatLocale(), { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
-  return <div className="analytics-page">
-    <header className="analytics-heading"><div><span>LEVANTAMENTO DE PROJETOS</span><h1>{detail ? detail.name : "Visão de portfólio"}</h1><p>{detail ? `${detail.client} · ${detail.manager}` : "Indicadores consolidados de prazo, clientes, responsáveis e resultado financeiro."}</p></div><small><BarChart3 size={17} /> {data?.processor || "Python + Pandas"}</small></header>
-    <div className="analytics-filters"><label>Data inicial<input type="date" value={range.from} onChange={(event) => setRange({ ...range, from: event.target.value })} /></label><label>Data final<input type="date" value={range.to} onChange={(event) => setRange({ ...range, to: event.target.value })} /></label><label className="analytics-project-filter">Projeto<select value={selectedProject} onChange={(event) => setSelectedProject(event.target.value)}><option value="">Todos os projetos</option>{data?.projects.map((project) => <option key={project.id} value={project.id} translate="no">{project.name}</option>)}</select></label><button type="button" onClick={() => load()} disabled={loading}>{loading ? "Atualizando..." : "Aplicar período"}</button></div>
-    <p className="analytics-refresh-status">Atualização automática a cada 30 segundos enquanto esta tela estiver visível.</p>
+  return <div className="analytics-page planning-page">
+    {restricted ? <PageHeading eyebrow="Área de trabalho" title="Portfólios" description="Relatórios e indicadores" /> : <header className="analytics-heading"><div><span>LEVANTAMENTO DE PROJETOS</span><h1>{detail ? detail.name : "Visão de portfólio"}</h1><p>{detail ? `${detail.client} · ${detail.manager}` : "Indicadores consolidados de prazo, clientes, responsáveis e resultado financeiro."}</p></div><small><BarChart3 size={17} /> {data?.processor || "Python + Pandas"}</small></header>}
+    {!restricted && <><div className="analytics-filters"><label>Data inicial<input type="date" value={range.from} onChange={(event) => setRange({ ...range, from: event.target.value })} /></label><label>Data final<input type="date" value={range.to} onChange={(event) => setRange({ ...range, to: event.target.value })} /></label><label className="analytics-project-filter">Projeto<select value={selectedProject} onChange={(event) => setSelectedProject(event.target.value)}><option value="">Todos os projetos</option>{data?.projects.map((project) => <option key={project.id} value={project.id} translate="no">{project.name}</option>)}</select></label><button type="button" onClick={() => load()} disabled={loading}>{loading ? "Atualizando..." : "Aplicar período"}</button></div>
+    <p className="analytics-refresh-status">Atualização automática a cada 30 segundos enquanto esta tela estiver visível.</p></>}
     <section className={restricted ? "analytics-error restricted-project-access portfolio-access-integrated" : "portfolio-access-actions"} aria-labelledby={restricted ? "restricted-portfolio-title" : undefined}>
-      {restricted && <span className="portfolio-access-icon"><LockKeyhole size={28} aria-hidden="true" /></span>}
-      <div className="portfolio-access-copy">{restricted && <><h2 id="restricted-portfolio-title">Área restrita</h2>
+      {restricted && <span className="portfolio-access-icon restricted-access-icon"><LockKeyhole size={28} aria-hidden="true" /></span>}
+      <div className="portfolio-access-copy restricted-access-copy">{restricted && <><h2 id="restricted-portfolio-title">Área restrita</h2>
       <p>{canRequestAccess ? "Solicite acesso ao gerente responsável pelo projeto." : "Consulte a administração para verificar suas permissões."}</p></>}
       {canRequestAccess && <ProjectAccess onChanged={() => load()} />}</div>
     </section>
@@ -633,9 +772,9 @@ function NewProjectPage({ onCreated, onCancel }) {
   const access=key=>parameters?.field_access?.[key]||{view:true,edit:true};
   function field(key,label,type='text',options=null,required=false,max){const permissionKey=key.startsWith('estimated_')&&['estimated_hours','estimated_extra_minutes'].includes(key)?'estimated_minutes':key;const rights=access(permissionKey);if(!rights.view)return null;return <label key={key}><span>{label}</span>{options?<select aria-label={label} disabled={!rights.edit} required={required} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}><option value="">Selecione</option>{options.map(o=><option key={o.id} value={o.id} translate={key === 'project_status_id' ? undefined : "no"}>{key === 'project_status_id' ? projectStatusLabel(o.name || o.slug) : o.name}</option>)}</select>:<input aria-label={label} disabled={!rights.edit} required={required} type={type} min={type==='number'?0:undefined} max={max} step={type==='number'?(permissionKey==='estimated_minutes'?'1':'0.01'):undefined} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/>}</label>;}
   async function submit(e){e.preventDefault();setSaving(true);setError('');try{const payload={...form,estimated_minutes:Number(form.estimated_hours)*60+Number(form.estimated_extra_minutes)};if(form.tax_type_id&&access('taxes').edit)payload.taxes=[{tax_type_id:Number(form.tax_type_id),calculation_type:form.tax_mode,rate:Number(form.tax_rate),fixed_amount:Number(form.tax_fixed),calculation_basis:'contract_value'}];for(const [key,value] of Object.entries(payload)){if(!access(key).edit)delete payload[key];else if(value==='')payload[key]=null;}const r=await sessionRequest('/projects',{method:'POST',body:JSON.stringify(payload)});const result=await r.json();if(!r.ok)throw new Error(Object.values(result.errors||{}).flat()[0]||result.message);onCreated();}catch(e){setError(e.message);}finally{setSaving(false);}}
-  return <div className="workspace-page new-project-page"><PageHeading eyebrow="Área de trabalho" title="Novo projeto" description="Cadastre as informações gerais, responsáveis, prazo e planejamento financeiro."/><form className="new-project-form" onSubmit={submit}>
+  return <div className="workspace-page new-project-page planning-page"><PageHeading eyebrow="Área de trabalho" title="Novo projeto" description="Cadastre as informações gerais, responsáveis, prazo e planejamento financeiro."/><form className="new-project-form" onSubmit={submit}>
     <section><header><span>01</span><div><h2>Identificação</h2><p>Dados principais para identificar o projeto.</p></div></header><div className="new-project-fields">{field('name','Nome do projeto','text',null,true)}{field('proposal_number','Número da proposta','text',null,true)}{field('client_id','Cliente','text',parameters?.clients||[])}{field('project_status_id','Status','text',parameters?.project_statuses||[],true)}{field('project_situation_id','Situação','text',parameters?.project_situations||[],true)}</div></section>
-    <section><header><span>02</span><div><h2>Responsáveis e período</h2><p>Defina a gestão e as datas planejadas.</p></div></header><div className="new-project-fields">{field('account_manager_id','Gerente de contas','text',parameters?.managers||[])}{field('project_manager_id','Gerente do projeto','text',parameters?.managers||[])}{field('proposal_date','Data da proposta','date')}{field('start_date','Data de início','date')}{field('end_date','Data de término','date')}{field('billing_date','Data de faturamento','date')}<ProjectTeamPicker users={parameters?.project_workers||[]} selected={form.member_ids} onChange={member_ids=>setForm(current=>({...current,member_ids}))} disabled={!parameters||saving} loading={!parameters} /></div></section>
+    <section><header><span>02</span><div><h2>Responsáveis e período</h2><p>Defina a gestão e as datas planejadas.</p></div></header><div className="new-project-fields">{field('account_manager_id','Gerente de contas','text',parameters?.managers||[])}{field('project_manager_id','Gerente do projeto','text',parameters?.managers||[],true)}{field('proposal_date','Data da proposta','date')}{field('start_date','Data de início','date')}{field('end_date','Data de término','date')}{field('billing_date','Data de faturamento','date')}<ProjectTeamPicker users={parameters?.project_workers||[]} selected={form.member_ids} onChange={member_ids=>setForm(current=>({...current,member_ids}))} disabled={!parameters||saving} loading={!parameters} /></div></section>
     <section><header><span>03</span><div><h2>Planejamento</h2><p>Informe orçamento, esforço e escopo inicial.</p></div></header><div className="new-project-fields">{field('contract_value','Valor do contrato (R$)','number',null,true)}{field('commission_rate','Comissão (%)','number',null,false,100)}{field('estimated_labor_cost','Custo estimado do analista','number')}{field('estimated_additional_cost','Custo adicional estimado','number')}{field('estimated_hours','Horas estimadas','number')}{field('estimated_extra_minutes','Minutos estimados','number',null,false,59)}{access('taxes').view&&<><label>Imposto<select disabled={!access('taxes').edit} value={form.tax_type_id} onChange={e=>setForm({...form,tax_type_id:e.target.value})}><option value="">Sem imposto</option>{parameters?.tax_types?.map(t=><option key={t.id} value={t.id} translate="no">{t.name}</option>)}</select></label><label>Cálculo do imposto<select disabled={!access('taxes').edit} value={form.tax_mode} onChange={e=>setForm({...form,tax_mode:e.target.value})}><option value="percentage">Percentual</option><option value="fixed">Valor fixo</option></select></label>{field(form.tax_mode==='fixed'?'tax_fixed':'tax_rate',form.tax_mode==='fixed'?'Valor do imposto':'Imposto (%)','number',null,false,form.tax_mode==='percentage'?100:undefined)}</>}<label className="full">Escopo<textarea value={form.cpt_scope} rows={4} maxLength={5000} onChange={e=>setForm({...form,cpt_scope:e.target.value})}/></label></div></section>
     {error&&<p role="alert" className="new-project-error">{error}</p>}<footer><button type="button" className="secondary-button" onClick={onCancel}>Cancelar</button><button className="primary-action" disabled={saving||!parameters}>{saving?'Criando projeto...':'Criar projeto'}</button></footer>
   </form></div>;
@@ -1491,7 +1630,11 @@ function TeamsPage({ initialProjectId }) {
 
   const selectedMembers = new Map(draft.members.map((member) => [member.user_id, member]));
   const people = detail?.can_edit ? detail.available_users || [] : (detail?.members || []).map(person => ({ ...person, id: person.user_id }));
-  const visibleUsers = people.filter((person) => `${person.name} ${person.email}`.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")));
+  const roleOrder = { manager: 0, analyst: 1, guest: 2 };
+  const memberRank = (person) => roleOrder[selectedMembers.get(person.id)?.role || person.role] ?? 3;
+  const visibleUsers = people
+    .filter((person) => `${person.name} ${person.email}`.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")))
+    .sort((a, b) => memberRank(a) - memberRank(b));
   function toggleMember(person) {
     setDraft((current) => ({ ...current, members: current.members.some((member) => member.user_id === person.id)
       ? current.members.filter((member) => member.user_id !== person.id)
@@ -1664,6 +1807,15 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
   const [pageMenuOpen, setPageMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [inboxPlacement, setInboxPlacement] = useState(null);
+  const notifications = useNotifications(user?.id);
+  const notificationWrap = useRef(null);
+  usePopoverPosition(Boolean(notifications.notice), notificationWrap, '.notification-arrival');
+  useEffect(() => {
+    if (!notifications.notice) return;
+    const close = event => { if (event.key === "Escape") notifications.dismiss(); };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [notifications.notice]);
   const [homeSearch, setHomeSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchIndex, setSearchIndex] = useState(null);
@@ -1682,6 +1834,21 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
   const [locale, setLocale] = useState(getLanguage);
+  const [localeSaveError,setLocaleSaveError] = useState("");
+  useEffect(() => {
+    const saveLanguage = async (event) => {
+      const language = getLanguage(); setLocale(language);
+      if (event?.detail?.persistAccount === false) return;
+      try {
+        const response = await sessionRequest("/auth/locale",{method:"PATCH",body:JSON.stringify({locale:language})});
+        setLocaleSaveError(response.ok ? "" : "O idioma foi alterado neste navegador, mas não foi salvo na conta. Tente novamente.");
+      } catch { setLocaleSaveError("O idioma foi alterado neste navegador, mas não foi salvo na conta. Tente novamente."); }
+    };
+    if (["pt","en","es"].includes(user?.preferred_locale) && getLanguage() !== user.preferred_locale) saveLanguage();
+    window.addEventListener("spot:language",saveLanguage);
+    return () => window.removeEventListener("spot:language",saveLanguage);
+  },[]);
+
   const inboxTimer = useRef(null);
   const appsTimer = useRef(null);
   const appsWrapRef = useRef(null);
@@ -1691,6 +1858,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
   const pageMeta = {
     home: [HomeIcon, "Home"],
     inbox: [Mail, "Caixa de entrada"],
+    ...(user?.can_chat ? { chat: [MessageSquare, "Chat"] } : {}),
     calendar: [CalendarDays, "Agenda"],
     projects: [FolderKanban, "Projetos"],
     teams: [Users, "Equipes"],
@@ -1704,7 +1872,13 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
     ...(user?.can_view_parameters || user?.can_manage_identity ? { "parameters": [Settings, "Cadastros e configurações"] } : {}),
     ...(user?.can_manage_identity ? { "admin-users": [Users, "Usuários e acessos"] } : {}),
   };
+  const [chatDestination, setChatDestination] = useState({});
   const [activePage, setActivePage] = useBrowserPage(Object.keys(pageMeta));
+  useEffect(() => {
+    const openChat = event => { if (user?.can_chat) { setChatDestination(event.detail || {}); setActivePage("chat"); } };
+    window.addEventListener('spot:open-chat', openChat);
+    return () => window.removeEventListener('spot:open-chat', openChat);
+  }, [user?.can_chat]);
   useEffect(() => {
     const closeNavigationOverlays = () => {
       setMenuOpen(false);
@@ -1859,6 +2033,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
   }, [appsPinned]);
 
   function showInbox(placement) {
+    if (notifications.notice) return;
     window.clearTimeout(inboxTimer.current);
     setInboxPlacement(placement);
   }
@@ -1899,7 +2074,7 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
   }
 
   return (
-    <div className="dashboard-shell">
+    <div className={`dashboard-shell ${activePage === "chat" ? "chat-active" : ""}`}>
       <Sidebar
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
@@ -1907,8 +2082,10 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
         onNavigate={setActivePage}
         onInboxEnter={showInbox}
         onInboxLeave={scheduleInboxClose}
+        unreadNotifications={notifications.unread}
         inboxPinned={inboxPlacement === "sidebar"}
         canViewParameters={user?.can_view_parameters || user?.can_manage_identity}
+        canChat={user?.can_chat}
       />
 
       <section className="dashboard-content">
@@ -1989,26 +2166,8 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
           </div>
 
           <div className="account-tools">
-            <SpotTutorial key={user?.email || 'guest'} user={user} locale={locale} onNavigate={navigateTutorial} onExit={exitTutorial} onLanguageChange={(code) => { setLanguage(code); setLocale(code); }} />
-            <div className="language-switcher" role="group" aria-label="Idioma">
-              {[
-                ["pt", "🇧🇷", "Português"],
-                ["en", "🇺🇸", "English"],
-                ["es", "🇪🇸", "Español"],
-              ].map(([code, flag, label]) => (
-                <button
-                  className={locale === code ? "active" : ""}
-                  type="button"
-                  key={code}
-                  title={label}
-                  aria-label={label}
-                  aria-pressed={locale === code}
-                  onClick={() => { setLanguage(code); setLocale(code); }}
-                >
-                  <span aria-hidden="true">{flag}</span>
-                </button>
-              ))}
-            </div>
+            <SpotTutorial key={user?.email || 'guest'} user={user} locale={locale} onNavigate={navigateTutorial} onExit={exitTutorial} onLanguageChange={(code) => { setLanguage(code, {persistAccount:false}); setLocale(code); }} />
+            <LanguageSwitcher locale={locale} onChange={code => {setLanguage(code);setLocale(code);}}/>
             <button
               className="theme-toggle"
               type="button"
@@ -2019,13 +2178,20 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
             >
               {theme === "dark" ? <Sun size={28} /> : <Moon size={28} />}
             </button>
+            <div className="notification-wrap" ref={notificationWrap}>
             <button
               type="button"
-              aria-label="Notificações"
-              onClick={() => { setActivePage("inbox"); setInboxPlacement(null); }}
+              aria-label={notifications.unread ? message("Notificações não lidas: {count}", { count: notifications.unread }) : "Notificações"}
+              onClick={() => { notifications.dismiss(); setActivePage("inbox"); setInboxPlacement(null); }}
               onMouseEnter={() => showInbox("top")}
               onMouseLeave={scheduleInboxClose}
-            ><Bell size={29} /></button>
+            ><span className="notification-icon"><Bell size={29} aria-hidden="true" />{notifications.unread > 0 && <span className="notification-dot" aria-hidden="true" />}</span></button>
+            {notifications.notice && <aside className="notification-arrival" aria-label="Nova notificação">
+              <div role="status"><strong>Nova notificação</strong><p translate="no">{notifications.notice.title}</p></div>
+              <button type="button" onClick={() => { notifications.dismiss(); setInboxPlacement(null); setActivePage("inbox"); }}>Abrir caixa de entrada</button>
+              <button type="button" aria-label="Fechar aviso de notificação" onClick={notifications.dismiss}><X size={18} aria-hidden="true" /></button>
+            </aside>}
+            </div>
             <button
               className={`profile-button ${profileOpen ? "active" : ""}`}
               type="button"
@@ -2060,9 +2226,10 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
         )}
 
         <main id="main-content" tabIndex={-1}>
+        {localeSaveError && <p role="alert" className="home-state error">{localeSaveError}</p>}
         <div className={`actionbar ${activePage !== "home" ? "workspace-actionbar" : ""} ${["analytics", "new-project"].includes(activePage) ? "analytics-actionbar" : ""}`}>
           <span>{activePage === "home" ? updatedLabel() : activePage === "analytics" ? "Relatórios e indicadores" : activePage === "new-project" ? "Cadastro de projeto" : "Área de trabalho"}</span>
-          {!["analytics", "new-project"].includes(activePage) && <div>
+          {!["analytics", "new-project", "chat"].includes(activePage) && <div>
             <button className={incompleteOnly ? "active" : ""} type="button" onClick={() => setIncompleteOnly((value) => !value)}><CheckCircle2 size={20} fill="#242424" /> {incompleteOnly ? "tarefas incompletas" : "todas as tarefas"}</button>
             <button type="button" onClick={() => setHomeFilter((value) => value === "all" ? "high" : value === "high" ? "overdue" : "all")}><Filter size={21} /> {homeFilter === "high" ? "prioridade alta" : homeFilter === "overdue" ? "atrasadas" : "filtrar"}</button>
             <button type="button" onClick={() => setSortAscending((value) => !value)}><ArrowDownUp size={21} /> {sortAscending ? "A–Z" : "Z–A"}</button>
@@ -2075,18 +2242,19 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
 
         {activePage === "home" && <HomeDashboard search={homeSearch} incompleteOnly={incompleteOnly} filterMode={homeFilter} sortAscending={sortAscending} onNavigate={setActivePage} onEditTeam={(projectId) => { setSelectedTeamId(projectId); setActivePage("teams"); }} onUpdated={setLastUpdatedAt} />}
         {activePage === "inbox" && <InboxPage />}
-        {activePage === "calendar" && <CalendarPage onManageIntegrations={() => { setIntegrationsOpen(true); setAppsOpen(false); setAppsPinned(false); }} />}
+        {activePage === "chat" && user?.can_chat && <Suspense fallback={<p role="status">Carregando chat...</p>}><ChatPage user={user} initialUserId={chatDestination.userId} initialRequests={chatDestination.requests} /></Suspense>}
+        {activePage === "calendar" && <CalendarPage user={user} onManageIntegrations={() => { setIntegrationsOpen(true); setAppsOpen(false); setAppsPinned(false); }} />}
         {activePage === "projects" && <ProjectWorkspace request={sessionRequest} onNewProject={user?.can_create_projects ? () => setActivePage("new-project") : undefined} />}
         {activePage === "teams" && <TeamsPage initialProjectId={selectedTeamId} />}
         {activePage === "clients" && (user?.can_view_parameters || user?.can_manage_identity) && <ClientsPage />}
         {activePage === "new-project" && (user?.can_create_projects
           ? <NewProjectPage onCreated={() => setActivePage("projects")} onCancel={() => setActivePage("projects")} />
-          : <div className="workspace-page new-project-page">
+          : <div className="workspace-page new-project-page planning-page">
               <PageHeading eyebrow="Área de trabalho" title="Novo projeto" description="Cadastro de projetos" />
               <section className="analytics-error restricted-project-access" aria-labelledby="restricted-project-title">
-                <LockKeyhole size={28} aria-hidden="true" />
-                <h2 id="restricted-project-title">Área restrita</h2>
-                <p>Caso necessário acesso, falar com gerência</p>
+                <span className="restricted-access-icon"><LockKeyhole size={28} aria-hidden="true" /></span>
+                <div className="restricted-access-copy"><h2 id="restricted-project-title">Área restrita</h2>
+                <p>Caso necessário acesso, falar com gerência</p></div>
               </section>
             </div>)}
         {activePage === "tasks" && <TasksPage request={sessionRequest} />}
@@ -2105,33 +2273,32 @@ function Dashboard({ onLogout, user, onUserUpdate }) {
 
 function FirstAccessPage() {
   const token = window.location.pathname.split('/').filter(Boolean).at(-1);
-  const requesting = token === 'first-access';
   const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '' });
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [emailInvalid, setEmailInvalid] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   const submit = async (event) => {
     event.preventDefault();
     if (submitting) return;
-    setError(''); setSuccess('');
-    if (!requesting && form.password !== form.password_confirmation) {
+    setError(''); setEmailInvalid(false);
+    if (form.password !== form.password_confirmation) {
       setError('As senhas não coincidem. Confira a confirmação da senha.');
       return;
     }
     setSubmitting(true);
     try {
-      const response = await sessionRequest(requesting ? '/first-access' : `/first-access/${encodeURIComponent(token)}`, {
+      const response = await sessionRequest(`/first-access/${encodeURIComponent(token)}`, {
         method: 'POST', body: JSON.stringify({ ...form, name: form.name.trim(), email: form.email.trim() }),
       });
       if (!response.headers.get('content-type')?.includes('application/json')) {
         throw new Error('O servidor retornou uma resposta inesperada. Recarregue a página e tente novamente.');
       }
       const data = await response.json();
+      if (!response.ok) setEmailInvalid(Boolean(data.errors?.email));
       if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || 'Não foi possível ativar a conta.');
-      if (requesting) setSuccess(data.message);
-      else window.location.assign('/?home');
+      window.location.assign('/?home');
     } catch (failure) {
       setError(failure.message || 'Não foi possível concluir. Tente novamente.');
     } finally {
@@ -2142,12 +2309,12 @@ function FirstAccessPage() {
     <header className="recovery-heading">
       <div className="recovery-icon"><ShieldCheck size={24} aria-hidden="true" /></div>
       <h1>Primeiro acesso ao <strong>Spot</strong></h1>
-      <p>{requesting ? 'Informe o nome e o e-mail cadastrados pelo administrador para receber seu link de ativação.' : 'Confirme os dados cadastrados pelo administrador e crie sua senha.'}</p>
+      <p>Confirme os dados cadastrados pelo administrador e crie sua senha.</p>
     </header>
     <form onSubmit={submit} aria-busy={submitting}>
       <label className="field"><span>Nome e sobrenome</span><div className="input-wrap"><UserRound size={19} aria-hidden="true" /><input name="name" autoComplete="name" placeholder="Seu nome completo" required maxLength={255} value={form.name} onChange={updateField} /></div></label>
-      <label className="field"><span>E-mail</span><div className="input-wrap"><Mail size={19} aria-hidden="true" /><input name="email" autoComplete="email" placeholder="seu@email.com" required type="email" maxLength={255} value={form.email} onChange={updateField} /></div></label>
-      {!requesting && <div className="first-access-passwords">
+      <label className="field"><span>E-mail</span><div className="input-wrap"><Mail size={19} aria-hidden="true" /><input name="email" aria-invalid={emailInvalid} aria-describedby={emailInvalid ? "first-access-error" : undefined} autoComplete="email" placeholder="seu@email.com" required type="email" maxLength={255} value={form.email} onChange={updateField} /></div></label>
+      <div className="first-access-passwords">
         <p className="first-access-password-hint" id="first-access-password-hint">Crie uma senha com pelo menos 8 caracteres.</p>
         {[['password', 'Nova senha', 'Crie sua senha'], ['password_confirmation', 'Confirmar senha', 'Repita sua senha']].map(([name, label, placeholder]) => <label className="field" key={name}>
           <span>{label}</span><div className="input-wrap"><LockKeyhole size={19} aria-hidden="true" />
@@ -2155,10 +2322,9 @@ function FirstAccessPage() {
             <button className="password-toggle" type="button" aria-label={`${visiblePasswords[name] ? 'Ocultar' : 'Mostrar'} ${label.toLowerCase()}`} aria-pressed={Boolean(visiblePasswords[name])} onClick={() => setVisiblePasswords((current) => ({ ...current, [name]: !current[name] }))}>{visiblePasswords[name] ? <EyeOff size={19} /> : <Eye size={19} />}</button>
           </div>
         </label>)}
-      </div>}
-      {error && <p className="recovery-message error" role="alert">{error}</p>}
-      {success && <p className="recovery-message" role="status">{success}</p>}
-      <button type="submit" className="submit-button" disabled={submitting || Boolean(success)}>{submitting ? 'Aguarde…' : requesting ? 'Enviar link de ativação' : 'Ativar minha conta'}</button>
+      </div>
+      {error && <p id="first-access-error" className="recovery-message error" role="alert">{error}</p>}
+      <button type="submit" className="submit-button" disabled={submitting}>{submitting ? 'Aguarde…' : 'Ativar minha conta'}</button>
     </form>
     <a className="back-to-login" href="/">Voltar para o login</a>
     <div className="brand"><img src="/spot-logo.png" alt="SPOT - Organize, planeje, execute" /></div>
@@ -2204,7 +2370,7 @@ function AcceptInvitationPage() {
     }
   }
 
-  return <main id="main-content" tabIndex={-1} className="page-shell"><section className="login-card"><div className="login-panel"><div className="form-wrap"><header><h1>Aceitar convite do <strong>Spot</strong></h1><p>Este acesso será válido somente para o projeto e as permissões concedidas.</p></header><form onSubmit={accept}>
+  return <main id="main-content" tabIndex={-1} className="page-shell"><section className="login-card"><div className="login-panel"><div className="form-wrap"><AuthAccessibility/><header><h1>Aceitar convite do <strong>Spot</strong></h1><p>Este acesso será válido somente para o projeto e as permissões concedidas.</p></header><form onSubmit={accept}>
     {!alreadyAuthenticated && <label className="field"><span>Nome e sobrenome</span><div className="input-wrap"><UserRound size={19} /><input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></div></label>}
     {alreadyAuthenticated && <p>Você está conectado. Confirme para adicionar este projeto à sua conta.</p>}
     {requiresPassword && <><p><strong>Criação de senha obrigatória</strong><br /><small>Use no mínimo 10 caracteres, com letras maiúsculas, minúsculas e números.</small></p><label className="field"><span>Crie uma nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input required minLength={10} type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div></label><label className="field"><span>Confirme a nova senha</span><div className="input-wrap"><LockKeyhole size={19} /><input required minLength={10} type="password" autoComplete="new-password" value={form.password_confirmation} onChange={(event) => setForm({ ...form, password_confirmation: event.target.value })} /></div></label></>}
@@ -2212,9 +2378,11 @@ function AcceptInvitationPage() {
   </form></div></div></section></main>;
 }
 
+function publicScreen(content) { return <div className="public-auth">{content}</div>; }
+
 function LegacySpotApp() {
   if (window.location.pathname.startsWith("/estoque")) return <InventoryApp />;
-  if (window.location.pathname.startsWith("/accept-invitation/")) return <AcceptInvitationPage />;
+  if (window.location.pathname.startsWith("/accept-invitation/")) return publicScreen(<AcceptInvitationPage />);
   const [showPassword, setShowPassword] = useState(false);
   const [user, setUser] = useState(() => window.__SPOT__?.user || null);
   const [authenticated, setAuthenticated] = useState(
@@ -2223,7 +2391,7 @@ function LegacySpotApp() {
   const [loginError, setLoginError] = useState("");
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
 
-  if (window.location.pathname === "/first-access" || window.location.pathname.startsWith("/first-access/")) return <FirstAccessPage />;
+  if (/^\/first-access\/[^/]+\/?$/.test(window.location.pathname)) return publicScreen(<FirstAccessPage />);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -2232,7 +2400,7 @@ function LegacySpotApp() {
     try {
       const response = await sessionRequest("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email: form.get("email"), password: form.get("password"), two_factor_code: form.get("two_factor_code") || null }),
+        body: JSON.stringify({ email: form.get("email"), password: form.get("password"), locale: getLanguage(), two_factor_code: form.get("two_factor_code") || null }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -2253,11 +2421,11 @@ function LegacySpotApp() {
 
   if (authenticated) return <Dashboard onLogout={handleLogout} user={user} onUserUpdate={setUser} />;
 
-  if (window.__SPOT__?.two_factor_challenge && !new URLSearchParams(window.location.search).has('login')) return <TwoFactorChallenge />;
-  if (window.location.pathname === "/forgot-password") return <ForgotPasswordPage />;
-  if (window.location.pathname.startsWith("/reset-password/")) return <ResetPasswordPage />;
+  if (window.__SPOT__?.two_factor_challenge && !new URLSearchParams(window.location.search).has('login')) return publicScreen(<TwoFactorChallenge />);
+  if (window.location.pathname === "/forgot-password") return publicScreen(<ForgotPasswordPage />);
+  if (window.location.pathname.startsWith("/reset-password/")) return publicScreen(<ResetPasswordPage />);
 
-  return (
+  return publicScreen(
     <main id="main-content" tabIndex={-1} className="page-shell">
       <div className="decor decor-one" />
       <div className="decor decor-two" />
@@ -2269,6 +2437,7 @@ function LegacySpotApp() {
       <section className="login-card" aria-label="Acesso ao Spot">
         <div className="login-panel">
           <div className="form-wrap">
+            <AuthAccessibility/>
             <header>
               <h1>Seja bem-vindo ao <strong>Spot</strong></h1>
             </header>
@@ -2322,7 +2491,7 @@ function LegacySpotApp() {
 
             <div className="divider"><span>ou continue com</span></div>
 
-            <div className="social-actions">
+            <div className="auth-sign-in-options"><div className="social-actions">
               <button type="button" onClick={() => window.location.assign("/auth/google")}>
                 <img src="/google-logo.svg" alt="" />
                 Google
@@ -2332,7 +2501,7 @@ function LegacySpotApp() {
                 Microsoft
               </button>
             </div>
-            <a className="first-access-link" href="/first-access">Primeiro acesso</a>
+            </div>
 
             <div className="brand">
               <img src="/spot-logo.png" alt="SPOT - Organize, planeje, execute" />
@@ -2355,7 +2524,11 @@ function LegacySpotApp() {
 // A V2 passa a ser a experiência principal do Spot. A implementação anterior
 // permanece isolada acima apenas para facilitar uma eventual consulta/migração.
 export default function App() {
-  const [language, updateLanguage] = useState(getLanguage);
+  const [language, updateLanguage] = useState(() => {
+    const queryLanguage = new URLSearchParams(window.location.search).get("lang");
+    if (["pt","en","es"].includes(queryLanguage)) setLanguage(queryLanguage);
+    return getLanguage();
+  });
   useEffect(() => {
     const refreshLanguage = () => updateLanguage(getLanguage());
     window.addEventListener('spot:language', refreshLanguage);
@@ -2374,7 +2547,7 @@ function AuthShell({ children, className = "" }) {
       <div className="decor decor-one" /><div className="decor decor-two" /><div className="decor decor-three" />
       <div className="decor decor-four" /><div className="decor decor-five" /><div className="decor decor-six" />
       <section className={`login-card recovery-card ${className}`}>
-        <div className="login-panel"><div className="form-wrap">{children}</div></div>
+        <div className="login-panel"><div className="form-wrap"><AuthAccessibility/>{children}</div></div>
         <aside className="illustration-panel recovery-illustration"><img src="/password-recovery-illustration-v2.png" alt="Ilustração de recuperação segura de acesso" /></aside>
       </section>
       <footer><img src="/computecnica-logo.png" alt="Computécnica" /></footer>
@@ -2397,7 +2570,7 @@ function ForgotPasswordPage() {
       const response = await spotFetch("/forgot-password", {
         method: "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json", "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, locale: getLanguage() }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Não foi possível enviar o link.");

@@ -30,21 +30,22 @@ Artisan::command('audit:prune {--dry-run}', function () {
     }
     $this->info(($this->option('dry-run') ? 'Registros elegíveis: ' : 'Registros removidos: ').$total);
 })->purpose('Aplica a retenção de auditoria por empresa (12 meses por padrão)');
-\Illuminate\Support\Facades\Schedule::command('audit:prune')->dailyAt('03:00')->withoutOverlapping();
+\Illuminate\Support\Facades\Schedule::call(fn () => Artisan::call('audit:prune') === 0)->name('audit:prune')->dailyAt('03:00')->withoutOverlapping();
 
 Artisan::command('inbox:prune {--dry-run}', function () {
     $query = \App\Models\InboxItem::whereNotNull('archived_at')->where('archived_at', '<', now()->subDays(30));
     $total = $this->option('dry-run') ? $query->count() : $query->delete();
     $this->info(($this->option('dry-run') ? 'Mensagens elegíveis: ' : 'Mensagens removidas: ').$total);
 })->purpose('Remove mensagens que estão na lixeira há mais de 30 dias');
-\Illuminate\Support\Facades\Schedule::command('inbox:prune')->dailyAt('03:15')->withoutOverlapping();
+\Illuminate\Support\Facades\Schedule::call(fn () => Artisan::call('inbox:prune') === 0)->name('inbox:prune')->dailyAt('03:15')->withoutOverlapping();
 
 Artisan::command('notifications:dispatch', function () {
     app(\App\Domain\Notifications\DueReminders::class)->generate();
     app(\App\Domain\Notifications\NotificationCenter::class)->dispatchPending();
     $this->info('Alertas avaliados e entregas disponíveis processadas.');
 })->purpose('Gera alertas e entrega notificações, respeitando canais, fuso, resumos e silêncio');
-\Illuminate\Support\Facades\Schedule::command('notifications:dispatch')->everyMinute()->withoutOverlapping();
+\Illuminate\Support\Facades\Schedule::call(fn () => Artisan::call('notifications:dispatch') === 0)
+    ->name('notifications:dispatch')->everyMinute()->withoutOverlapping();
 
 Artisan::command('notifications:status', function () {
     $this->table(['Estado', 'Quantidade'], [

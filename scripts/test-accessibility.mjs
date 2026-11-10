@@ -37,13 +37,14 @@ try {
         const increase=panel.getByRole('button',{name:'Aumentar texto',exact:true});
         if(await increase.isEnabled()) await increase.click();
       }
-      await page.waitForFunction(() => {
+      await page.evaluate(() => document.fonts.ready);
+      const geometry = await page.waitForFunction(() => {
         const trigger = document.querySelector('.quick-settings-wrap > button').getBoundingClientRect();
         const panel = document.querySelector('.quick-settings-popover').getBoundingClientRect();
-        return Math.abs(panel.top - trigger.bottom - 10) < 2;
+        if (Math.abs(panel.top - trigger.bottom - 10) >= 2) return false;
+        return { bounds: panel.toJSON(), triggerBounds: trigger.toJSON() };
       });
-      const bounds = await panel.boundingBox();
-      const triggerBounds = await reading.boundingBox();
+      const {bounds, triggerBounds} = await geometry.jsonValue();
       assert.ok(Math.abs(bounds.y - triggerBounds.y - triggerBounds.height - 10) < 2);
       if(width === 1440) assert.ok(Math.abs(bounds.x - triggerBounds.x) < 2);
       assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width + 1);

@@ -13,10 +13,11 @@
             'authenticated' => auth()->check(),
             'two_factor_challenge' => session()->has('two_factor_challenge'),
             'user' => auth()->user() ? [
-                ...auth()->user()->only(['name', 'email', 'avatar_url', 'timezone', 'job_title', 'department']),
+                ...auth()->user()->only(['id', 'name', 'email', 'avatar_url', 'timezone', 'job_title', 'department', 'preferred_locale']),
                 'can_view_parameters' => auth()->user()->can('parameters.view'),
             'spot_role' => auth()->user()->spotRoleLabel(),
             'can_manage_identity' => auth()->user()->can('security.manage'),
+                'can_chat' => app(\App\Domain\Chat\ChatAccess::class)->eligible(auth()->user()),
                 'can_create_projects' => auth()->user()->can('projects.create'),
                 'can_view_financial' => auth()->user()->can('financial.view'),
             ] : null,

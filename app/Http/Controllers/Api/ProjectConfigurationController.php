@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AnalystProjectRate;
 use App\Models\Project;
 use App\Models\ProjectTax;
+use App\Models\Task;
+use App\Models\ProjectDocument;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,10 +32,31 @@ class ProjectConfigurationController extends Controller
         return response()->json($result);
     }
 
+    public function resources(Request $request, Project $project): JsonResponse
+    {
+        $this->ensureCompany($request, $project);
+        $user = $request->user();
+        if (!$user->can('projects.view_all')) {
+            abort_unless($user->can('projects.view_assigned') && $project->members()->where('user_id', $user->id)
+                ->when(!$project->finalized_at, fn ($query) => $query->where('active', true))->exists(), 404);
+        }
+        $tasks = Task::where('project_id', $project->id)
+            ->when(!$user->can('tasks.view_others'), fn ($query) => $query->where(fn ($own) =>
+                $own->where('user_id', $user->id)->orWhereHas('participants', fn ($people) => $people->where('users.id', $user->id))))
+            ->with('user:id,name')->orderBy('position')->orderByDesc('id')
+            ->get(['id', 'project_id', 'user_id', 'title', 'description', 'status', 'due_date']);
+        // Preserve the existing owner-only document listing and download policy.
+        $documents = ProjectDocument::where('company_id', $user->current_company_id)->where('project_id', $project->id)
+            ->where('user_id', $user->id)->latest()->get(['id', 'name', 'size', 'mime_type', 'created_at']);
+        return response()->json(['tasks' => $tasks, 'documents' => $documents]);
+    }
+
     public function addMember(Request $request, Project $project, AuditRecorder $audit): JsonResponse
     {
         return DB::transaction(function () use ($request, $project, $audit) {
             Gate::authorize('projects.update');
+            $this->mutable($request, $project);
+            $project = Project::whereKey($project->id)->lockForUpdate()->firstOrFail();
             $this->mutable($request, $project);
             $data = $request->validate([
                 'user_id' => ['required', 'integer', Rule::exists('users', 'id')->where('current_company_id', $request->user()->current_company_id)->where('active', true)],
@@ -41,11 +64,15 @@ class ProjectConfigurationController extends Controller
                 'relationship_type' => ['sometimes', Rule::in(['cpt_internal_analyst', 'external_analyst', 'responsible_manager'])],
                 'organization_id' => ['nullable', 'integer', 'exists:organizations,id'],
             ]);
+            if ($data['role'] === 'manager' && ! \App\Domain\Projects\ProjectManagers::query($project->company_id)->whereKey($data['user_id'])->exists()) {
+                throw ValidationException::withMessages(['user_id' => 'Escolha um administrador global, gerente-administrador ou gerente ativo desta empresa.']);
+            }
             $old = $project->members()->where('user_id', $data['user_id'])->first()?->getAttributes() ?? [];
             $member = $project->members()->updateOrCreate(['user_id' => $data['user_id']], [
                 'role' => $data['role'], 'relationship_type' => $data['relationship_type'] ?? 'cpt_internal_analyst',
                 'organization_id' => $data['organization_id'] ?? null, 'active' => true, 'access_revoked_at' => null, 'assigned_by' => $request->user()->id, 'assigned_at' => now(),
             ]);
+            \App\Domain\Projects\ProjectTeamManagers::synchronize($project, 'role');
             $audit->record('project.member_assigned', $member, $request->user(), $old, $member->getAttributes());
 
             return response()->json($member, 201);

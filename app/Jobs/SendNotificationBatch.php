@@ -56,7 +56,7 @@ class SendNotificationBatch implements ShouldBeEncrypted, ShouldQueue
             $permitted = $items->filter(fn ($item) => $user && $center->canDeliver($item, $user, 'email'));
             if ($user && $permitted->isNotEmpty()) {
                 Mail::to($user->email)->send(new ActivityNotificationMail(
-                    $batch->frequency, $permitted->map->only(['title', 'body', 'actor_name'])->values()->all(),
+                    $batch->frequency, $permitted->map->only(['title', 'body', 'actor_name'])->values()->all(), $user->preferredLocale(),
                 ));
             }
             NotificationDelivery::whereIn('id', $items->pluck('id'))->update(['email_processed_at' => now()]);

@@ -15,14 +15,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['person_id', 'current_company_id', 'organization_id', 'name', 'job_title', 'department', 'email', 'password', 'google_id', 'google_email', 'microsoft_id', 'microsoft_email', 'google_access_token', 'google_refresh_token', 'google_token_expires_at', 'microsoft_access_token', 'microsoft_refresh_token', 'microsoft_token_expires_at', 'avatar_url', 'email_verified_at', 'active', 'account_status', 'timezone', 'last_login_at', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at', 'notify_new_login', 'notify_password_change', 'notify_provider_link', 'notification_preferences'])]
+#[Fillable(['person_id', 'current_company_id', 'organization_id', 'name', 'job_title', 'department', 'email', 'password', 'google_id', 'google_email', 'microsoft_id', 'microsoft_email', 'google_access_token', 'google_refresh_token', 'google_token_expires_at', 'microsoft_access_token', 'microsoft_refresh_token', 'microsoft_token_expires_at', 'avatar_url', 'email_verified_at', 'active', 'account_status', 'timezone', 'last_login_at', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at', 'notify_new_login', 'notify_password_change', 'notify_provider_link', 'notification_preferences', 'preferred_locale'])]
 #[Hidden(['password', 'remember_token', 'google_id', 'microsoft_id', 'google_access_token', 'google_refresh_token', 'microsoft_access_token', 'microsoft_refresh_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, \Illuminate\Contracts\Translation\HasLocalePreference
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $attributes = ['active' => true, 'account_status' => 'active'];
+
+    public function preferredLocale(): string
+    {
+        return in_array($this->preferred_locale, ['pt', 'en', 'es'], true) ? $this->preferred_locale : 'pt';
+    }
 
     public function person(): BelongsTo
     {

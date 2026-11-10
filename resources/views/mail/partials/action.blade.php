@@ -1,0 +1,1 @@
+<table role="presentation" cellspacing="0" cellpadding="0"><tr><td style="border-radius:8px;background:#08659d"><a href="{{ $actionUrl }}" style="display:inline-block;padding:15px 24px;color:#fff;text-decoration:none;font-size:16px;line-height:1.5;font-weight:bold">{{ $copy['button'] }}</a></td></tr></table>

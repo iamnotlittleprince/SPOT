@@ -22,7 +22,20 @@ class InboxController extends Controller
         if (($filters['filter'] ?? 'all') === 'mentions') $query->where('type', 'mention');
         if ($search = mb_strtolower(trim($filters['search'] ?? ''))) $query->where(fn ($q) => $q->whereRaw('LOWER(title) LIKE ?', ["%{$search}%"])->orWhereRaw('LOWER(body) LIKE ?', ["%{$search}%"]));
 
+        // Keep the previous access stable throughout this authenticated session.
+        $key = 'inbox.previous_access.'.$request->user()->id;
+        $previousAccess = $request->session()->get($key);
+        if (!$previousAccess) {
+            $previousAccess = $request->user()->notification_access_at ?: now()->toISOString();
+            $request->session()->put($key, $previousAccess);
+        }
+        $request->user()->forceFill(['notification_access_at' => now()])->saveQuietly();
+
         return response()->json([
+            'new_items' => InboxItem::where('user_id', $request->user()->id)
+                ->whereNull('archived_at')->whereNull('read_at')
+                ->where('created_at', '>', \Illuminate\Support\Carbon::parse($previousAccess))->latest()->limit(10)->get(),
+            'previous_access_at' => $previousAccess,
             'items' => $query->latest()->limit(100)->get(),
             'unread_count' => InboxItem::where('user_id', $request->user()->id)->whereNull('archived_at')->whereNull('read_at')->count(),
             'trash_count' => InboxItem::where('user_id', $request->user()->id)->whereNotNull('archived_at')->where('archived_at', '>=', now()->subDays(30))->count(),

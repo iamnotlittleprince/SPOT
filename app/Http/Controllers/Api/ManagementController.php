@@ -253,9 +253,12 @@ class ManagementController extends Controller
         return DB::transaction(function () use ($r, $project, $user) {
             Gate::authorize('projects.update');
             $this->mutable($r, $project);
+            $project = Project::whereKey($project->id)->lockForUpdate()->firstOrFail();
+            $this->mutable($r, $project);
             $member = $project->members()->where('user_id', $user)->firstOrFail();
             $old = $member->toArray();
             $member->update(['active' => false, 'access_revoked_at' => now()]);
+            \App\Domain\Projects\ProjectTeamManagers::synchronize($project);
             app(AuditRecorder::class)->record('project.member_removed', $member, $r->user(), $old, $member->toArray());
 
             return response()->noContent();

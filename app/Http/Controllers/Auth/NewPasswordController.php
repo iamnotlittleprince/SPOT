@@ -37,7 +37,7 @@ class NewPasswordController extends Controller
         );
 
         if ($status !== Password::PasswordReset) {
-            return response()->json(['message' => __($status)], 422);
+            return response()->json(['message' => 'Este link de recuperação é inválido ou expirou. Solicite um novo link.'], 422);
         }
 
         return response()->json(['message' => 'Senha redefinida com sucesso.']);

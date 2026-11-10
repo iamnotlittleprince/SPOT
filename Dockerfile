@@ -23,16 +23,19 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts
 
+COPY requirements.txt ./
+RUN python3 -m venv /opt/spot-venv \
+    && /opt/spot-venv/bin/pip install --no-cache-dir -r requirements.txt \
+    && ln -sfn /opt/spot-venv/bin/python /usr/local/bin/spot-python
+
 COPY . .
 COPY --from=frontend /app/public/build ./public/build
 RUN composer dump-autoload --no-dev --optimize --no-scripts \
     && php artisan package:discover --ansi \
-    && python3 -m venv /opt/spot-venv \
-    && /opt/spot-venv/bin/pip install --no-cache-dir -r requirements.txt \
+    && mkdir -p storage/app/private storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && mkdir -p /data /config \
-    && chown -R www-data:www-data /data /config \
-    && ln -sfn /opt/spot-venv/bin/python /usr/local/bin/spot-python
+    && chown -R www-data:www-data /data /config
 
 ENV APP_ENV=production \
     APP_DEBUG=false \

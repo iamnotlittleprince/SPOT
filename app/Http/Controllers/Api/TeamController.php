@@ -48,6 +48,7 @@ class TeamController extends Controller
             abort_if($this->analyst($request), 403);
             Gate::authorize('projects.update');
             $this->sameCompany($request, $project);
+            $project = Project::whereKey($project->id)->lockForUpdate()->firstOrFail();
             abort_if($project->isFinalized(), 409, 'Projeto finalizado não permite editar o time.');
             $data = $request->validate([
                 'name' => ['required', 'string', 'max:160'],
@@ -56,9 +57,18 @@ class TeamController extends Controller
                 'members.*.role' => ['required', Rule::in(['manager', 'analyst', 'guest'])],
             ]);
 
+            $managers = collect($data['members'])->where('role', 'manager')->pluck('user_id');
+            if ($managers->isEmpty()) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['members' => 'Todo projeto deve ter pelo menos um gerente. Selecione o gerente do projeto.']);
+            }
+            if (\App\Domain\Projects\ProjectManagers::query($request->user()->current_company_id)->whereIn('id', $managers)->count() !== $managers->count()) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['members' => 'Escolha um administrador global, gerente-administrador ou gerente ativo desta empresa.']);
+            }
+
             $old = ['name' => $project->team_name, 'members' => $project->members()->where('active', true)->get(['user_id', 'role'])->toArray()];
             DB::transaction(function () use ($project, $request, $data): void {
-                $project->update(['team_name' => trim($data['name'])]);
+                $managerIds = collect($data['members'])->where('role', 'manager')->pluck('user_id');
+                $project->update(['team_name' => trim($data['name']), 'project_manager_id' => $managerIds->contains($project->project_manager_id) ? $project->project_manager_id : $managerIds->first()]);
                 $selected = collect($data['members'])->pluck('user_id');
                 $project->members()->where('active', true)->whereNotIn('user_id', $selected)->update(['active' => false, 'access_revoked_at' => now()]);
                 foreach ($data['members'] as $member) {
@@ -76,6 +86,7 @@ class TeamController extends Controller
                     ]);
                 }
             });
+            \App\Domain\Projects\ProjectTeamManagers::synchronize($project);
             $new = ['name' => $project->fresh()->team_name, 'members' => $project->members()->where('active', true)->get(['user_id', 'role'])->toArray()];
             $audit->record('project.team_updated', $project, $request->user(), $old, $new);
 

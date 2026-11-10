@@ -42,7 +42,7 @@ class SaveProjectRequest extends FormRequest
             'member_ids' => $versioned && $this->isMethod('POST') ? ['sometimes', 'array', 'max:500'] : ['prohibited'],
             'member_ids.*' => ['bail', 'required', 'integer', 'distinct', Rule::exists('users', 'id')->where('current_company_id', $companyId)->where('active', true)->where('account_status', 'active')],
             'account_manager_id' => ['bail', 'nullable', 'integer', new EligibleProjectManager($companyId)],
-            'project_manager_id' => ['bail', 'nullable', 'integer', new EligibleProjectManager($companyId)],
+            'project_manager_id' => ['bail', $versioned ? ($this->isMethod('POST') ? 'required' : 'sometimes') : 'nullable', $versioned ? 'required' : 'nullable', 'integer', new EligibleProjectManager($companyId)],
             'proposal_date' => ['nullable', 'date'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -72,6 +72,7 @@ class SaveProjectRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'project_manager_id.required' => 'Todo projeto deve ter pelo menos um gerente. Selecione o gerente do projeto.',
             'member_ids.array' => 'Selecione os usuários da equipe na lista.',
             'member_ids.max' => 'Selecione até 500 usuários para a equipe.',
             'member_ids.prohibited' => 'Para alterar a equipe de um projeto existente, use a área Equipes.',

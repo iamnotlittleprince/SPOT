@@ -34,6 +34,7 @@ try {
   assert.equal(await picker.evaluate(el=>el.scrollWidth<=el.clientWidth+2),true);
   await page.getByLabel('Nome do projeto',{exact:true}).fill('Projeto com equipe');
   await page.getByLabel('Número da proposta',{exact:true}).fill('EQUIPE-TESTE');
+  await page.getByLabel('Gerente do projeto',{exact:true}).selectOption(String(user.id));
   await page.getByRole('button',{name:'Criar projeto',exact:true}).click();
   await page.getByRole('alert').getByText('Revise a equipe antes de salvar.',{exact:true}).waitFor();
   assert.equal(await picker.getByRole('checkbox',{name:/João/}).isChecked(),true);

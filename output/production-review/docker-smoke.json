@@ -1,0 +1,20 @@
+{
+    "php": "8.3.36",
+    "pdo_pgsql": true,
+    "storage_writable": true,
+    "cache_writable": true,
+    "excluded": {
+        "\/app\/.env": true,
+        "\/app\/.runtime": true,
+        "\/app\/backups": true,
+        "\/app\/output": true,
+        "\/app\/public\/hot": true,
+        "\/app\/phpunit.xml": true
+    },
+    "http": {
+        "\/up": 200,
+        "\/": 200,
+        "\/forgot-password": 200,
+        "\/first-access\/preview-token": 200
+    }
+}

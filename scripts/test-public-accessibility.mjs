@@ -1,0 +1,91 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {chromium} from 'playwright';
+const browser=await chromium.launch();
+const errors=[];
+const previews=await fs.mkdtemp(tmpdir()+'/spot-reset-mail-');
+try {
+execFileSync('./php',['scripts/render-reset-mail-preview.php',previews]);
+for(const width of [320,1440]) {
+const context=await browser.newContext({viewport:{width,height:1000}});
+const page=await context.newPage();page.setDefaultTimeout(7000);page.on('pageerror',e=>errors.push(e.message));
+let payload;
+await page.route('**/forgot-password',async route=>{
+if(route.request().method()!=='POST')return route.continue();
+payload=route.request().postDataJSON();
+return route.fulfill({json:{message:'Se existir uma conta com esse e-mail, enviaremos um link de recuperação.'}});
+});
+await page.goto('http://localhost:8000/');
+const toolbar=page.locator('.login-card .auth-accessibility-bar');
+assert.equal(await toolbar.count(),1);
+await toolbar.getByRole('button',{name:'English',exact:true}).focus();
+await page.keyboard.press('Space');
+assert.equal(await toolbar.getByRole('button',{name:'English',exact:true}).getAttribute('aria-pressed'),'true');
+assert.equal(await page.locator('html').getAttribute('lang'),'en');
+await toolbar.getByRole('button',{name:'Accessibility',exact:true}).click();
+const dialog=page.getByRole('dialog',{name:'Accessibility and appearance',exact:true});
+await dialog.waitFor();
+assert.equal(await dialog.evaluate(el=>Boolean(el.closest('.auth-accessibility-portal'))),true);
+const close=dialog.locator('header > button');
+assert.equal(await close.evaluate(el=>document.activeElement===el),true);
+await page.keyboard.press('Shift+Tab');
+assert.equal(await dialog.getByRole('button',{name:'Restore default',exact:true}).evaluate(el=>document.activeElement===el),true);
+await page.keyboard.press('Tab');assert.equal(await close.evaluate(el=>document.activeElement===el),true);
+await dialog.getByRole('button',{name:'Increase text size',exact:true}).click();
+await dialog.getByRole('button',{name:'Increase text size',exact:true}).click();
+await dialog.locator('#reading-font').selectOption('verdana');
+await dialog.getByLabel('Theme',{exact:true}).selectOption('dark');
+await dialog.getByRole('checkbox',{name:'High contrast',exact:true}).check();
+await dialog.getByRole('checkbox',{name:'Reduce motion',exact:true}).check();
+await dialog.getByRole('checkbox',{name:'Underline links',exact:true}).check();
+assert.equal(await page.locator('html').getAttribute('data-spot-motion'),'reduce');
+const bounds=await dialog.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width+1&&bounds.y>=0&&bounds.y+bounds.height<=1000);
+await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});
+assert.equal(await toolbar.getByRole('button',{name:'Accessibility',exact:true}).evaluate(el=>document.activeElement===el),true);
+await page.reload();
+assert.equal(await page.locator('html').getAttribute('data-reading-font'),'verdana');
+assert.equal(await page.locator('html').getAttribute('data-spot-contrast'),'high');
+assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--spot-reading-zoom').trim()),'1.2');
+await page.goto('http://localhost:8000/forgot-password');
+await toolbar.getByRole('button',{name:'Español',exact:true}).click();
+await page.locator('input[name=email]').fill('preview@example.invalid');
+await page.locator('form button[type=submit]').click();
+await page.locator('.recovery-message[role=status]').getByText('Si existe una cuenta con este correo, enviaremos un enlace de recuperación.',{exact:true}).waitFor();
+assert.equal(payload.locale,'es');
+await page.route('**/reset-password',route=>route.request().method()==='POST'?route.fulfill({json:{message:'Senha redefinida com sucesso.'}}):route.continue());
+await page.goto('http://localhost:8000/reset-password/preview-token?email=preview@example.invalid&lang=pt');
+assert.equal(await page.locator('html').getAttribute('lang'),'pt-BR');
+assert.equal(await toolbar.getByRole('button',{name:'Português',exact:true}).getAttribute('aria-pressed'),'true');
+await toolbar.getByRole('button',{name:'Español',exact:true}).click();
+await page.locator('input[name=password]').fill('Safe-password-123!');
+await page.locator('input[name=password_confirmation]').fill('Safe-password-123!');
+await page.locator('form button[type=submit]').click();
+await page.getByRole('heading',{name:'¡Contraseña restablecida!',exact:true}).waitFor();
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+await toolbar.getByRole('button',{name:'Português',exact:true}).click();
+
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+await toolbar.getByRole('button',{name:'Acessibilidade',exact:true}).click();
+await page.getByRole('dialog').getByRole('button',{name:'Restaurar padrão',exact:true}).click();
+await page.keyboard.press('Escape');
+await page.goto('http://localhost:8000/');
+const heading=await page.locator('.form-wrap h1').evaluate(el=>{const range=document.createRange();range.selectNodeContents(el);return {text:range.getBoundingClientRect().right,panel:el.closest('.login-panel').getBoundingClientRect().right};});
+assert.ok(heading.text<=heading.panel+1,'Welcome heading must wrap inside the panel');
+const containment=await toolbar.evaluate(el=>{const bar=el.getBoundingClientRect(),card=el.closest('.login-card').getBoundingClientRect();return bar.x>=card.x&&bar.right<=card.right+1&&bar.y>=card.y&&bar.bottom<=card.bottom;});
+assert.equal(containment,true,'Public controls must remain inside the Spot card');
+await page.screenshot({path:'/tmp/spot-public-accessibility-'+width+'.png',fullPage:true});
+await context.close();
+}
+for(const width of [320,700]) for(const locale of ['pt','en','es']) {
+const page=await browser.newPage({viewport:{width,height:1000}});
+await page.setContent(await fs.readFile(previews+'/spot-reset-'+locale+'.html','utf8'));
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+await page.getByRole('link',{name:({pt:'Redefinir senha',en:'Reset password',es:'Restablecer contraseña'})[locale],exact:true}).waitFor();
+await page.screenshot({path:'/tmp/spot-reset-preview-'+width+'-'+locale+'.png',fullPage:true});
+await page.close();
+}
+assert.deepEqual(errors,[]);
+console.log('Acesso público: idioma, leitura, tema, contraste, movimento, links, persistência, teclado/modal e envio de locale passaram; e-mail renderizado em 320/700px.');
+}finally{await browser.close();await fs.rm(previews,{recursive:true,force:true});}

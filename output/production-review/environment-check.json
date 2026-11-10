@@ -1,0 +1,13 @@
+{
+    "checks_passed": false,
+    "blockers": [
+        "APP_ENV deve ser production no servidor de produção.",
+        "APP_DEBUG deve ser false.",
+        "APP_URL deve usar a origem HTTPS definitiva.",
+        "SESSION_SECURE_COOKIE deve ser true em HTTPS.",
+        "Remova public\/hot do artefato de produção; ele aponta para o Vite de desenvolvimento."
+    ],
+    "notes": [
+        "Validar workers (fila emails\/default), scheduler por minuto, banco, backups, SMTP e OAuth no servidor de destino."
+    ]
+}

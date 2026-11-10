@@ -14,6 +14,11 @@ return [
     |
     */
 
+    'chat_translation' => [
+        'url' => env('CHAT_TRANSLATION_URL'),
+        'key' => env('CHAT_TRANSLATION_KEY'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

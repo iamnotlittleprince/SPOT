@@ -15,3 +15,13 @@ public/hot
 public/build
 tests
 docs
+# Dados locais e evidências de teste nunca fazem parte da imagem.
+backups
+output
+log
+.phpunit.result.cache
+storage/app/*
+phpunit.xml
+scripts/test-*.mjs
+scripts/verify-production-browser.mjs
+scripts/verify-container-tests.py

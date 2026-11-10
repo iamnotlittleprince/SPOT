@@ -13,7 +13,8 @@
     "test:tutorial": "npm run build && node scripts/test-tutorial.mjs",
     "test:tasks": "npm run build && node scripts/test-tasks.mjs && node scripts/test-task-board.mjs",
     "test:management": "npm run build && node scripts/test-management.mjs",
-    "test:responsive": "npm run build && node scripts/test-responsive.mjs"
+    "test:responsive": "npm run build && node scripts/test-responsive.mjs",
+    "test:chat": "npm run build && node scripts/test-chat.mjs && node scripts/test-chat-formatting.mjs"
   },
   "devDependencies": {
     "@iconify-json/selfhst": "^1.2.16",
@@ -26,6 +27,13 @@
   },
   "dependencies": {
     "@iconify-json/logos": "^1.2.13",
+    "@tiptap/core": "^3.33.0",
+    "@tiptap/extension-highlight": "^3.33.0",
+    "@tiptap/extension-placeholder": "^3.33.0",
+    "@tiptap/extension-text-style": "^3.33.0",
+    "@tiptap/pm": "^3.33.0",
+    "@tiptap/react": "^3.33.0",
+    "@tiptap/starter-kit": "^3.33.0",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

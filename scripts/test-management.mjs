@@ -6,7 +6,7 @@ try {
  const {page,context,user}=await createBrowserSession(browser,{admin:true,dismissNotice:true,onError:e=>errors.push(e)});
  let projects=[],clients=[],rates=[],taxes=[];const mutations=[];
  const access=Object.fromEntries(['projects.create','projects.update','projects.delete','projects.finalize','projects.reopen','financial.view','financial.manage','parameters.view','parameters.create','parameters.update','expenses.create'].map(k=>[k,true]));
- const params={users:[user],clients,project_statuses:[{id:1,name:'Planejamento'}],project_situations:[{id:1,name:'No prazo'}],activity_types:[{id:1,name:'Reunião'}],expense_types:[{id:1,name:'Transporte'}],tax_types:[{id:1,name:'ISS'}],field_access:{}};
+ const params={users:[user],managers:[user],clients,project_statuses:[{id:1,name:'Planejamento'}],project_situations:[{id:1,name:'No prazo'}],activity_types:[{id:1,name:'Reunião'}],expense_types:[{id:1,name:'Transporte'}],tax_types:[{id:1,name:'ISS'}],field_access:{}};
  await page.route('**/sanctum/csrf-cookie',r=>r.fulfill({status:204}));
  await page.route('**/api/v1/**',async r=>{
   const q=r.request(),path=new URL(q.url()).pathname.replace('/api/v1',''),method=q.method();
@@ -35,6 +35,7 @@ try {
  await page.getByLabel('Nome do projeto',{exact:true}).fill('Projeto memorial navegador');
  await page.getByLabel('Número da proposta',{exact:true}).fill('MEM-001');
  await page.getByLabel('Horas estimadas',{exact:true}).fill('2');await page.getByLabel('Minutos estimados',{exact:true}).fill('30');
+ await page.getByLabel('Gerente do projeto',{exact:true}).selectOption(String(user.id));
  await page.getByRole('button',{name:'Criar projeto',exact:true}).click();
  await page.getByRole('button',{name:'Projeto memorial navegador',exact:true}).waitFor();assert.equal(projects[0].estimated_minutes,150);
  await page.getByRole('button',{name:'Editar',exact:true}).click();

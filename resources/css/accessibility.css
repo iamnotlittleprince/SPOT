@@ -67,3 +67,26 @@ html[data-theme="dark"] .reading-controls button { color: #8cd5ff; background: #
   .quick-settings-wrap > button { width: 44px; height: 44px; }
   .page-menu-trigger { min-width: 0; overflow: hidden; }
 }
+
+/* The message input uses its enclosing composer as the visible focus indicator. */
+.chat-composer-input #chat-body:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Auth fields draw keyboard focus around the complete icon/input control. */
+.input-wrap:has(> input:focus-visible) {
+  outline: 3px solid #168fff !important;
+  border-color: #168fff !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+.input-wrap > input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+html[data-theme="dark"] .input-wrap:has(> input:focus-visible) { outline-color: #79c9ff !important; border-color: #79c9ff !important; }
+@media (forced-colors: active) {
+  .input-wrap:has(> input:focus-visible),
+  html[data-theme] .input-wrap:has(> input:focus-visible) { outline-color: Highlight !important; border-color: Highlight !important; }
+}

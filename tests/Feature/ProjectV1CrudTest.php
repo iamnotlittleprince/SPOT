@@ -24,11 +24,14 @@ class ProjectV1CrudTest extends TestCase
             $profile->permissions()->attach($permission);
         }
         $user->profiles()->attach($profile, ['company_id' => $company->id]);
+        $manager = User::factory()->create(['current_company_id' => $company->id]);
+        $managerProfile = Profile::create(['name' => 'Gerente', 'slug' => 'gestor']);
+        $manager->profiles()->attach($managerProfile, ['company_id' => $company->id]);
         $status = DB::table('project_statuses')->insertGetId(['company_id' => $company->id, 'name' => 'Planejamento', 'slug' => 'planning', 'created_at' => now(), 'updated_at' => now()]);
         $situation = DB::table('project_situations')->insertGetId(['company_id' => $company->id, 'name' => 'No prazo', 'slug' => 'on-time', 'created_at' => now(), 'updated_at' => now()]);
 
         $project = $this->actingAs($user)->postJson('/api/v1/projects', [
-            'name' => 'Implantação segura', 'proposal_number' => 'PROP-2026-001',
+            'name' => 'Implantação segura', 'proposal_number' => 'PROP-2026-001', 'project_manager_id' => $manager->id,
             'project_status_id' => $status, 'project_situation_id' => $situation,
             'start_date' => '2026-09-01', 'end_date' => '2026-10-01',
             'contract_value' => 25000, 'commission_rate' => 5, 'commission_basis' => 'gross',

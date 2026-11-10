@@ -53,7 +53,7 @@ class AdminUserController extends Controller
     {
         Gate::authorize('security.manage');
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:120', 'regex:/^\S+\s+\S+/u'],
+            'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'google_email' => ['nullable', 'email', 'max:255', 'unique:users,google_email'],
             'microsoft_email' => ['nullable', 'email', 'max:255', 'unique:users,microsoft_email'],
@@ -77,7 +77,7 @@ class AdminUserController extends Controller
         return response()->json(['user' => $user, 'activation_url' => url('/first-access/'.$result['token']), 'expires_at' => $result['record']->expires_at], 201);
     }
 
-    public function update(Request $request, User $user, AuditRecorder $audit): JsonResponse
+    public function update(Request $request, User $user, AuditRecorder $audit, CreateActivationLink $activation): JsonResponse
     {
         Gate::authorize('security.manage');
         abort_unless($user->current_company_id === $request->user()->current_company_id, 404);
@@ -96,25 +96,33 @@ class AdminUserController extends Controller
                 throw ValidationException::withMessages(['profile' => 'O último administrador ativo não pode perder o acesso administrativo.']);
             }
         }
-        $old = ['can_create_projects' => $user->hasPermission('projects.create'), 'profiles' => $user->profiles->pluck('slug'), 'account_status' => $user->account_status];
-        $profile = Profile::where('slug', $data['profile'])->firstOrFail();
-        DB::transaction(function () use ($user, $profile, $request) {
-            DB::table('company_user_profiles')->where('user_id',$user->id)->where('company_id',$request->user()->current_company_id)->delete();
-            $user->profiles()->attach($profile->id,['company_id'=>$request->user()->current_company_id]);
-        });
-        $user->update(['account_status' => $data['account_status'], 'active' => $data['account_status'] === 'active', ...collect($data)->only(['job_title', 'department'])->all()]);
-        $permission = Permission::where('slug', 'projects.create')->firstOrFail();
-        if ($data['profile'] !== 'analista') {
-            DB::table('user_permission_overrides')->where('user_id', $user->id)->where('permission_id', $permission->id)->delete();
-        } elseif (array_key_exists('can_create_projects', $data)) {
-            DB::table('user_permission_overrides')->updateOrInsert(
-                ['user_id' => $user->id, 'permission_id' => $permission->id],
-                ['allowed' => $data['can_create_projects'], 'granted_by' => $request->user()->id, 'reason' => 'Definido pelo administrador em Usuários e acessos.', 'created_at' => now(), 'updated_at' => now()],
-            );
-        }
-        $audit->record('user.access_updated', $user, $request->user(), $old, $data);
+        return DB::transaction(function () use ($request, $user, $audit, $activation, $data) {
+            $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $requiresActivation = $data['account_status'] === 'pending_activation' && $user->account_status !== 'pending_activation';
+            $old = ['can_create_projects' => $user->hasPermission('projects.create'), 'profiles' => $user->profiles->pluck('slug'), 'account_status' => $user->account_status];
+            $profile = Profile::where('slug', $data['profile'])->firstOrFail();
+            DB::transaction(function () use ($user, $profile, $request) {
+                DB::table('company_user_profiles')->where('user_id',$user->id)->where('company_id',$request->user()->current_company_id)->delete();
+                $user->profiles()->attach($profile->id,['company_id'=>$request->user()->current_company_id]);
+            });
+            $user->update(['account_status' => $data['account_status'], 'active' => $data['account_status'] === 'active', ...collect($data)->only(['job_title', 'department'])->all()]);
+            $permission = Permission::where('slug', 'projects.create')->firstOrFail();
+            if ($data['profile'] !== 'analista') {
+                DB::table('user_permission_overrides')->where('user_id', $user->id)->where('permission_id', $permission->id)->delete();
+            } elseif (array_key_exists('can_create_projects', $data)) {
+                DB::table('user_permission_overrides')->updateOrInsert(
+                    ['user_id' => $user->id, 'permission_id' => $permission->id],
+                    ['allowed' => $data['can_create_projects'], 'granted_by' => $request->user()->id, 'reason' => 'Definido pelo administrador em Usuários e acessos.', 'created_at' => now(), 'updated_at' => now()],
+                );
+            }
+            $audit->record('user.access_updated', $user, $request->user(), $old, $data);
 
-        return response()->json(['user' => $user->load('profiles')]);
+            if ($requiresActivation) {
+                $activation->execute($user, $request->user());
+            }
+
+            return response()->json(['user' => $user->load('profiles'), 'activation_email_queued' => $requiresActivation]);
+        });
     }
 
     /**

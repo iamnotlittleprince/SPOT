@@ -30,15 +30,18 @@ class ProfileController extends Controller
         app(\App\Domain\Audit\AuditRecorder::class)->record('user.profile_updated',$request->user(),$request->user(),$old,$updates);
 
         return response()->json([
+            'id' => $request->user()->id,
             'name' => $name,
             'email' => $request->user()->email,
             'avatar_url' => $request->user()->avatar_url,
             'timezone' => $validated['timezone'],
+            'preferred_locale' => $request->user()->preferredLocale(),
             'job_title' => $request->user()->job_title,
             'department' => $request->user()->department,
             'can_view_parameters' => $request->user()->can('parameters.view'),
             'spot_role' => $request->user()->spotRoleLabel(),
             'can_manage_identity' => $request->user()->can('security.manage'),
+            'can_chat' => app(\App\Domain\Chat\ChatAccess::class)->eligible($request->user()),
             'can_create_projects' => $request->user()->can('projects.create'),
             'can_view_financial' => $request->user()->can('financial.view'),
         ]);

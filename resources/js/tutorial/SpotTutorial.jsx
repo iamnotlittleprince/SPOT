@@ -55,7 +55,7 @@ function readProgress(key) {
 
 export default function SpotTutorial({ user, locale, onNavigate, onExit, onLanguageChange }) {
   const key = progressKey(user);
-  const steps = useMemo(() => getLessons(user), [user?.can_create_projects, user?.can_manage_identity, user?.can_view_financial, user?.can_view_parameters]);
+  const steps = useMemo(() => getLessons(user), [user?.can_create_projects, user?.can_manage_identity, user?.can_view_financial, user?.can_view_parameters, user?.can_chat]);
   const [progress, setProgress] = useState(() => readProgress(key));
   const [mode, setMode] = useState(() => progress.status === 'new' && !progress.shownAt ? 'notice' : 'closed');
   const [index, setIndex] = useState(0);

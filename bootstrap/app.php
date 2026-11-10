@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+        // Keep significant spaces between formatted text nodes and inside code blocks.
+        $middleware->trimStrings(except: ['body_format.*']);
         $middleware->alias(['guest' => \App\Http\Middleware\RedirectIfAuthenticated::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

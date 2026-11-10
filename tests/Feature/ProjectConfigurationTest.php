@@ -22,6 +22,7 @@ class ProjectConfigurationTest extends TestCase
         $analyst = User::factory()->create(['current_company_id' => $company->id]);
         $project = Project::create(['company_id' => $company->id, 'user_id' => $manager->id, 'name' => 'Projeto', 'status' => 'planning', 'progress' => 0]);
 
+        $project->members()->create(['user_id' => $manager->id, 'role' => 'manager', 'active' => true]);
         $this->actingAs($manager)->postJson("/api/v1/projects/{$project->id}/members", [
             'user_id' => $analyst->id, 'role' => 'analyst',
         ])->assertCreated()->assertJsonPath('user_id', $analyst->id);

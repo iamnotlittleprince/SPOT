@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Mail\ProjectInvitationMail;
+use App\Mail\AccountActivationMail;
 use App\Models\ProjectInvitation;
 use App\Models\User;
 use App\Models\UserActivationToken;
@@ -42,6 +43,7 @@ class SendAccessEmail implements ShouldBeEncrypted, ShouldQueue
                 $this->url,
                 $invitation->inviter->name,
                 max(1, (int) ceil(now()->diffInHours($invitation->expires_at))),
+                User::where('email', $invitation->email)->first()?->preferredLocale() ?? 'pt',
             ));
 
             return;
@@ -56,8 +58,9 @@ class SendAccessEmail implements ShouldBeEncrypted, ShouldQueue
             return;
         }
 
-        $expiresAt = $activation->expires_at->format('d/m/Y H:i T');
-        Mail::raw("Seu link de primeiro acesso ao Spot é: {$this->url}\n\nO link expira em {$expiresAt}.",
-            fn ($message) => $message->to($user->email)->subject('Primeiro acesso ao Spot'));
+        $locale = $user->preferredLocale();
+        $expiresAt = $activation->expires_at->copy()->timezone($user->timezone ?: config('app.timezone'))
+            ->locale($locale)->translatedFormat($locale === 'en' ? 'M j, Y H:i T' : 'd/m/Y H:i T');
+        Mail::to($user->email)->send(new AccountActivationMail($this->url, $expiresAt, $locale));
     }
 }

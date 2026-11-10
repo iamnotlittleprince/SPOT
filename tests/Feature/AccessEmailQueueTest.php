@@ -10,13 +10,15 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class AccessEmailQueueTest extends TestCase
 {
+    use DatabaseMigrations;
+
     protected function setUp(): void
     {
         parent::setUp();
-        $this->artisan('migrate:fresh', ['--force' => true]);
         $this->withoutMiddleware(ThrottleRequests::class);
     }
 
@@ -27,26 +29,12 @@ class AccessEmailQueueTest extends TestCase
         return UserActivationToken::create(['user_id' => $user->id, 'created_by' => $user->id, 'token_hash' => hash('sha256', 'old-token'), 'expires_at' => now()->addHours(2)]);
     }
 
-    public function test_request_persists_encrypted_job_and_worker_sends_email(): void
+    public function test_public_request_does_not_enqueue_activation_email(): void
     {
         config(['queue.default' => 'database']);
         $old = $this->activation();
-        $response = $this->postJson('/api/v1/first-access', ['name' => 'Ana Teste', 'email' => 'ana@example.com'])->assertOk();
-        $this->assertNotNull($old->fresh()->revoked_at);
-        $row = DB::table('jobs')->sole();
-        $this->assertSame('emails', $row->queue);
-        $payload = json_decode($row->payload, true);
-        $job = unserialize(decrypt($payload['data']['command']));
-        $this->assertInstanceOf(SendAccessEmail::class, $job);
-        $this->assertStringNotContainsString($job->url, $row->payload);
-        $this->assertCount(0, app('mail.manager')->mailer()->getSymfonyTransport()->messages());
-
-        $this->artisan('queue:work', ['--once' => true, '--queue' => 'emails'])->assertExitCode(0);
-        $this->assertDatabaseCount('jobs', 0);
-        $this->assertCount(1, app('mail.manager')->mailer()->getSymfonyTransport()->messages());
-
-        $this->postJson('/api/v1/first-access', ['name' => 'Outra Pessoa', 'email' => 'ana@example.com'])
-            ->assertOk()->assertExactJson($response->json());
+        $this->postJson('/api/v1/first-access', ['name' => 'Ana Teste', 'email' => 'ana@example.com'])->assertStatus(405);
+        $this->assertNull($old->fresh()->revoked_at);
         $this->assertDatabaseCount('jobs', 0);
     }
 
@@ -55,6 +43,7 @@ class AccessEmailQueueTest extends TestCase
         config(['queue.default' => 'database']);
         $old = $this->activation();
         $user = User::findOrFail($old->user_id);
+        $user->update(['preferred_locale' => 'es']);
 
         $result = app(CreateActivationLink::class)->execute($user, $user);
 
@@ -73,12 +62,14 @@ class AccessEmailQueueTest extends TestCase
         $message = $messages[0]->getOriginalMessage();
         $this->assertSame($user->email, $message->getTo()[0]->getAddress());
         $this->assertStringContainsString($job->url, $message->getTextBody());
+        $this->assertStringContainsString('lang="es"', $message->getHtmlBody());
+        $this->assertStringContainsString('Activar mi cuenta', $message->getTextBody());
     }
 
     public function test_revoked_and_expired_links_are_not_sent(): void
     {
         $activation = $this->activation();
-        Mail::shouldReceive('raw')->never();
+        Mail::shouldReceive('to')->never();
         $activation->update(['revoked_at' => now()]);
         (new SendAccessEmail('activation', $activation->id, 'http://localhost/first-access/test'))->handle();
         $activation->update(['revoked_at' => null, 'expires_at' => now()->subMinute()]);
@@ -89,7 +80,8 @@ class AccessEmailQueueTest extends TestCase
     {
         config(['queue.default' => 'database']);
         $activation = $this->activation();
-        Mail::shouldReceive('raw')->twice()->andThrow(new \RuntimeException('SMTP indisponível'));
+        Mail::shouldReceive('to')->twice()->andReturnSelf();
+        Mail::shouldReceive('send')->twice()->andThrow(new \RuntimeException('SMTP indisponível'));
         SendAccessEmail::dispatch('activation', $activation->id, 'http://localhost/first-access/test');
         $this->artisan('queue:work', ['--once' => true, '--queue' => 'emails'])->assertExitCode(0);
         $row = DB::table('jobs')->sole();

@@ -18,10 +18,13 @@ class AuthController extends Controller
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
+            'locale' => ['nullable', \Illuminate\Validation\Rule::in(['pt', 'en', 'es'])],
             'password' => ['required', 'string'],
             'two_factor_code' => ['nullable', 'string', 'max:20'],
         ]);
 
+        $locale = $credentials['locale'] ?? null;
+        unset($credentials['locale']);
         $twoFactorCode = $credentials['two_factor_code'] ?? null;
         unset($credentials['two_factor_code']);
 
@@ -34,6 +37,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Informe o código do autenticador ou um código de recuperação.', 'two_factor_required' => true], 422);
         }
 
+        if ($locale) $user->forceFill(['preferred_locale' => $locale])->saveQuietly();
         $request->session()->forget('two_factor_challenge');
         Auth::guard('web')->login($user, true);
         $request->session()->regenerate();
@@ -175,13 +179,21 @@ class AuthController extends Controller
         ], $status);
     }
 
+    public function updateLocale(Request $request): JsonResponse
+    {
+        $data = $request->validate(['locale' => ['required', \Illuminate\Validation\Rule::in(['pt', 'en', 'es'])]]);
+        $request->user()->forceFill(['preferred_locale' => $data['locale']])->saveQuietly();
+        return response()->json(['locale' => $data['locale']]);
+    }
+
     private function sessionUser(User $user): array
     {
         return [
-            ...$user->only(['id', 'name', 'email', 'avatar_url', 'timezone', 'job_title', 'department']),
+            ...$user->only(['id', 'name', 'email', 'avatar_url', 'timezone', 'job_title', 'department', 'preferred_locale']),
             'can_view_parameters' => $user->can('parameters.view'),
             'spot_role' => $user->spotRoleLabel(),
             'can_manage_identity' => $user->can('security.manage'),
+            'can_chat' => app(\App\Domain\Chat\ChatAccess::class)->eligible($user),
             'can_create_projects' => $user->can('projects.create'),
             'can_view_financial' => $user->can('financial.view'),
         ];

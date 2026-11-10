@@ -102,6 +102,7 @@ class ProjectController extends Controller
                 $old = [...$project->getOriginal(), 'taxes' => $project->taxes()->get()->toArray()];
                 $project->update($this->projectData($request));
                 $this->saveTaxes($request, $project);
+                if ($request->filled('project_manager_id')) $this->saveInitialTeam($request, $project, $audit);
                 $audit->record('project.updated', $project, $request->user(), $old, [...$project->getAttributes(), 'taxes' => $project->taxes()->get()->toArray()]);
             });
             $project->refresh();
@@ -172,7 +173,8 @@ class ProjectController extends Controller
 
     private function saveInitialTeam(SaveProjectRequest $request, Project $project, AuditRecorder $audit): void
     {
-        $ids = $request->validated('member_ids', []);
+        $managerId = (int) $project->project_manager_id;
+        $ids = array_values(array_unique([...$request->validated('member_ids', []), ...($managerId ? [$managerId] : [])]));
         if (! $ids) return;
         $companyId = $request->user()->current_company_id;
         $users = \App\Models\User::query()->whereIn('id', $ids)
@@ -184,9 +186,9 @@ class ProjectController extends Controller
         }
         foreach ($users as $user) {
             $guest = $user->profiles->contains('slug', 'convidado');
-            $member = $project->members()->create([
-                'user_id' => $user->id, 'role' => $guest ? 'guest' : 'analyst',
-                'relationship_type' => $guest ? 'guest_client' : 'cpt_internal_analyst',
+            $manager = $user->id === $managerId;
+            $member = $project->members()->updateOrCreate(['user_id' => $user->id], [ 'role' => $manager ? 'manager' : ($guest ? 'guest' : 'analyst'),
+                'relationship_type' => $manager ? 'responsible_manager' : ($guest ? 'guest_client' : 'cpt_internal_analyst'),
                 'permissions' => $guest ? ['tasks.view', 'files.view'] : ['tasks.view', 'tasks.comment', 'files.view', 'files.upload'],
                 'organization_id' => $request->user()->organization_id,
                 'active' => true, 'assigned_by' => $request->user()->id, 'assigned_at' => now(),

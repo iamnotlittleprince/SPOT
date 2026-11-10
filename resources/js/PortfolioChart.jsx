@@ -1,5 +1,5 @@
 import React from 'react';
-import { getFormatLocale } from './i18n';
+import { getFormatLocale, translateText } from './i18n';
 
 export const chartTypes = [
   ['bars', 'Barras horizontais'], ['columns', 'Colunas'], ['line', 'Linhas'],
@@ -25,7 +25,7 @@ export default function PortfolioChart({ items, type, unit = '', palette = 'blue
   const magnitude = Math.max(...data.map(item => Math.abs(item.value)), 1);
   const total = data.reduce((sum, item) => sum + item.value, 0);
   const legend = <div className="portfolio-chart-legend">{data.map((item, index) => <span key={index}><i style={{ background: colors[index % colors.length] }} />{item.label}{labels && <strong>{format(item.value)}</strong>}</span>)}</div>;
-  const tip = item => `${item.label}: ${format(item.value)}`;
+  const tip = item => `${item.label === 'Não informado' ? translateText(item.label) : item.label}: ${format(item.value)}`;
   if (['pie', 'donut'].includes(type)) {
     if (total <= 0) return <p className="analytics-empty">Sem valores positivos para compor o gráfico.</p>;
     let cursor = 0;

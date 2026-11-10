@@ -27,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Auth\Notifications\ResetPassword::toMailUsing(fn (User $user, string $token) =>
+            app(\App\Domain\Mail\PasswordResetMail::class)->message($user, $token, app()->getLocale()));
         RateLimiter::for('spot-api', function (Request $request) {
             $user = $request->user();
             return Limit::perMinute($user ? 600 : 120)

@@ -1,16 +1,20 @@
 import { interfaceTranslations } from './translations.js';
 export { interfaceTranslations };
 
+let memoryLanguage;
 export function getLanguage() {
-  const language = window.localStorage.getItem('spot.locale');
+  let language;
+  try { language = window.localStorage.getItem('spot.locale'); } catch {}
+  language ||= memoryLanguage || window.__SPOT__?.user?.preferred_locale;
   return ['pt', 'en', 'es'].includes(language) ? language : 'pt';
 }
 export function getFormatLocale() {
   return { pt: 'pt-BR', en: 'en-US', es: 'es-ES' }[getLanguage()];
 }
-export function setLanguage(language) {
-  window.localStorage.setItem('spot.locale', ['pt', 'en', 'es'].includes(language) ? language : 'pt');
-  window.dispatchEvent(new Event('spot:language'));
+export function setLanguage(language, { persistAccount = true } = {}) {
+  memoryLanguage = ['pt', 'en', 'es'].includes(language) ? language : 'pt';
+  try { window.localStorage.setItem('spot.locale', memoryLanguage); } catch {}
+  window.dispatchEvent(new CustomEvent('spot:language', {detail:{persistAccount}}));
 }
 export function translateText(text, language = getLanguage()) {
   if (typeof text !== 'string' || language === 'pt') return text;

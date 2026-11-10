@@ -11,6 +11,37 @@ class InboxTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_arrival_preview_uses_previous_access_and_excludes_read_archived_and_foreign_items(): void
+    {
+        $this->travelTo(now()->startOfSecond());
+        $user = User::factory()->create();
+        $user->forceFill(['notification_access_at' => now()->subHour()])->save();
+        $old = InboxItem::create(['user_id' => $user->id, 'type' => 'task', 'title' => 'Antiga']);
+        $old->forceFill(['created_at' => now()->subHours(2)])->save();
+        $fresh = InboxItem::create(['user_id' => $user->id, 'type' => 'task', 'title' => 'Nova']);
+        InboxItem::create(['user_id' => $user->id, 'type' => 'task', 'title' => 'Lida', 'read_at' => now()]);
+        InboxItem::create(['user_id' => $user->id, 'type' => 'task', 'title' => 'Arquivada', 'archived_at' => now()]);
+        InboxItem::create(['user_id' => User::factory()->create()->id, 'type' => 'task', 'title' => 'Privada']);
+        $first = $this->actingAs($user)->getJson('/api/v1/inbox')->assertOk()
+            ->assertJsonCount(1, 'new_items')->assertJsonPath('new_items.0.id', $fresh->id)->assertJsonPath('unread_count', 2);
+        $this->travel(2)->minutes();
+        $this->getJson('/api/v1/inbox')->assertOk()->assertJsonPath('previous_access_at', $first->json('previous_access_at'));
+        $this->patchJson("/api/v1/inbox/{$fresh->id}/read")->assertOk();
+        $this->getJson('/api/v1/inbox')->assertOk()->assertJsonCount(0, 'new_items')->assertJsonPath('unread_count', 1);
+        $this->assertNotNull($user->fresh()->notification_access_at);
+    }
+
+    public function test_first_access_ignores_history_but_detects_arrivals_later_in_the_session(): void
+    {
+        $this->travelTo(now()->startOfSecond());
+        $user = User::factory()->create();
+        InboxItem::create(['user_id' => $user->id, 'type' => 'task', 'title' => 'Histórico']);
+        $this->actingAs($user)->getJson('/api/v1/inbox')->assertOk()->assertJsonCount(0, 'new_items');
+        $this->travel(1)->minutes();
+        $new = InboxItem::create(['user_id' => $user->id, 'type' => 'task', 'title' => 'Chegou depois']);
+        $this->getJson('/api/v1/inbox')->assertOk()->assertJsonCount(1, 'new_items')->assertJsonPath('new_items.0.id', $new->id);
+    }
+
     public function test_user_can_read_and_archive_only_their_own_inbox_items(): void
     {
         $user = User::factory()->create();

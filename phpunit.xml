@@ -19,6 +19,9 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!-- Chaves sintéticas apenas para testes; nunca usar em produção. -->
+        <env name="APP_KEY" value="base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="/>
+        <env name="JWT_SECRET" value="phpunit-only-jwt-secret-not-for-production-000000000000000000000000"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>

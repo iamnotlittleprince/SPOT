@@ -8,7 +8,7 @@ const errors = [];
 let checks = 0;
 const check = (value, message) => { assert.ok(value, message); checks++; };
 const keyFor = email => `spot.tutorial.v1:${encodeURIComponent(email)}`;
-const setup = options => createBrowserSession(browser, { onError: error => errors.push(error), ...options });
+const setup = options => createBrowserSession(browser, { onError: error => errors.push(error), userOverrides: {can_chat: true}, ...options });
 const dialog = page => page.locator('.tutorial-card');
 async function dismiss(page, name = 'Agora não') {
   await dialog(page).getByRole('button', { name, exact: true }).click();
@@ -24,7 +24,7 @@ async function ensureStep(page, step) {
   await page.waitForFunction(selector => {
     const target = document.querySelector(selector);
     return target && target.getBoundingClientRect().width > 0 && document.querySelector('.tutorial-highlight');
-  }, step.target, { timeout: 6000 });
+  }, step.target, { timeout: 6000 }).catch(async error => { console.error('Tutorial target failed:', step.id, step.page, step.target, await page.locator('main').last().innerText().catch(() => '')); throw error; });
   const bounds = await dialog(page).boundingBox();
   const size = page.viewportSize();
   check(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= size.width + 1 && bounds.y + bounds.height <= size.height + 1, `Card fits viewport at ${step.id}`);
@@ -33,7 +33,7 @@ async function ensureStep(page, step) {
 
 try {
   // Authored copy, stable IDs and permission-aware lesson selection.
-  const full = getLessons({ can_create_projects: true, can_manage_identity: true, can_view_financial: true });
+  const full = getLessons({ can_create_projects: true, can_manage_identity: true, can_view_financial: true, can_chat: true });
   check(new Set(full.map(s => s.id)).size === full.length, 'Unique step IDs');
   for (const step of getLessons().concat(full)) for (const locale of ['pt', 'en', 'es']) {
     check(Boolean(localize(step.title, locale) && localize(step.body, locale) && localize(step.tip, locale) && chapters[step.chapter][locale]), 'Complete translated lesson');

@@ -12,6 +12,14 @@ class AdministrativeProvisioningTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_public_activation_link_generation_is_unavailable(): void
+    {
+        $this->postJson('/api/v1/first-access', [
+            'name' => 'Ana', 'email' => 'ana@example.com',
+        ])->assertStatus(405);
+        $this->assertDatabaseCount('user_activation_tokens', 0);
+    }
+
     public function test_administrator_lists_users_and_administration_options(): void
     {
         $this->seed();
@@ -85,9 +93,9 @@ class AdministrativeProvisioningTest extends TestCase
         $this->assertSame('Projetos', $pending->department);
 
         $this->postJson("/api/v1/first-access/{$token}", [
-            'name' => 'Nome incorreto', 'email' => 'ana@computecnica.com.br',
+            'name' => 'Ana Analista', 'email' => 'outra@computecnica.com.br',
             'password' => 'senha-segura', 'password_confirmation' => 'senha-segura',
-        ])->assertUnprocessable()->assertJsonValidationErrors('identity');
+        ])->assertUnprocessable()->assertJsonValidationErrors('email')->assertJsonPath('errors.email.0', 'Por gentileza, insira o e-mail correspondente ao do convite enviado!');
         $this->assertAuthenticatedAs($admin);
         $this->assertNull($pending->fresh()->password);
         $this->assertDatabaseHas('user_activation_tokens', [
@@ -96,9 +104,10 @@ class AdministrativeProvisioningTest extends TestCase
         $this->withSession(['previous_account_data' => 'admin']);
         $previousSessionId = session()->getId();
         $this->postJson("/api/v1/first-access/{$token}", [
-            'name' => 'Ana Analista', 'email' => 'ana@computecnica.com.br',
+            'name' => 'Ana', 'email' => 'ANA@COMPUTECNICA.COM.BR',
             'password' => 'senha-segura', 'password_confirmation' => 'senha-segura',
         ])->assertOk()->assertJsonPath('user.account_status', 'active');
+        $this->assertSame('Ana Analista', $pending->fresh()->name);
         $this->assertAuthenticatedAs($pending->fresh(), 'web');
         $this->assertNotSame($previousSessionId, session()->getId());
         $this->assertNull(session('previous_account_data'));
@@ -171,7 +180,7 @@ class AdministrativeProvisioningTest extends TestCase
         $this->assertTrue($analyst->fresh()->can('projects.create'));
         $this->actingAs($analyst)->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('can_create_projects', true);
         $this->postJson('/api/v1/projects', [
-            'name' => 'Projeto autorizado', 'proposal_number' => 'AUT-001',
+            'name' => 'Projeto autorizado', 'proposal_number' => 'AUT-001', 'project_manager_id' => $admin->id,
             'project_status_id' => DB::table('project_statuses')->where('company_id', $admin->current_company_id)->value('id'),
             'project_situation_id' => DB::table('project_situations')->where('company_id', $admin->current_company_id)->value('id'),
             'contract_value' => 100,

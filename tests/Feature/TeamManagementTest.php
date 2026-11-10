@@ -18,6 +18,7 @@ class TeamManagementTest extends TestCase
         $admin = User::where('email', 'admin@computecnica.com.br')->firstOrFail();
         $first = User::factory()->create(['current_company_id' => $admin->current_company_id, 'organization_id' => $admin->organization_id, 'name' => 'Primeira Pessoa']);
         $second = User::factory()->create(['current_company_id' => $admin->current_company_id, 'organization_id' => $admin->organization_id, 'name' => 'Segunda Pessoa']);
+        $second->profiles()->attach(Profile::where('slug', 'gestor')->value('id'), ['company_id' => $admin->current_company_id]);
         $project = Project::create(['company_id' => $admin->current_company_id, 'user_id' => $admin->id, 'name' => 'Projeto Equipe', 'status' => 'planning', 'progress' => 0]);
         $project->members()->create(['user_id' => $first->id, 'role' => 'analyst', 'active' => true]);
 

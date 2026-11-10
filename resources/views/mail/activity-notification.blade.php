@@ -1,14 +1,15 @@
-<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><title>Atualizações do Spot</title></head>
-<body style="font-family:Arial,sans-serif;color:#183447;line-height:1.5;max-width:640px;margin:auto;padding:24px">
-<h1>Atualizações do Spot</h1>
+@extends('mail.layout')
+@section('content')
+<h1 style="margin:0 0 16px;font-size:26px;line-height:1.3;color:#17394f">{{ $copy['title'] }}</h1>
+<p style="margin:0 0 24px;font-size:16px;line-height:1.7">{{ $copy['intro'] }}</p>
 @foreach ($items as $item)
-<section style="border-bottom:1px solid #dde5eb;padding:12px 0">
-<h2 style="font-size:18px">{{ $item['title'] }}</h2>
-<p>{{ $item['body'] }}</p>
-<p style="font-size:12px;color:#526878">{{ $item['actor_name'] }}</p>
-</section>
+<div style="margin:0 0 20px;padding:16px;background:#edf5fa;border:1px solid #c9dce8;border-radius:8px;overflow-wrap:anywhere;word-break:break-word">
+<h2 translate="no" style="margin:0 0 10px;font-size:18px;line-height:1.4;color:#17394f">{{ $item['title'] }}</h2>
+<p translate="no" style="margin:0 0 10px;font-size:15px;line-height:1.7;white-space:pre-line">{{ $item['body'] }}</p>
+<p translate="no" style="margin:0;font-size:13px;line-height:1.6;color:#496171">{{ $item['actor_name'] }}</p>
+</div>
 @endforeach
-<p><a href="{{ url('/') }}">Abrir o Spot</a></p>
-<p style="font-size:12px">Você pode ajustar os canais, resumos e o horário de silêncio em Meu perfil → Notificações.</p>
-</body></html>
+@include('mail.partials.action')
+<p style="margin:24px 0 0;font-size:14px;line-height:1.7">{{ $copy['preferences'] }}</p>
+@include('mail.partials.fallback')
+@endsection
