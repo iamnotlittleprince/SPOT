@@ -5,6 +5,10 @@ Aplicação de gestão de projetos construída com Laravel 13, React 18 e Vite.
 A V2 acrescenta a API REST de controle de estoque documentada na apostila: JWT,
 categorias, produtos, movimentações atômicas e dashboard.
 
+## Documentação final
+
+A [monografia, documentação técnica, referências e guias atualizados](docs/DOCUMENTACAO-FINAL.md) registram a versão de 10/11/2026, com arquivos PDF, DOCX e ODT. Consulte o [repositório do SPOT](https://github.com/iamnotlittleprince/SPOT) e o commit identificado nos documentos.
+
 ## Executar
 
 O projeto já inclui runtimes locais de PHP e Node.js, além das dependências

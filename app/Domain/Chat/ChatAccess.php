@@ -2,7 +2,7 @@
 
 namespace App\Domain\Chat;
 
-use App\Models\{ChatAccessRequest, ChatConversation, User};
+use App\Models\{ChatAccessRequest, ChatConversation, ChatMessage, User};
 use Illuminate\Support\Facades\DB;
 
 class ChatAccess
@@ -50,7 +50,7 @@ class ChatAccess
 
     public function direct(User $user, User $peer): bool
     {
-        return $this->pairEligible($user, $peer) && $this->sameTeam($user, $peer);
+        return $this->pairEligible($user, $peer) && ($this->canReview($user) || $this->sameTeam($user, $peer));
     }
 
     public function conversation(User $user, User $peer, bool $create = false): ?ChatConversation
@@ -64,6 +64,7 @@ class ChatAccess
         if (! $this->pairEligible($user, $peer)) return false;
         if ($this->direct($user, $peer)) return true;
         $conversation = $this->conversation($user, $peer);
+        if ($conversation && $this->canReview($peer) && ChatMessage::where('conversation_id', $conversation->id)->where('sender_id', $peer->id)->exists()) return true;
         return $conversation && ChatAccessRequest::where('conversation_id', $conversation->id)->where('status', 'approved')->whereNull('revoked_at')
             ->with('reviewer.profiles')->get()->contains(fn ($entry) => $entry->reviewer
                 && $entry->reviewer->current_company_id === $user->current_company_id && $this->canReview($entry->reviewer));

@@ -13,6 +13,12 @@ class GoogleAuthController extends Controller
 {
     public function redirect(): RedirectResponse
     {
+        foreach (['client_id', 'client_secret', 'redirect'] as $key) {
+            if (blank(config('services.google.'.$key))) {
+                return redirect('/?auth_error=google_configuration');
+            }
+        }
+
         return Socialite::driver('google')
             ->scopes(['https://www.googleapis.com/auth/calendar.events'])
             ->with(['prompt' => 'consent select_account', 'access_type' => 'offline', 'include_granted_scopes' => 'true'])

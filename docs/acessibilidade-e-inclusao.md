@@ -499,3 +499,17 @@ Build, 25 testes do servidor (364 asserções) e 170 verificações do navegador
 Resultados consolidados em `docs/revisao-producao-2026-11-10.md`. A rodada completa aprovou 36 suítes de navegador, 323 verificações responsivas, tutorial pt/en/es atualizado e testes de teclado/modal. O teste de posição do painel passou a comparar medidas do mesmo instante, evitando inconsistência entre leituras durante alteração de zoom/fonte. Foram removidos os apontamentos de tradução da rodada de idiomas e a exigência de sobrenome no cadastro administrativo.
 
 Os testes do tutorial confirmam ausência de escrita em APIs durante o passeio e visibilidade dos passos segundo as permissões, incluindo chat e escolha de aprovador. Formatação do chat foi verificada repetidamente após a correção de foco. Não houve auditoria humana com leitor de tela, avaliação integral de contraste ou teste em todos os navegadores/dispositivos; não se declara conformidade integral WCAG.
+
+## Bandeiras e configuração Google — 10/11/2026
+
+O seletor de idioma usa SVGs locais, com imagens decorativas e nomes acessíveis nos botões. Estado pressionado, foco e uso por teclado foram preservados. Build, 323 verificações responsivas, 144 de idiomas e teste de teclado/modal passaram. Três SVGs locais e troca de idioma por teclado também foram verificados diretamente. Não houve teste físico em outros sistemas, leitor de tela ou Google no domínio real; ver [procedimento e limites](dominio-google-e-bandeiras.md).
+
+## Ampliação das fontes de leitura — 11/11/2026
+
+Adicionadas Open Sans, Lato, Montserrat e Atkinson Hyperlegible, além das opções existentes. A lista comum está em `resources/js/readingFonts.js`; seleção, persistência local e restauração continuam no provider de leitura usado nas áreas pública e autenticada.
+
+As quatro novas famílias são distribuídas com o build, com arquivos locais e `font-display: swap`, sem consultas ao Google Fonts/CDN durante o uso. Pesos regulares/negritos e variantes itálicas estão incluídos; Open Sans e Montserrat usam arquivos variáveis. As licenças das distribuições estão em `public/font-licenses/`. Pacotes obtidos pelo [Fontsource](https://fontsource.org/docs/getting-started/install); não se atribui a nenhuma fonte, isoladamente, conformidade de acessibilidade ou benefício clínico.
+
+O teste de teclado/modal agora percorre as oito opções em 1440, 390 e 320 px com leitura em 120%, verifica a família aplicada, carrega explicitamente as novas faces com texto acentuado e testa persistência de Atkinson e restauração do padrão. Acesso público, temas, contraste, redução de movimento e preferências também foram verificados. Não houve ensaio com pessoas com deficiência ou homologação em dispositivos físicos; permanece necessária a revisão humana descrita neste documento. Arial, Verdana e Georgia continuam com alternativas de fonte do sistema.
+
+Resultado desta alteração: build aprovado; 323 verificações de responsividade e 144 de idiomas sem falhas; testes de teclado/modal, carregamento das novas fontes e acesso público aprovados. A instalação das dependências reportou zero vulnerabilidades. A suíte PHP não foi repetida, pois a alteração é de interface e assets.

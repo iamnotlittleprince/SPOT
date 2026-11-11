@@ -58,6 +58,7 @@ export default function ChatPage({ user, initialUserId, initialRequests = false 
   const loadedPeer = useRef(null);
   const catalogVersion = useRef(0);
   const composerRef = useRef(null);
+  const searchRef = useRef(null);
   const fileRef = useRef(null);
   const imageRef = useRef(null);
   const sendingRef = useRef(false);
@@ -206,6 +207,8 @@ export default function ChatPage({ user, initialUserId, initialRequests = false 
     });
   }
   const contacts = (catalog?.contacts || []).filter(person => person.name.toLocaleLowerCase(getFormatLocale()).includes(search.toLocaleLowerCase(getFormatLocale())));
+  const canStartWithoutApproval = Boolean(catalog?.can_start_without_approval);
+  const conversationLabel = person => person.can_chat ? (person.same_team ? 'Seu time' : person.administrative_access ? 'Conversa direta' : 'Conversa autorizada') : person.pending ? 'Solicitação pendente' : 'Requer autorização';
   const requestCandidates = (catalog?.contacts || []).filter(person => !person.can_chat && !person.pending);
   const validReviewer = (catalog?.reviewers || []).some(person => String(person.id) === requestReviewer);
   const canRequest = Boolean(validReviewer && catalog?.reviewers_available && requestCandidates.some(person => String(person.id) === requestPeer));
@@ -241,20 +244,20 @@ export default function ChatPage({ user, initialUserId, initialRequests = false 
     {catalog && view === 'conversations' && <div className="chat-layout">
       <aside className="chat-contacts" aria-label="Pessoas no chat">
         <div className="chat-contacts-heading"><h2>Conversas</h2><MessageSquare size={20} aria-hidden="true" /></div>
-        <label htmlFor="chat-search">Buscar pessoa</label><div className="chat-search-field"><Search size={17} aria-hidden="true" /><input id="chat-search" type="search" value={search} onChange={event => setSearch(event.target.value)} /></div>
-        <p>Fora do seu time, solicite autorização a um administrador ou gerente administrador.</p>
+        <label htmlFor="chat-search">Buscar pessoa</label><div className="chat-search-field"><Search size={17} aria-hidden="true" /><input ref={searchRef} id="chat-search" type="search" value={search} onChange={event => setSearch(event.target.value)} /></div>
+        <p>{canStartWithoutApproval ? 'Seu perfil permite conversar diretamente com pessoas desta empresa. Pesquise um nome e envie sua mensagem.' : 'Fora do seu time, solicite autorização a um administrador ou gerente administrador.'}</p>
         <ul>{contacts.map(person => <li key={person.id}><button type="button" disabled={busy} aria-current={selectedId === person.id ? 'true' : undefined} onClick={() => setSelectedId(person.id)}>
-          <span className="chat-avatar" translate="no" aria-hidden="true">{person.avatar_url ? <img src={person.avatar_url} alt="" /> : person.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toLocaleUpperCase()}</span><span><strong translate="no">{person.name}</strong><small>{person.can_chat ? (person.same_team ? 'Seu time' : 'Conversa autorizada') : person.pending ? 'Solicitação pendente' : 'Requer autorização'}</small></span>
+          <span className="chat-avatar" translate="no" aria-hidden="true">{person.avatar_url ? <img src={person.avatar_url} alt="" /> : person.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toLocaleUpperCase()}</span><span><strong translate="no">{person.name}</strong><small>{conversationLabel(person)}</small></span>
         </button></li>)}</ul>
         {!contacts.length && <p>Nenhuma pessoa encontrada.</p>}
       </aside>
       <section className="chat-conversation" aria-labelledby="chat-conversation-title" aria-busy={loading}>
         <header className="chat-conversation-heading">
           <span className="chat-avatar chat-header-avatar" translate="no" aria-hidden="true">{contact ? (contact.avatar_url ? <img src={contact.avatar_url} alt="" /> : contact.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toLocaleUpperCase()) : <MessageSquare size={22} />}</span>
-          <div className="chat-contact-identity"><h2 id="chat-conversation-title">{contact ? <span translate="no">{contact.name}</span> : 'Selecione uma pessoa'}</h2>{contact && <small>{contact.can_chat ? (contact.same_team ? 'Seu time' : 'Conversa autorizada') : 'Requer autorização'}</small>}</div>
+          <div className="chat-contact-identity"><h2 id="chat-conversation-title">{contact ? <span translate="no">{contact.name}</span> : 'Selecione uma pessoa'}</h2>{contact && <small>{conversationLabel(contact)}</small>}</div>
           {contact?.can_chat && <div className="chat-target-field"><span id="chat-target-label" className="chat-translation-label">Traduzir para</span><LanguageSwitcher locale={target} onChange={setTarget} labelledBy="chat-target-label" /></div>}
         </header>
-        {!contact && <div className="chat-empty-state"><span aria-hidden="true"><MessageSquare size={42} strokeWidth={1.3} /></span><h3>Conversas</h3><p>Escolha uma pessoa para conversar ou solicitar autorização.</p></div>}
+        {!contact && <div className="chat-empty-state"><span aria-hidden="true"><MessageSquare size={42} strokeWidth={1.3} /></span><h3>Conversas</h3><p>{canStartWithoutApproval ? 'Pesquise um nome e escolha uma pessoa para conversar.' : 'Escolha uma pessoa para conversar ou solicitar autorização.'}</p></div>}
         {contact && !contact.can_chat && <div className="chat-access-form">
           <span className="chat-access-icon" aria-hidden="true"><LockKeyhole size={27} /></span><p>Esta conversa precisa de autorização de um administrador ou gerente administrador.</p>
           {contact.pending ? <p role="status">Solicitação pendente. Aguarde a análise de um administrador ou gerente administrador.</p> : !catalog.reviewers_available ? <p>Não há administrador ou gerente administrador disponível. Peça à administração para verificar os perfis.</p> : <form onSubmit={event => { event.preventDefault(); act(async () => {
@@ -333,6 +336,11 @@ export default function ChatPage({ user, initialUserId, initialRequests = false 
       <p>{catalog.can_review ? 'Analise os pedidos para conversar fora dos times. A autorização vale apenas para as duas pessoas indicadas.' : 'Acompanhe a autorização para conversar fora dos seus times.'}</p>
       <div className="chat-request-layout">
       <section className="chat-new-request" aria-labelledby="chat-new-request-title">
+        {canStartWithoutApproval ? <>
+        <h3 id="chat-new-request-title">Conversas sem solicitação</h3>
+        <p>Administradores e gerentes administradores podem iniciar conversas diretamente. As solicitações são necessárias para analistas e gerentes fora dos projetos em comum.</p>
+        <button type="button" onClick={() => { setView('conversations'); requestAnimationFrame(() => searchRef.current?.focus()); }}>Ir para conversas</button>
+      </> : <>
         <h3 id="chat-new-request-title">Solicitar acesso ao chat</h3>
         <p id="chat-request-rules">Pessoas do mesmo time já podem conversar. Para conversar fora do time, escolha uma pessoa e explique o motivo. Um administrador ou gerente administrador da empresa, mesmo fora do projeto, analisará o pedido; ninguém pode aprovar a própria solicitação.</p>
         {!catalog.reviewers_available && <p id="chat-request-unavailable" className="chat-request-warning" role="status">Não há administrador ou gerente administrador disponível. Peça à administração para verificar os perfis.</p>}
@@ -357,6 +365,7 @@ export default function ChatPage({ user, initialUserId, initialRequests = false 
           {fieldError('reason') && <p id="chat-request-reason-error" className="chat-error">{translateText(fieldError('reason'))}</p>}
           <div><button type="submit" aria-describedby={!catalog.reviewers_available ? "chat-request-unavailable" : !requestCandidates.length ? "chat-request-empty" : undefined} disabled={busy || !canRequest || !requestReason.trim()}>Enviar solicitação de acesso</button></div>
         </form>
+      </>}
       </section>
       <section className="chat-request-history" aria-labelledby="chat-request-history-title">
       <div className="chat-request-tracking">

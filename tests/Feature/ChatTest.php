@@ -88,9 +88,11 @@ class ChatTest extends TestCase
         $this->send($analyst, $outside);
         $this->send($outside, $analyst);
         $this->actingAs($manager)->getJson('/api/v1/chat')->assertJsonCount(0, 'requests');
-        $this->actingAs($admin)->getJson("/api/v1/chat/users/{$analyst->id}/messages")->assertForbidden();
-        $this->person($company, 'gestor-administrador');
-        $selfId = $this->ask($admin, $manager);
+        $this->actingAs($admin)->getJson("/api/v1/chat/users/{$analyst->id}/messages")->assertOk()->assertJsonCount(0, 'messages');
+        $otherAdmin = $this->person($company, 'gestor-administrador');
+        $this->actingAs($admin)->postJson("/api/v1/chat/users/{$manager->id}/requests", ['reason' => 'Desnecessário', 'reviewer_id' => $otherAdmin->id])->assertConflict();
+        $legacy = app(\App\Domain\Chat\ChatAccess::class)->conversation($admin, $manager, true);
+        $selfId = ChatAccessRequest::create(['conversation_id' => $legacy->id, 'requester_id' => $admin->id, 'assigned_reviewer_id' => $otherAdmin->id, 'reason' => 'Pedido legado', 'status' => 'pending'])->id;
         $this->actingAs($admin)->postJson("/api/v1/chat/requests/{$selfId}/decision", ['decision' => 'approve'])->assertForbidden();
     }
 
@@ -106,11 +108,41 @@ class ChatTest extends TestCase
             $this->actingAs($reviewer)->getJson('/api/v1/chat')->assertOk()->assertJsonPath('can_review', true);
             $this->postJson("/api/v1/chat/requests/{$id}/decision", ['decision' => 'approve'])->assertOk();
             $this->send($requester, $outside);
-            $this->actingAs($reviewer)->getJson("/api/v1/chat/users/{$requester->id}/messages")->assertForbidden();
+            $this->actingAs($reviewer)->getJson("/api/v1/chat/users/{$requester->id}/messages")->assertOk()->assertJsonCount(0, 'messages');
         }
         $admin = $this->person($company, 'administrador');
-        $id = $this->ask($admin, $outside);
-        $this->actingAs($admin)->postJson("/api/v1/chat/requests/{$id}/decision", ['decision' => 'approve'])->assertForbidden();
+        $this->actingAs($admin)->postJson("/api/v1/chat/users/{$outside->id}/requests", ['reason' => 'Desnecessário', 'reviewer_id' => $admin->id])->assertConflict();
+    }
+
+    public function test_administrative_roles_start_direct_chats_and_recipients_can_reply_without_requests(): void
+    {
+        $company = Company::create(['legal_name' => 'Empresa']);
+        $outside = $this->person($company);
+        $guest = $this->person($company, 'convidado');
+        $foreign = $this->person(Company::create(['legal_name' => 'Outra empresa']));
+        foreach (['administrador', 'gestor-administrador'] as $role) {
+            $admin = $this->person($company, $role);
+            $contacts = collect($this->actingAs($admin)->getJson('/api/v1/chat')->assertOk()->assertJsonPath('can_start_without_approval', true)->json('contacts'))->keyBy('id');
+            $this->assertTrue($contacts[$outside->id]['can_chat']);
+            $this->assertTrue($contacts[$outside->id]['administrative_access']);
+            $this->assertFalse($contacts->has($guest->id));
+            $this->assertFalse($contacts->has($foreign->id));
+            $this->actingAs($admin)->getJson("/api/v1/chat/users/{$outside->id}/messages")->assertOk()->assertJsonCount(0, 'messages');
+            $this->actingAs($outside)->postJson("/api/v1/chat/users/{$admin->id}/messages", ['body' => 'Antes do contato'])->assertForbidden();
+            $this->actingAs($admin)->postJson("/api/v1/chat/users/{$outside->id}/requests", [])->assertConflict();
+            $this->send($admin, $outside, 'Contato administrativo');
+            $recipientContacts = collect($this->actingAs($outside)->getJson('/api/v1/chat')->assertOk()->assertJsonPath('can_start_without_approval', false)->json('contacts'))->keyBy('id');
+            $this->assertTrue($recipientContacts[$admin->id]['can_chat']);
+            $this->assertTrue($recipientContacts[$admin->id]['administrative_access']);
+            $this->getJson("/api/v1/chat/users/{$admin->id}/messages")->assertOk()->assertJsonPath('messages.0.body', 'Contato administrativo');
+            $this->send($outside, $admin, 'Resposta sem solicitação');
+            $this->assertDatabaseCount('chat_access_requests', 0);
+            $this->actingAs($admin)->postJson("/api/v1/chat/users/{$guest->id}/messages", ['body' => 'Indevido'])->assertNotFound();
+            $this->postJson("/api/v1/chat/users/{$foreign->id}/messages", ['body' => 'Indevido'])->assertNotFound();
+            $admin->profiles()->sync([Profile::where('slug', 'analista')->value('id') => ['company_id' => $company->id]]);
+            $this->actingAs($admin->fresh())->getJson("/api/v1/chat/users/{$outside->id}/messages")->assertForbidden();
+            $this->actingAs($outside->fresh())->getJson("/api/v1/chat/users/{$admin->id}/messages")->assertForbidden();
+        }
     }
 
     public function test_requests_are_directed_only_to_the_selected_eligible_reviewer(): void

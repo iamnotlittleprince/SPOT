@@ -21,6 +21,7 @@
   "5xx": ["Serviço temporariamente indisponível", "Não foi possível concluir o pedido agora. Tente novamente mais tarde."],
   "network": ["Não foi possível conectar ao Spot", "Confira sua conexão com a internet. Seus dados nesta tela foram mantidos; verifique o resultado antes de repetir uma operação."],
   "application": ["Esta tela encontrou um problema", "Não foi possível exibir esta parte do Spot. Recarregue a página para tentar novamente. Dados ainda não salvos podem precisar ser preenchidos outra vez."],
+  "google_configuration": ["O login com Google ainda não está configurado neste ambiente.", "Use seu e-mail e senha para entrar. Para habilitar o Google, peça ao responsável pelo sistema para configurar a integração."],
   "integration": ["Não foi possível conectar sua conta", "A integração não foi concluída. Você pode entrar com e-mail e senha ou tentar conectar a conta novamente pelo Spot."],
   "account": ["Conta não disponível para este acesso", "Confira se está usando o e-mail cadastrado no Spot. Se precisar de ajuda com o acesso, fale com a administração."]
 }

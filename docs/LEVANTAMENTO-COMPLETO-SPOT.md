@@ -1,5 +1,7 @@
 # Levantamento funcional e técnico do Spot
 
+> Levantamento histórico de 26/10/2026. A versão final, com as regras e evidências de 10/11/2026, está na [documentação atualizada](DOCUMENTACAO-FINAL.md). As quantidades e observações abaixo registram aquela execução e não substituem a revisão final.
+
 Data: 26/10/2026. Base: código e documentação presentes no workspace, incluindo alterações locais ainda não commitadas.
 
 ## 1. O que é o Spot

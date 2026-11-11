@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readingFonts } from '../resources/js/readingFonts.js';
 import { chromium } from 'playwright';
 import { createBrowserSession } from './browser-fixtures.mjs';
 const browser = await chromium.launch({headless:true});
@@ -31,7 +32,7 @@ try {
   const panel = page.getByRole('dialog',{name:'Ajustes rápidos do trabalho',exact:true});
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({width,height:900});
-    for (const font of ['arial','verdana','georgia','default']) {
+    for (const font of Object.keys(readingFonts)) {
       await panel.getByLabel('Fonte do site').selectOption(font);
       for (let i=0;i<3;i++) {
         const increase=panel.getByRole('button',{name:'Aumentar texto',exact:true});
@@ -49,18 +50,26 @@ try {
       if(width === 1440) assert.ok(Math.abs(bounds.x - triggerBounds.x) < 2);
       assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width + 1);
       assert.equal(await page.evaluate(()=>document.documentElement.dataset.readingFont),font);
+      if (font !== 'default') {
+        const family = readingFonts[font].family.split(',')[0].replaceAll('"','');
+        assert.ok(await page.locator('#main-content').evaluate((el,family)=>getComputedStyle(el).fontFamily.includes(family),family));
+        if (['open-sans','lato','montserrat','atkinson'].includes(font)) {
+          assert.ok(await page.evaluate(async family=>{const faces=await document.fonts.load(`400 16px "${family}"`, 'Ação, coração e información');return faces.length>0&&faces.every(face=>face.status==='loaded');},family));
+        }
+      }
     }
   }
   assert.equal(await panel.getByRole('button',{name:'Aumentar texto',exact:true}).isDisabled(),true);
   for(let i=0;i<3;i++) await panel.getByRole('button',{name:'Diminuir texto',exact:true}).click();
   assert.equal(await panel.getByRole('button',{name:'Diminuir texto',exact:true}).isDisabled(),true);
-  await panel.getByLabel('Fonte do site').selectOption('verdana');
-  assert.ok(await page.locator('#main-content').evaluate(el=>getComputedStyle(el).fontFamily.includes('Verdana')));
+  await panel.getByLabel('Fonte do site').selectOption('atkinson');
+  assert.ok(await page.locator('#main-content').evaluate(el=>getComputedStyle(el).fontFamily.includes('Atkinson Hyperlegible')));
   for(let i=0;i<3;i++) await panel.getByRole('button',{name:'Aumentar texto',exact:true}).click();
   await page.keyboard.press('Escape');
   assert.equal(await reading.evaluate(el=>el===document.activeElement),true);
   await page.reload();
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('spot.reading-settings')).scale),120);
+  assert.equal(await page.evaluate(()=>document.documentElement.dataset.readingFont),'atkinson');
   await reading.click();
   await panel.getByRole('button',{name:'Restaurar padrão'}).click();
   assert.equal(await page.evaluate(()=>document.documentElement.style.getPropertyValue('--spot-reading-zoom')),'1');

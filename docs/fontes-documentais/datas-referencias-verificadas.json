@@ -1,0 +1,114 @@
+[
+  {
+    "key": "AWS",
+    "url": "https://aws.amazon.com/",
+    "title": "Cloud Computing Services - Amazon Web Services (AWS)",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "ASANA",
+    "url": "https://asana.com/product",
+    "title": "Asana Work Management - Features, Uses & Product • Asana",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "JIRA",
+    "url": "https://www.atlassian.com/software/jira",
+    "title": "Jira | Project Management for the AI Era | Atlassian",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "TRELLO",
+    "url": "https://trello.com/",
+    "title": "Capture, organize, and tackle your to-dos from anywhere",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "CLICKUP",
+    "url": "https://clickup.com/",
+    "title": "ClickUp™ | Maximize productivity • Software, AI, and humans converge",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "DOCKER",
+    "url": "https://docs.docker.com/compose/",
+    "title": "Docker Compose | Docker Docs",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "LARAVEL",
+    "url": "https://laravel.com/docs/13.x",
+    "title": "Installation | Laravel 13.x - The clean stack for Artisans and agents",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "LIBRE",
+    "url": "https://docs.libretranslate.com/api/operations/translate/",
+    "title": "Translate Text | LibreTranslate",
+    "ano_exato_nao_identificado": true,
+    "data_adotada": "[20--]",
+    "criterio": "Século identificável para a página ou tecnologia; não se atribui ano exato a partir da data de acesso."
+  },
+  {
+    "key": "REACT",
+    "url": "https://18.react.dev/learn",
+    "title": "Quick Start – React",
+    "ano_exato_nao_identificado": true,
+    "data_adotada": "[20--]",
+    "criterio": "Século identificável para a página ou tecnologia; não se atribui ano exato a partir da data de acesso."
+  },
+  {
+    "key": "MONDAY",
+    "url": "https://monday.com/",
+    "title": "The AI Workspace for People & Agents | monday.com",
+    "ano_exato_nao_identificado": true,
+    "data_adotada": "[20--]",
+    "criterio": "Século identificável para a página ou tecnologia; não se atribui ano exato a partir da data de acesso."
+  },
+  {
+    "key": "NOTION",
+    "url": "https://www.notion.com/",
+    "title": "The AI workspace that works for you. | Notion",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "PANDAS",
+    "url": "https://pandas.pydata.org/pandas-docs/version/2.3/",
+    "title": "pandas documentation — pandas 2.3.3 documentation",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "POSTGRES",
+    "url": "https://www.postgresql.org/docs/17/",
+    "title": "PostgreSQL: Documentation: 17: PostgreSQL 17.11 Documentation",
+    "ano_copirraite_identificado": 2026
+  },
+  {
+    "key": "UFABC",
+    "url": "https://portal.biblioteca.ufabc.edu.br/servicos/normalizacao",
+    "title": "Normalização - Universidade Federal do ABC",
+    "ano_exato_nao_identificado": true,
+    "data_adotada": "[20--]",
+    "criterio": "Século identificável para a página ou tecnologia; não se atribui ano exato a partir da data de acesso."
+  },
+  {
+    "key": "UFES",
+    "url": "https://biblioteca.ufes.br/manuais-de-normalizacao",
+    "title": "NORMALIZAÇÃO | Sistema Integrado de Bibliotecas",
+    "data_atualizacao_identificada": "28/10/2026"
+  },
+  {
+    "key": "VITE",
+    "url": "https://vite.dev/guide/",
+    "title": "Getting Started | Vite",
+    "ano_exato_nao_identificado": true,
+    "data_adotada": "[20--]",
+    "criterio": "Século identificável para a página ou tecnologia; não se atribui ano exato a partir da data de acesso."
+  },
+  {
+    "key": "WCAG",
+    "url": "https://www.w3.org/TR/WCAG22/",
+    "title": "Web Content Accessibility Guidelines (WCAG) 2.2",
+    "data_recomendacao_referencia": "12/12/2024"
+  }
+]

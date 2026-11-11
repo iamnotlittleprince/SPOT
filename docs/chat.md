@@ -1,15 +1,17 @@
 # Chat do Spot
 
+Regra vigente revisada em 11/11/2026: administradores e gerentes administradores iniciam conversas diretamente; solicitações são exigidas para analistas e gerentes fora de projetos em comum. As seções datadas de revisões anteriores registram o histórico da implementação.
+
 Conversas individuais persistentes, limitadas à empresa atual, acessíveis pelo ícone e texto **Chat** na barra lateral e pelo menu de páginas. A sessão inicial, login e atualização de perfil informam `can_chat`; as mesmas regras são verificadas no servidor em todas as operações.
 
 ## Quem pode conversar
 
 - Contas ativas, com situação ativa e perfil `analista`, `gestor`, `gestor-administrador` ou `administrador` na empresa atual podem acessar a funcionalidade. A presença do perfil `convidado`, mesmo acumulado com outro perfil, bloqueia o chat.
-- O acesso direto exige participação ativa, sem revogação e com papel `analyst` ou `manager` de ambas as pessoas em pelo menos um mesmo projeto não excluído. Ter permissões globais ou ser responsável cadastrado no projeto sem integrar a equipe não substitui a participação. Finalizar o projeto não remove os vínculos da equipe.
-- Fora desses times, o usuário seleciona uma pessoa da mesma empresa e informa o motivo. Os perfis **administrador** (`administrador`) e **gerente administrador** (`gestor-administrador`) podem aprovar ou recusar, mesmo sem participação no projeto. A ausência desses perfis na equipe não impede solicitar a outro aprovador ativo da mesma empresa. A lista informa apenas nomes, identificação e disponibilidade de chat, sem e-mails ou mensagens alheias.
+- Administradores e gerentes administradores podem buscar e iniciar uma conversa com qualquer pessoa elegível da mesma empresa, sem pedido ou aprovador. Analistas e gerentes têm acesso direto quando ambas as pessoas participam ativamente, sem revogação, como `analyst` ou `manager` em um projeto em comum não excluído. Finalizar um projeto não remove os vínculos da equipe.
+- Fora desses times, o analista ou gerente seleciona uma pessoa da mesma empresa e informa o motivo. Os perfis **administrador** (`administrador`) e **gerente administrador** (`gestor-administrador`) podem aprovar ou recusar, mesmo sem participação no projeto. A ausência desses perfis na equipe não impede solicitar a outro aprovador ativo da mesma empresa. A lista informa apenas nomes, identificação e disponibilidade de chat, sem e-mails ou mensagens alheias.
 - A autorização vale para o par de pessoas, nos dois sentidos, até revogação. Não libera outros usuários nem projetos. Um pedido pendente por par impede duplicatas, inclusive no sentido inverso. Pedidos recusados/revogados permitem nova solicitação.
-- Ninguém aprova a própria solicitação. Um administrador ou gerente administrador que solicita uma conversa externa precisa de outro administrador ou gerente administrador para analisá-la. Sem um revisor elegível, a interface explica como corrigir a situação.
-- As regras de time ou autorização também valem para administradores ao participar de conversas. A alçada de aprovação não dá acesso às mensagens de terceiros.
+- Ninguém aprova a própria solicitação, inclusive em pedidos legados. Administradores e gerentes administradores não geram novos pedidos para si: a API informa que a conversa já está disponível. Sem revisor elegível, o formulário dos analistas/gerentes explica a indisponibilidade.
+- Quando um administrador ou gerente administrador envia a primeira mensagem a uma pessoa fora do time, ela pode ler e responder nessa mesma conversa sem um pedido separado. Apenas abrir o contato não libera a iniciativa do analista/gerente. O contato administrativo precisa continuar elegível e com perfil administrativo; perda dessa condição exige outro vínculo de acesso válido. O perfil administrativo não permite ler mensagens de conversas entre terceiros.
 - Inativação, mudança de empresa ou perfil de convidado tornam o participante indisponível. Fora dos times, a aprovação também deixa de permitir acesso se seu revisor perder a condição de administrador ou gerente administrador ativo na empresa. O usuário pode pedir nova aprovação a outro revisor elegível.
 - A retirada de participação, a revogação ou a mudança para papel de convidado no projeto bloqueiam o acesso pelo time; outra participação compartilhada ou autorização específica ainda válida pode mantê-lo. A revogação de uma autorização externa não remove o acesso de um time compartilhado.
 
@@ -130,3 +132,17 @@ Os formulários da aba e da conversa incluem “Enviar aprovação para”. O ca
 `assigned_reviewer_id` registra o destinatário escolhido, separado de `reviewer_id`, que registra quem efetivamente decidiu. Somente o destinatário escolhido recebe o aviso e pode aprovar/recusar o novo pedido. A listagem inclui pedidos dos participantes e, para revisores, os atribuídos a eles; “Enviado para” identifica o destinatário no acompanhamento. Pedidos antigos sem destinatário continuam disponíveis aos aprovadores elegíveis para preservar o fluxo anterior. Regras de revogação permanecem.
 
 Migration aditiva `2026_11_10_130000_add_assigned_reviewer_to_chat_requests.php` aplicada no ambiente local, sem alterar os pedidos existentes. Build aprovado; 25 testes do chat/364 asserções e 170 verificações no navegador aprovados, incluindo destino exato, aviso somente ao escolhido, bloqueio de outro aprovador, validação de destinatário e tela de 320 px com leitura 120%. Nenhuma solicitação real criada.
+
+## Consolidação da revisão final — 10/11/2026
+
+A pendência de isolamento entre classes descrita na etapa intermediária acima foi corrigida na revisão final. A suíte completa passou com 256 testes e 3.487 asserções, também na imagem Docker; o chat teve 170 verificações de navegador e o editor foi repetido três vezes com 100 verificações por execução. Os resultados históricos foram mantidos para rastreabilidade. Ver [relatório final](revisao-producao-2026-11-10.md) e [documentação consolidada](DOCUMENTACAO-FINAL.md).
+
+## Contato administrativo direto — 11/11/2026
+
+A API informa `can_start_without_approval` para a conta atual e `administrative_access` nos contatos, mantendo `can_chat` como resultado final da política. O catálogo e os endpoints de leitura, envio, anexos, edição, versões e tradução seguem a mesma regra. Uma consulta em lote identifica conversas nas quais o interlocutor já enviou mensagens; o servidor confere novamente a autorização em cada operação.
+
+A interface administrativa mostra Conversa direta, orienta pesquisar um nome e substitui o formulário de pedido por uma explicação na aba Aprovações de chat. O botão Ir para conversas retorna o foco à busca. Analistas/gerentes mantêm o formulário de pessoa, motivo e aprovador escolhido. O tutorial foi atualizado em pt/en/es. Convidados, contas inativas/arquivadas e participantes de outra empresa continuam indisponíveis; histórico alheio continua privado.
+
+Não foi necessária nova migration nesta regra de chat, e nenhum pedido, permissão ou mensagem real foi criado para validá-la. A aplicação na VM depende de publicar a nova imagem. Avaliação humana com leitor de tela e dispositivos físicos permanece pendente.
+
+Validação desta regra: suíte completa PHP com 261 testes e 3.580 asserções aprovadas; 26 testes de chat/412 asserções; build; 174 verificações de chat em 320/1440 px, incluindo envio administrativo direto e foco ao retornar à busca; 323 verificações de responsividade; 144 de idiomas; 756 de tutorial; teste de teclado/modal e ajustes de leitura. As mensagens e solicitações usadas nos testes são sintéticas, sem alteração de conversas reais.

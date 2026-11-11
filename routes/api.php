@@ -43,7 +43,7 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:spot-api'])->grou
     Route::get('invitations/{token}', [ProjectInvitationController::class, 'showAcceptance'])->middleware('throttle:30,1')->name('invitations.show');
     Route::post('invitations/{token}/accept', [ProjectInvitationController::class, 'accept'])->middleware('throttle:10,1')->name('invitations.accept');
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureAccountNotArchived::class])->group(function () {
         Route::prefix('auth')->group(function () {
             Route::post('logout', [AuthController::class, 'logoutSession']);
             Route::get('me', [AuthController::class, 'meSession']);
@@ -158,7 +158,7 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:spot-api'])->grou
 });
 
 // Compatibilidade temporaria para consumidores JWT existentes.
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', \App\Http\Middleware\EnsureAccountNotArchived::class])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me']);

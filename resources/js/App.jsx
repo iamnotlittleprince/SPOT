@@ -1341,6 +1341,7 @@ const administrativeProfileLabels = {
   "gestor-administrador": "Gerente administrador",
   gestor: "Gerente",
   analista: "Analista",
+  convidado: "Convidado",
 };
 
 const accountStatusLabels = {
@@ -1419,7 +1420,7 @@ function AdminUsersPage() {
   }
 
   async function deletePendingUser(user) {
-    if (!window.confirm(`Excluir definitivamente o cadastro pendente de ${user.name}?`)) return;
+    if (!window.confirm(message("Excluir o cadastro de {name}? O acesso será removido e o histórico existente será preservado.", { name: user.name }))) return;
     setFeedback(null);
     try {
       const response = await sessionRequest(`/admin/users/${user.id}`, { method: "DELETE" });
@@ -2537,7 +2538,7 @@ export default function App() {
   useEffect(() => observeTranslations(language), [language]);
   const authError = new URLSearchParams(window.location.search).get('auth_error');
   const accountErrors = ['account_not_provisioned', 'email_mismatch', 'google_already_linked', 'microsoft_already_linked'];
-  if (authError) return <ErrorScreen code={accountErrors.includes(authError) ? 'account' : 'integration'} />;
+  if (authError) return <ErrorScreen code={authError === 'google_configuration' ? 'google_configuration' : accountErrors.includes(authError) ? 'account' : 'integration'} />;
   return <><a className="skip-link" href="#main-content" onClick={() => document.getElementById("main-content")?.focus()}>Pular para o conteúdo</a><ReadingSettingsProvider><LegacySpotApp /></ReadingSettingsProvider></>;
 }
 

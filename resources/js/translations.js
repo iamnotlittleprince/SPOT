@@ -1,6 +1,17 @@
 // Interface text only. User-entered names and content must use translate="no".
 export const interfaceTranslations = {
   "en": {
+    "Conversa direta": "Direct conversation",
+    "Seu perfil permite conversar diretamente com pessoas desta empresa. Pesquise um nome e envie sua mensagem.": "Your role lets you chat directly with people in this company. Search for a name and send your message.",
+    "Pesquise um nome e escolha uma pessoa para conversar.": "Search for a name and choose someone to chat with.",
+    "Conversas sem solicitação": "Conversations without requests",
+    "Administradores e gerentes administradores podem iniciar conversas diretamente. As solicitações são necessárias para analistas e gerentes fora dos projetos em comum.": "Administrators and administrator managers can start conversations directly. Analysts and managers need approval outside shared projects.",
+    "Ir para conversas": "Go to conversations",
+
+    "Excluir o cadastro de {name}? O acesso será removido e o histórico existente será preservado.": "Delete the account for {name}? Access will be removed and existing history will be preserved.",
+    "Este cadastro possui histórico vinculado e não pode ser excluído. Altere a situação para Desativado para bloquear o acesso e preservar os registros.": "This account has linked history and cannot be deleted. Change its status to Disabled to block access and preserve the records.",
+    "O login com Google ainda não está configurado neste ambiente.": "Google sign-in is not configured in this environment yet.",
+    "Use seu e-mail e senha para entrar. Para habilitar o Google, peça ao responsável pelo sistema para configurar a integração.": "Sign in with your email and password. To enable Google, ask the person responsible for the system to configure the integration.",
     "Permissões": "Permissions",
     "Gerenciar permissões": "Manage permissions",
     "% concluído": "% complete",
@@ -1403,6 +1414,17 @@ export const interfaceTranslations = {
     "Cancelados": "Cancelled"
   },
   "es": {
+    "Conversa direta": "Conversación directa",
+    "Seu perfil permite conversar diretamente com pessoas desta empresa. Pesquise um nome e envie sua mensagem.": "Su perfil permite conversar directamente con personas de esta empresa. Busque un nombre y envíe su mensaje.",
+    "Pesquise um nome e escolha uma pessoa para conversar.": "Busque un nombre y elija una persona para conversar.",
+    "Conversas sem solicitação": "Conversaciones sin solicitud",
+    "Administradores e gerentes administradores podem iniciar conversas diretamente. As solicitações são necessárias para analistas e gerentes fora dos projetos em comum.": "Los administradores y gerentes administradores pueden iniciar conversaciones directamente. Los analistas y gerentes necesitan autorización fuera de los proyectos compartidos.",
+    "Ir para conversas": "Ir a conversaciones",
+
+    "Excluir o cadastro de {name}? O acesso será removido e o histórico existente será preservado.": "¿Eliminar la cuenta de {name}? Se retirará el acceso y se conservará el historial existente.",
+    "Este cadastro possui histórico vinculado e não pode ser excluído. Altere a situação para Desativado para bloquear o acesso e preservar os registros.": "Esta cuenta tiene un historial vinculado y no se puede eliminar. Cambie su situación a Desactivado para bloquear el acceso y conservar los registros.",
+    "O login com Google ainda não está configurado neste ambiente.": "El inicio de sesión con Google aún no está configurado en este entorno.",
+    "Use seu e-mail e senha para entrar. Para habilitar o Google, peça ao responsável pelo sistema para configurar a integração.": "Inicie sesión con su correo y contraseña. Para habilitar Google, solicite al responsable del sistema que configure la integración.",
     "Permissões": "Permisos",
     "Gerenciar permissões": "Gestionar permisos",
     "% concluído": "% completado",

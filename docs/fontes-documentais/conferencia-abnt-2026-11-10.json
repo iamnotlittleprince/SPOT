@@ -1,0 +1,559 @@
+{
+  "Monografia_SPOT_documentacao_integrada_final": {
+    "paginas": 58,
+    "verificacoes": [
+      {
+        "item": "A4 em todas as seções",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Margens 3/3/2/2 cm",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Corpo Arial 12",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Corpo em entrelinha 1,5",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Cabeçalho a 2 cm e paginação menor",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Natureza em espaço simples e metade direita",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Referências à esquerda em espaço simples",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Fontes e legendas menores e uniformes",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Títulos pós-textuais centralizados",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "RESUMO: parágrafo único e 150–500 palavras",
+        "aprovado": true,
+        "detalhe": 211
+      },
+      {
+        "item": "RESUMO: palavras-chave separadas por ponto e vírgula",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "ABSTRACT: parágrafo único e 150–500 palavras",
+        "aprovado": true,
+        "detalhe": 188
+      },
+      {
+        "item": "ABSTRACT: palavras-chave separadas por ponto e vírgula",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Sem numeração impressa nos pré-textuais",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Paginação contínua: folha de rosto contada; capa excluída",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Todos os itens do sumário com título e página corretos",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "LISTA DE FIGURAS: todos os itens e páginas",
+        "aprovado": true,
+        "detalhe": {
+          "quantidade": 15,
+          "erros": []
+        }
+      },
+      {
+        "item": "Figura: chamadas no texto",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "LISTA DE QUADROS: todos os itens e páginas",
+        "aprovado": true,
+        "detalhe": {
+          "quantidade": 10,
+          "erros": []
+        }
+      },
+      {
+        "item": "Quadro: chamadas no texto",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "LISTA DE TABELAS: todos os itens e páginas",
+        "aprovado": true,
+        "detalhe": {
+          "quantidade": 14,
+          "erros": []
+        }
+      },
+      {
+        "item": "Tabela: chamadas no texto",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Sem marcador de referências nem datas s. d.",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Referências com título em destaque e ano identificável",
+        "aprovado": true,
+        "detalhe": 26
+      },
+      {
+        "item": "Todas as referências possuem chamada autor-data correspondente",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Todas as chamadas autor-data possuem referência correspondente",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 1",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 2",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 3",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 1",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 2",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 3",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Folha de aprovação ausente conforme solicitação",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "PDF sem páginas vazias",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Texto dentro da área de impressão",
+        "aprovado": true,
+        "detalhe": []
+      }
+    ],
+    "falhas": 0
+  },
+  "documentacao-tecnica-spot-abnt": {
+    "paginas": 37,
+    "verificacoes": [
+      {
+        "item": "A4 em todas as seções",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Margens 3/3/2/2 cm",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Corpo Arial 12",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Corpo em entrelinha 1,5",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Cabeçalho a 2 cm e paginação menor",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Natureza em espaço simples e metade direita",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Referências à esquerda em espaço simples",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Fontes e legendas menores e uniformes",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Títulos pós-textuais centralizados",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "RESUMO: parágrafo único e 150–500 palavras",
+        "aprovado": true,
+        "detalhe": 203
+      },
+      {
+        "item": "RESUMO: palavras-chave separadas por ponto e vírgula",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "ABSTRACT: parágrafo único e 150–500 palavras",
+        "aprovado": true,
+        "detalhe": 166
+      },
+      {
+        "item": "ABSTRACT: palavras-chave separadas por ponto e vírgula",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Sem numeração impressa nos pré-textuais",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Paginação contínua: folha de rosto contada; capa excluída",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Todos os itens do sumário com título e página corretos",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "LISTA DE FIGURAS: todos os itens e páginas",
+        "aprovado": true,
+        "detalhe": {
+          "quantidade": 2,
+          "erros": []
+        }
+      },
+      {
+        "item": "Figura: chamadas no texto",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "LISTA DE QUADROS: todos os itens e páginas",
+        "aprovado": true,
+        "detalhe": {
+          "quantidade": 8,
+          "erros": []
+        }
+      },
+      {
+        "item": "Quadro: chamadas no texto",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Sem marcador de referências nem datas s. d.",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Referências com título em destaque e ano identificável",
+        "aprovado": true,
+        "detalhe": 17
+      },
+      {
+        "item": "Todas as referências possuem chamada autor-data correspondente",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Todas as chamadas autor-data possuem referência correspondente",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 1",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 2",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 3",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 1",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 2",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 3",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Folha de aprovação ausente conforme solicitação",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "PDF sem páginas vazias",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Texto dentro da área de impressão",
+        "aprovado": true,
+        "detalhe": []
+      }
+    ],
+    "falhas": 0
+  },
+  "tcc/GUIA-COMPLETO-TCC-SPOT": {
+    "paginas": 60,
+    "verificacoes": [
+      {
+        "item": "A4 em todas as seções",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Margens 3/3/2/2 cm",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Corpo Arial 12",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Corpo em entrelinha 1,5",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Cabeçalho a 2 cm e paginação menor",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Natureza em espaço simples e metade direita",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Referências à esquerda em espaço simples",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Fontes e legendas menores e uniformes",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Títulos pós-textuais centralizados",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "RESUMO: parágrafo único e 150–500 palavras",
+        "aprovado": true,
+        "detalhe": 211
+      },
+      {
+        "item": "RESUMO: palavras-chave separadas por ponto e vírgula",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "ABSTRACT: parágrafo único e 150–500 palavras",
+        "aprovado": true,
+        "detalhe": 188
+      },
+      {
+        "item": "ABSTRACT: palavras-chave separadas por ponto e vírgula",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Sem numeração impressa nos pré-textuais",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Paginação contínua: folha de rosto contada; capa excluída",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Todos os itens do sumário com título e página corretos",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "LISTA DE FIGURAS: todos os itens e páginas",
+        "aprovado": true,
+        "detalhe": {
+          "quantidade": 15,
+          "erros": []
+        }
+      },
+      {
+        "item": "Figura: chamadas no texto",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "LISTA DE QUADROS: todos os itens e páginas",
+        "aprovado": true,
+        "detalhe": {
+          "quantidade": 11,
+          "erros": []
+        }
+      },
+      {
+        "item": "Quadro: chamadas no texto",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "LISTA DE TABELAS: todos os itens e páginas",
+        "aprovado": true,
+        "detalhe": {
+          "quantidade": 14,
+          "erros": []
+        }
+      },
+      {
+        "item": "Tabela: chamadas no texto",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Sem marcador de referências nem datas s. d.",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Referências com título em destaque e ano identificável",
+        "aprovado": true,
+        "detalhe": 26
+      },
+      {
+        "item": "Todas as referências possuem chamada autor-data correspondente",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Todas as chamadas autor-data possuem referência correspondente",
+        "aprovado": true,
+        "detalhe": []
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 1",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 2",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 3",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 1",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 2",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Hierarquia tipográfica TOC 3",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Folha de aprovação ausente conforme solicitação",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "PDF sem páginas vazias",
+        "aprovado": true,
+        "detalhe": null
+      },
+      {
+        "item": "Texto dentro da área de impressão",
+        "aprovado": true,
+        "detalhe": []
+      }
+    ],
+    "falhas": 0
+  }
+}

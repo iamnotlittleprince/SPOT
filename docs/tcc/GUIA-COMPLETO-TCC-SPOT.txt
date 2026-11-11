@@ -1,826 +1,1016 @@
-SPOT — Guia de estudo e defesa do TCC
+# SPOT — Guia atualizado de estudo e defesa
 
-Da pesquisa de campo à arquitetura do sistema  
-Colégio Dr. Clóvis Bevilacqua — Curso de Informática  
-Alexander Molany Longo; Lucas Rodrigues Soares; Pedro Galvão de Matos; Yasmin Regina de Souza  
-Orientador indicado na monografia: João Carlos de Souza  
-Santo André — 2026  
-Data de corte técnico: 26 de outubro de 2026.
+Versão técnica de 10/11/2026. Código: 146bd986867ecb25bc75db53c6d1944c6d89ae66.
 
-1. Como utilizar este material
+Repositório: https://github.com/iamnotlittleprince/SPOT
 
-A apresentação tem 15 slides e um roteiro estimado de 14min10s, deixando 50 segundos de margem até o limite de 15 minutos. O texto de fala está nas notas do PowerPoint e na seção 16 deste guia. Não é necessário ler este documento inteiro durante a apresentação: ele funciona como material de estudo, rastreabilidade e consulta para perguntas.
+## 1 INTRODUÇÃO
 
-As fontes primárias fornecidas são o capítulo Capitulo_Levantamento_Pesquisa_ABNT.docx, a Monografia_SPOT_documentacao_integrada.docx e a implementação local do Spot. A monografia contém dois trabalhos de pesquisa diferentes: o levantamento com usuários e o estudo de sistemas do mercado, incluindo tecnologias de IA. Ambos são articulados aqui com a implementação. Os arquivos originais não foram alterados. A revisão desta entrega completa os itens funcionais parciais da tabela e retira IA da lista de implementação, preservando os dados brutos da pesquisa.
+O sistema denominado Sistemas de Projetos, Organização e Tarefas (SPOT) é uma aplicação web desenvolvida no contexto do Curso de Informática do Colégio Dr. Clóvis Bevilacqua para apoiar necessidades de gestão relatadas no trabalho da Computécnica. O problema reúne organização de atividades, delimitação de responsabilidades, comunicação e acompanhamento dos custos de execução. A monografia preliminar registra a intenção de modernizar a experiência de uso e reduzir a dependência de soluções externas; a edição final descreve o que o código efetivamente demonstra (Longo et al., 2026b).
 
-Este guia cobre o código e os documentos disponíveis nesta sessão e no workspace. Não pressupõe acesso a outras conversas do Codex. As imagens do sistema são capturas da interface real do build local, com dados demonstrativos e respostas de API simuladas. Nos slides, o perfil etário usa gráfico de linhas e a necessidade de software usa gráfico de setores. As barras também exibem contagem e porcentagem sobre a base declarada de 94. Os gráficos da pesquisa foram reconstruídos a partir do texto e das imagens incorporadas ao DOCX, sem acesso à planilha individual de respostas.
+### 1.1 Problema de pesquisa
 
-2. Tese central e problema atendido
+Como integrar o planejamento, a execução e o acompanhamento gerencial de projetos em uma aplicação web que preserve responsabilidades e restrições de acesso entre pessoas e equipes? A pergunta não pressupõe que uma nova interface, isoladamente, aumente a produtividade. A resposta é examinada pela especificação, implementação e verificação de comportamentos, e não por uma promessa de resultado financeiro.
 
-O SPOT — Sistemas de Projetos, Organização e Tarefas — foi desenvolvido para responder às necessidades da Computécnica. A monografia relata visual antigo, dificuldade de integração entre telas, responsabilidades pouco delimitadas, restrições insuficientes de acesso, despesas adicionais desconectadas do planejamento e dependência de licença do sistema anterior.
+### 1.2 Objetivo geral
 
-A proposta combina três perspectivas: organização do trabalho, governança do acesso e acompanhamento financeiro gerencial. O fluxo central é cadastrar o contrato/projeto, planejar custos e horas, atribuir equipe, registrar atividades e despesas e comparar o resultado com a estimativa. Assim, a contribuição do trabalho vai além de redesenhar telas: transforma requisitos de uma operação real em regras verificáveis e dados relacionados.
+Desenvolver e documentar uma aplicação integrada de projetos, organização e tarefas, com regras de identidade e autorização, execução rastreável e informações de apoio à gestão, verificando a implementação por testes reproduzíveis.
 
-Frase de abertura sugerida: “O Spot nasceu para que a Computécnica acompanhe não apenas o andamento de um projeto, mas também quem pode agir sobre ele e quanto sua execução está custando.”
+### 1.3 Objetivos específicos
 
-3. Pesquisa de campo: metodologia e qualidade
+Identificar necessidades na pesquisa documental e de campo; modelar entidades e responsabilidades; implementar autenticação, projetos, equipes, tarefas, horas e despesas; organizar comunicação, notificações e agenda; consolidar indicadores; disponibilizar recursos de idiomas e acessibilidade; verificar regras e interface; e registrar condições de implantação e continuidade.
 
-O documento caracteriza a pesquisa como aplicada, descritiva e quali-quantitativa, realizada por Google Forms. Declara 15 perguntas fechadas e uma aberta, coleta entre 18/03/2026 e 24/08/2026 e 94 respostas válidas. A amostra é de conveniência e não probabilística. Isso permite descrever padrões entre participantes e orientar requisitos; não permite estimar o comportamento de todas as empresas, calcular representatividade populacional ou atribuir causalidade.
+### 1.4 Justificativa e delimitação
 
-Pontos fortes: combinação de contagens e sugestões abertas; 94 participantes; diversidade de faixas etárias; 88 pessoas empregadas; presença de pessoas que não são especialistas em gestão de projetos; levantamento de dores, ferramentas, usabilidade e necessidades financeiras. O emprego de perguntas abertas ajuda a transformar uma preferência genérica em requisitos concretos.
+A contribuição é a tradução de necessidades operacionais em dados relacionados e regras verificáveis. Projetos precisam de responsáveis; comunicação fora de um time precisa de autorização; custos dependem de registros e tarifas. O produto busca coordenar esses elementos em um fluxo coerente. A pesquisa fornece contexto, mas não substitui avaliação posterior de uso.
 
-A participação de não especialistas é útil para discutir adoção cotidiana, mas não prova validade externa nem substitui validação com gestores e analistas da Computécnica. As percepções também não são medidas diretas de produtividade, retorno financeiro ou sucesso de implantação.
+O recorte técnico é o commit 146bd986867ecb25bc75db53c6d1944c6d89ae66, confirmado no repositório remoto em 10 de novembro de 2026. São descritos recursos presentes e verificados nessa revisão. Integrações que dependem de terceiros são distinguidas de homologação real; não se afirma implantação concluída nem conformidade integral de acessibilidade. O estudo de soluções e inteligência artificial (IA) é preservado como fundamentação, com atualização da relação entre propostas e entrega.
 
-3.1 Cuidados com os números
+### 1.5 Organização do trabalho
 
-Várias figuras exibem totais entre 89 e 92, embora o texto declare 94 participantes. Neste material, percentuais principais usam 94 como denominador, conforme o capítulo. As diferenças são identificadas como “diferença até 94 não discriminada no documento”. Não é possível afirmar se resultam de não resposta, filtro, limpeza ou erro sem a base original.
+O texto apresenta fundamentos e estudo de soluções, metodologia, pesquisa de campo, arquitetura, funcionalidades, modelo de dados, verificação, implantação e conclusão. Os apêndices permitem localizar rotas e migrations. As referências reúnem as fontes efetivamente consultadas, com acesso ao repositório e à versão do código.
 
-A questão de ferramentas permite menções não exclusivas; suas contagens não devem somar 94. O capítulo apresenta 13 gráficos, a informação de emprego e a síntese aberta; não permite reconstruir separadamente todas as 15 perguntas fechadas declaradas. Não foi inventada uma pergunta ausente.
+## 2 FUNDAMENTAÇÃO E ESTUDO DE SOLUÇÕES
 
-A tabela qualitativa soma 49 frequências, mas o texto informa 57 comentários. Sem a codificação individual não se deve criar uma oitava categoria ou assumir exatamente oito respostas não classificadas: a diferença de oito unidades é uma inconsistência documental a reconciliar, e categorias também poderiam se sobrepor.
+A fundamentação relaciona organização do trabalho, componentes de software e soluções consultadas. A distinção entre levantamento documental e validação prática delimita as conclusões possíveis.
 
-O texto afirma que existe maioria favorável a uma solução dedicada entre quem já possui ferramenta. Não há tabela cruzada nem base individual para conferir essa conclusão; por isso, ela não foi usada como evidência quantitativa nos slides.
+### 2.1 Gestão integrada e rastreabilidade
 
-4. Todos os resultados recuperáveis e sua relação com o Spot
+A coordenação de projetos depende de informações consistentes sobre escopo, pessoas, prazos, execução e custos. Neste trabalho, integração significa relacionar esses registros e aplicar regras de acesso em suas operações. Uma visualização pode resumir dados, mas a coerência depende de sua origem, validação e atualização; por isso o desenho do sistema inclui histórico, auditoria e vinculação entre entidades.
 
-As contagens abaixo transcrevem as figuras e o texto fornecidos. A pasta assets/graficos contém os 13 gráficos reconstituídos e o gráfico temático; dados_pesquisa.json e dados_pesquisa.csv permitem conferir os valores.
+### 2.2 Aplicações web, componentes e persistência
 
-4.1 Perfil: idade, emprego e atuação
+A separação entre componentes de interface e regras de servidor permite modificar apresentação sem deslocar decisões de segurança ao navegador. Rotas e validação no Laravel, componentes React e construção com Vite dão suporte a essa organização; o projeto relacional e o controle transacional mantêm os vínculos persistidos (Laravel, 2026; Meta Platforms, [20--]; PostgreSQL Global Development Group, 2026; Vite, [20--]).
 
-Faixa etária, figura 1: 15–25 anos, 28; 25–35, 22; 35–45, 19; 45–55, 15; acima de 55, 10. Total 94. Respectivamente: 29,8%, 23,4%, 20,2%, 16,0% e 10,6%. Empregados: 88/94, ou 93,6%; o documento não discrimina aqui os demais estados de emprego.
+### 2.3 Levantamento documental de sistemas
 
-Atuação em projetos, figura 2: não, 65; parcialmente, 20; totalmente, 4; sim, 3. Soma 92; diferença de 2 até 94. O capítulo agrega as duas últimas categorias em 7, mas o gráfico mantém as alternativas separadas. 65/94 = 69,1% não atuam diretamente na área.
+O estudo preliminar abrangeu ferramentas de gestão e serviços de infraestrutura. Nesta revisão, foram consultadas páginas oficiais para registrar a finalidade geral das soluções sem atribuir preços, superioridade ou desempenho não medidos. A descrição é documental; não houve ensaio comparativo controlado, contratação nem avaliação de todos os planos comerciais.
 
-Relação com a implementação: quadro/lista/calendário, descrições claras, tutorial guiado, três idiomas e navegação por áreas foram adotados para facilitar o uso. A pesquisa justifica a prioridade de usabilidade; ainda é necessário medir a facilidade real com participantes, tarefas e critérios definidos.
+As informações correspondentes estão organizadas no Quadro 1.
 
-4.2 Ferramentas utilizadas
+Soluções consultadas e papel no estudo
 
-Figura 3: Office 365, 52 menções (55,3% de 94); software próprio, 26; Office 2021, 19; nenhum software, 17 (18,1%); Bloco de Notas, 16; Notion, 4. Total de 134 menções, compatível com contagens não exclusivas.
+| Solução | Aspecto observado | Fonte |
+| --- | --- | --- |
+| monday.com | Organização de trabalho, painéis e integrações | monday.com ([20--]) |
+| Asana | Coordenação de trabalho e fluxos de equipe | Asana (2026) |
+| Jira | Organização e acompanhamento de trabalho em equipes | Atlassian (2026a) |
+| Trello | Quadros, organização de tarefas e automações | Atlassian (2026b) |
+| ClickUp | Reunião de projetos, documentos e comunicação | ClickUp (2026) |
+| Notion | Organização de conhecimento e trabalho | Notion (2026) |
+| AWS | Infraestrutura e serviços de nuvem; não é equivalente direto a um gerenciador de tarefas | Amazon Web Services (2026) |
 
-Relação com o Spot: login Microsoft, calendário Outlook, criação de reuniões Teams e diretório Microsoft Graph respondem à presença do ecossistema Microsoft. Também há login e agenda Google. Não há importação genérica de todos os aplicativos citados. O menu de 24 aplicativos abre serviços externos; não equivale a 24 integrações de dados.
+Fonte: Elaboração própria a partir das páginas oficiais indicadas nas referências, consultadas em 10 nov. 2026.
 
-4.3 Software específico de projetos
+O SPOT não é apresentado como substituto universal dessas ferramentas. Sua contribuição é o ajuste das regras ao contexto estudado, com rastreabilidade entre cadastro, permissões, execução e finanças. O estudo de mercado orienta critérios de organização, sem sustentar comparação causal de qualidade ou custo.
 
-Figura 4: não possui, 33 (35,1%); possui, 32 (34,0%); possui, mas projetos não são seu foco, 27 (28,7%). Soma 92; diferença 2. As categorias “não” e “sem foco” somam 60/94 = 63,8%. Essa soma é derivada para este material e não deve ser confundida com os outros 63,8% da questão de organização.
+### 2.4 Inteligência artificial, automação e tradução
 
-Relação com o Spot: aplicação dedicada à operação de projetos, conectando clientes, responsáveis, atividades, horas e resultado. A existência de uma oportunidade nessa amostra não comprova disposição de compra nem participação de mercado.
+O estudo original de tecnologias de IA não deve ser confundido com uma lista de recursos entregues. A implementação final utiliza regras determinísticas e processamento analítico; dispõe também de tradução automática opcional de mensagens por serviço configurado. Não foram demonstrados agentes generativos de planejamento, predição validada de custos ou decisões gerenciais autônomas. A categoria automação e IA da pesquisa continua preservada como sugestão, sem alteração do dado original (Longo et al., 2026a).
 
-4.4 Satisfação e usabilidade atuais
+### 2.5 Acessibilidade e documentação
 
-Figura 5: “sim, porém poderia haver melhorias”, 30; “não temos”, 29; “sim, ele é competente no que precisamos”, 23; “não, no dia a dia nem é utilizado”, 7. Soma 89; diferença 5. Esses dados mostram convivência de satisfação e oportunidades de melhoria. Não se deve dizer que a maioria está insatisfeita.
+O desenho acessível considera modos distintos de interação e compreensão, tendo Web Content Accessibility Guidelines (WCAG) 2.2 AA como objetivo e avaliação humana como etapa necessária (World Wide Web Consortium, 2024). A organização deste texto utiliza as normas da Associação Brasileira de Normas Técnicas (ABNT) para apresentação, citações, referências, numeração, sumário e resumo (Associação Brasileira de Normas Técnicas, 2012a, 2012b, 2021, 2023, 2024, 2025), apoiadas pelas orientações institucionais de bibliotecas universitárias (Universidade Federal do ABC, [20--]; Universidade Federal do Espírito Santo, 2026).
 
-Figura 6: “não possuímos um software para isso”, 29; “sim”, 28; “mais ou menos”, 25; “não”, 4; “absolutamente”, 4. Soma 90; diferença 4. A presença de 25 respostas intermediárias sugere investigar dificuldades de interação. As 29 pessoas sem software não avaliam propriamente uma interface existente.
+## 3 METODOLOGIA
 
-Relação com o Spot: identidade visual, temas claro/escuro, filtros, diferentes visualizações e tutorial. São respostas de design e implementação, não resultados de um teste comparativo de usabilidade. Não foi aplicado SUS ou ensaio controlado nessa execução.
+Os procedimentos distinguem dados de participantes, documentos e evidências de implementação. São apresentados os critérios de análise e os limites das fontes disponíveis.
 
-4.5 Projetos internos e externos
+### 3.1 Natureza e procedimentos
 
-Figura 7, externos: sim, 42; não, 21; quase nunca, 18; absolutamente, 9. Soma 90; diferença 4. Concordância direta: 51/94 = 54,3%.
+O trabalho reúne desenvolvimento aplicado de software, pesquisa descritiva com participantes e estudo documental. O levantamento com usuários foi recebido como fonte primária da equipe; o estudo de ferramentas foi confrontado com páginas oficiais; a implementação foi analisada por rotas, migrations, controladores, componentes, dependências e testes. A distinção entre essas fontes evita apresentar opinião de participante como resultado de uma medição de software.
 
-Figura 8, internos: sim, 57; absolutamente, 16; não, 9; quase nunca, 7. Soma 89; diferença 5. Concordância direta: 73/94 = 77,7%.
+### 3.2 Critério de versão e evidência
 
-Relação com o Spot: projetos com ou sem cliente, equipes, convites e vínculos; a API prevê modalidades de participação e referências externas. Há base de modelagem, mas a interface não demonstra dois workflows completos e separados de ponta a ponta para interno e externo. Classificação desse requisito: parcial.
+A revisão técnica utiliza o commit 146bd986867ecb25bc75db53c6d1944c6d89ae66 e evidências registradas em output/production-review. A documentação inclui inventário de rotas e manifesto das fontes. Um teste aprovado é tratado como evidência do cenário exercitado. Build, análise de dependências e smoke test de imagem são verificações diferentes e não equivalem a homologação completa (Longo et al., 2026c).
 
-4.6 Organização e alinhamento
+### 3.3 Cuidados éticos e limitações
 
-Figura 9, dificuldade de organização: sim, 49; não, 16; talvez, 13; absolutamente, 11. Soma 89; diferença 5. Concordância: 60/94 = 63,8%.
+Foram preservados os totais e as inconsistências documentais da pesquisa. Não houve reconstrução de respostas individuais nem criação de depoimentos. As capturas da aplicação empregam dados sintéticos e APIs simuladas, sem expor credenciais ou mensagens reais. Resultados financeiros, produtividade e satisfação pós-implantação não foram medidos, de modo que não se atribui ao produto um efeito que não foi observado.
 
-Relação com o Spot: Home, cadastro e acompanhamento de projetos, tarefas em quadro/lista/calendário, filtros por ano/cliente/projeto/status, prioridades, prazos, responsáveis e histórico. A implementação responde à dor, mas a pesquisa não mede se o Spot já a reduziu.
+## 4 LEVANTAMENTO DE PESQUISA DE CAMPO
 
-Figura 10, dificuldade de alinhamento na liderança: não, 31; sim, 31; talvez, 20; absolutamente, 8. Soma 90; diferença 4. Concordância: 39/94 = 41,5%. Não foi demonstrado que os demais são todos líderes; não atribuir a dificuldade a uma causa específica sem dados.
+O levantamento descreve percepções dos participantes e orienta a relação entre necessidades e requisitos. A apresentação mantém as frequências recuperáveis e registra as diferenças documentais.
 
-Relação com o Spot: equipe por projeto, responsável e coparticipantes na tarefa, funções, histórico e regras de acesso. Não há chat interno completo nem prova de redução de reuniões ou conflitos.
+### 4.1 Procedimento e base documental
 
-4.7 Organização e faturamento
+O levantamento foi caracterizado no documento fornecido pela equipe como pesquisa aplicada, descritiva, quali-quantitativa, conduzida por formulário eletrônico entre 18 de março e 24 de agosto de 2026. O texto declara 15 questões fechadas, uma aberta e 94 respostas válidas. A amostra foi de conveniência, não probabilística; os resultados descrevem participantes e não permitem generalização estatística a todas as empresas (Longo et al., 2026a).
 
-Figura 11: sim, 57; absolutamente, 26; talvez, 4; não, 4. Soma 91; diferença 3. Concordância: 83/94 = 88,3%.
+A edição final preserva as frequências recuperadas no capítulo da pesquisa e no arquivo dados_pesquisa.json. Não houve acesso à planilha individual de respostas. Treze conjuntos gráficos foram recuperados; o material não permite reconstruir todas as perguntas declaradas separadamente. Os totais de algumas figuras diferem de 94, sem indicação suficiente para distinguir não resposta, filtro ou erro documental.
 
-Relação com o Spot: custos por analista e atividade, tarifas normais/extras, despesas aprovadas, impostos, comissão e relatórios. Esse é o achado quantitativo mais forte para justificar a união entre organização e financeiro. A pergunta mede percepção; não demonstra aumento de faturamento causado pelo sistema.
+Os percentuais desta edição usam 94 como base declarada, com uma casa decimal. Quando alternativas não são exclusivas, as frequências não devem somar o total de participantes. Nos demais casos, a diferença até 94 é explicitada como não discriminada e não é convertida em uma categoria inventada.
 
-4.8 Custos adicionais
+### 4.2 Resultados quantitativos
 
-Figura 12: não, 33; talvez, 26; sim, 21; absolutamente, 9. Soma 89; diferença 5. Dificuldade direta: 30/94 = 31,9%. Não é a dor majoritária da amostra; continua relevante pela demanda específica da Computécnica e pelo grupo que a relata.
-
-Relação com o Spot: tipos de despesas, lançamento, analista associado quando autorizado, revisão, aprovação/rejeição e incorporação apenas das aprovadas no resultado. Viagem ou hospedagem podem ser organizadas como tipos de despesa; não existe integração automática com reservas ou cartões corporativos.
-
-4.9 Necessidade de solução dedicada
-
-Figura 13: talvez, 33; sim, 32; não, 14; absolutamente, 11. Soma 90; diferença 4. Apoio direto: 43/94 = 45,7%. Apoio mais abertura: 76/94 = 80,9%, arredondado no documento para aproximadamente 81%. “Talvez” não é intenção de compra nem aprovação definitiva. Não dizer que 81% comprariam o Spot.
-
-Relação com o Spot: oferta de uma solução dedicada e adaptável ao contexto. A próxima etapa seria validação com usuários-alvo, piloto e avaliação de esforço de implantação.
-
-4.10 Sugestões abertas
-
-O documento declara 57 comentários, equivalentes a 60,6% dos 94 participantes. O recorte funcional adotado para a apresentação destaca:
-
-| Tema | Frequência publicada | Resposta no Spot | Situação |
-|---|---:|---|---|
-| Interface simples | 12 | Tutorial, temas, navegação, visões de tarefas | Implementado; eficácia ainda não medida |
-| Financeiro/custos | 6 | Horas, tarifas, despesas e planejado × realizado | Implementado, gerencial |
-| Integrações/e-mail | 6 | OAuth, calendários paginados, Teams e e-mails de atividade em fila | Implementado; exige credenciais, SMTP e ativação |
-| Dashboards | 5 | Portfólio, gráficos, CSV e atualização automática | Implementado; consulta periódica de 30 s |
-| Tarefas/agenda/prazos | 5 | Quadro/lista/calendário, filtros, agenda e lembretes automáticos | Implementado; canais, silêncio e resumos respeitados |
-| Sem sugestão específica | 12 | Sem requisito específico derivado | Categoria da pesquisa |
-
-As descrições são sínteses temáticas do documento, não falas literais dos participantes. A lista funcional seleciona os temas ligados às entregas; a codificação original completa continua nos dados JSON/CSV e no gráfico de apoio, sem redistribuir frequências. O pedido de indicadores foi atendido com atualização automática a cada 30 segundos nas telas visíveis, além de atualização após mutações e entre abas. É consulta periódica, não streaming ou WebSocket.
-
-5. Pesquisa de sistemas: o que aprender e como comparar
-
-A monografia estuda Monday.com, Asana, Jira, Trello, ClickUp e Notion e inclui AWS. Também discute ClickUp Brain, Asana Intelligence, Monday AI, TaskRush/RushMind, Notion AI, Trello/Butler, Artia e Jestor na seção de IA e planos.
-
-Seu ponto forte é ampliar as referências de interação e escopo: organização visual, tarefas, colaboração, indicadores, documentação, integrações e automação. O texto registra explicitamente Monday.com como referência visual. A comparação ajuda a decidir o que adaptar ao cliente, em vez de construir funcionalidades sem referência.
-
-Seu limite é não apresentar um protocolo de testes comparativos com tarefas iguais, tempo de execução, amostra, pontuação e custo total padronizado. Os rótulos “melhor”, “pouco intuitivo” e “excelente custo-benefício” da monografia são avaliações exploratórias, não conclusões experimentais. Os preços e nomes de planos registrados são históricos e podem misturar unidades, cobrança anual/mensal e recursos adicionais; não foram reproduzidos como tabela vigente.
-
-Para a apresentação, foram consultadas páginas oficiais em 26/10/2026. Elas confirmam os posicionamentos e evitam negar funções que os fornecedores oferecem. As fontes estão na seção 20. Não houve teste prático dessas plataformas nesta tarefa.
-
-| Sistema pesquisado | Referência e ponto forte | Posicionamento defensável do Spot |
-|---|---|---|
-| Monday.com | Gestão visual, dashboards e automações | Fluxo financeiro e governança configurados para a Computécnica; não exclusividade de dashboards |
-| Asana | Coordenação de tarefas, projetos e acompanhamento | Foco no contrato, mão de obra, despesas e margem da operação local |
-| Jira | Planejamento e acompanhamento de trabalho; forte referência ágil | Escopo centrado na prestação de serviços e financeiro gerencial; não afirmar que Jira atende somente programadores |
-| Trello | Quadros/cartões e organização visual, com automações e extensões | Regras de tarifas, impostos, aprovação e resultado já modeladas no próprio domínio do Spot |
-| ClickUp | Centralização, tarefas, documentação, tempo e dashboards | Modelo menor e específico para o cliente; não afirmar que só o Spot centraliza ou controla horas |
-| Notion | Documentação, bases configuráveis e projetos | Regras transacionais e financeiras explícitas, em vez de depender de uma montagem genérica de bases |
-| TaskRush/RushMind | Horas, custos e margem, além de IA | Há sobreposição financeira real. Diferencial do Spot é a adequação e o controle de evolução local, não inventar rentabilidade por projeto |
-| Artia | Gestão de projetos e IA para planejamento | Spot concentra o recorte contratual/operacional identificado no cliente; não oferece o mesmo planejamento assistido por IA |
-| Jestor | Aplicações/processos configuráveis e automação com IA | Spot entrega um domínio específico em código próprio; não demonstra a mesma amplitude de plataforma configurável |
-| AWS | Infraestrutura e serviços de nuvem | Pode hospedar uma solução como Spot; não é concorrente funcional direto de um gestor de tarefas |
-
-A alegação central é de adequação ao caso de uso. Código acessível e implantação própria permitem controlar mudanças e hospedagem. Isso não torna operação gratuita: existem despesas de servidor, suporte, manutenção, backups, administração e eventuais serviços externos. O repositório declara MIT no Composer e ISC no package.json; convém harmonizar a identificação da licença antes de uma distribuição comercial. Não há estudo de TCO ou contrato que sustente um número de economia.
-
-6. Matriz de rastreabilidade: pesquisa → requisito → código
-
-| Evidência | Requisito implementado | Tela | Evidência técnica |
-|---|---|---|---|
-| 60/94 com dificuldade de organização | Centralizar projetos e tarefas | Home, Projetos, Tarefas | HomeDashboardController; ProjectController; TaskV1Controller |
-| 39/94 com dificuldade de alinhamento | Tornar responsabilidades visíveis | Equipes e detalhes de tarefas | TeamController; ProjectMember; Task.participants |
-| 83/94 associam organização e faturamento | Relacionar execução ao resultado | Detalhes do projeto e Portfólio | ProjectFinancialSummary |
-| 30/94 com dificuldade de custos extras | Registrar e revisar despesas | Detalhes do projeto | ProjectExpenseController; ReviewProjectExpense |
-| 52 menções a Office 365 | Conectar ecossistema corporativo | Agenda, Apps e administração | MicrosoftAuthController; CalendarController; DirectoryController |
-| 12 frequências de interface simples | Facilitar a aprendizagem | Interface geral e tutorial | App.jsx; TasksPage.jsx; SpotTutorial.jsx |
-| 5 frequências de dashboards | Dar visibilidade gerencial | Portfólios | PortfolioDashboard; ProjectAnalyticsController; project_analytics.py |
-| Demandas de acesso da Computécnica | Autorizar por perfil/operação/campo | Administração e formulários | User.hasPermission; Gate; ProjectFields |
-| Memorial: encerramento protegido | Finalizar/reabrir com justificativa | Projetos | FinalizeProject; ReopenProject |
-| Memorial: retenção de logs | Auditoria com prazo configurável | Histórico e configurações | AuditRecorder; HistoryController; audit:prune |
-| Fluxos internos/externos | Modelagem de participação e vínculo | Cadastro/API e equipes | SaveProjectRequest; ProjectMember — cobertura parcial |
+As distribuições a seguir correspondem aos treze conjuntos quantitativos recuperados. Tabelas e figuras mantêm as categorias publicadas e permitem conferir as frequências com a base declarada.
 
-Demandas financeiras e de segurança também vieram do cliente e do memorial. Nem toda funcionalidade precisa ser atribuída ao survey. Estoque, por exemplo, é um módulo complementar e não o argumento principal da pesquisa de projetos.
+#### 4.2.1 Faixa etária
 
-7. Arquitetura e estrutura do repositório
+Os dados correspondentes constam da Tabela 1.
 
-A aplicação é um monólito web organizado por camadas: backend Laravel e frontend React no mesmo repositório e artefato de implantação, com separações de responsabilidade. Não são microserviços. Web, worker e scheduler podem rodar em processos/containers distintos, mas compartilham o domínio e a base da aplicação.
+Faixa etária
 
-text
-Spot/
-├── app/
-│   ├── Domain/                 regras e ações de negócio
-│   │   ├── Audit/              registro de eventos
-│   │   ├── Finance/            cálculo financeiro
-│   │   ├── Projects/           campos e ciclo de vida
-│   │   ├── Tasks/              captura de tarifas
-│   │   ├── WorkLogs/           apontamentos
-│   │   ├── Expenses/           revisão de despesas
-│   │   ├── Invitations/        convites e aceite
-│   │   ├── Notifications/      eventos, preferências, lembretes e entregas
-│   │   ├── Identity/           ativação
-│   │   └── Inventory/          movimentação de estoque
-│   ├── Http/Controllers/       entrada e respostas HTTP
-│   ├── Http/Requests/          validação reutilizável
-│   ├── Models/                 entidades e relações Eloquent
-│   ├── Jobs/                   processamento assíncrono
-│   ├── Mail/                   mensagens de e-mail
-│   └── Providers/              configuração de autorização/provedores
-├── routes/                     web.php, api.php, console.php
-├── resources/
-│   ├── js/                     interface ativa React
-│   ├── css/                    estilos da interface
-│   └── views/                  HTML base Blade e modelo de e-mail
-├── database/                   migrations, factories e seeders
-├── config/                     autenticação, banco, sessões, filas etc.
-├── scripts/                    análise Python, navegador e scheduler
-├── tests/                      suíte PHP de unidade e funcionalidade
-├── public/                     assets públicos e build
-├── storage/                    arquivos privados, logs e dados de execução
-├── bootstrap/                  inicialização Laravel
-├── docker/                     configuração Caddy
-├── docs/                       documentação e material do TCC
-├── Dockerfile                  imagem com build frontend e execução PHP
-└── docker-compose.yml          web, worker, scheduler e PostgreSQL
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| 15 a 25 anos | 28 | 29,8% |
+| 25 a 35 anos | 22 | 23,4% |
+| 35 a 45 anos | 19 | 20,2% |
+| 45 a 55 anos | 15 | 16,0% |
+| Acima de 55 | 10 | 10,6% |
 
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-A entrada ativa está em resources/js/app.jsx, que monta App em #root. resources/views/app.blade.php entrega o HTML base e informações iniciais. vite.config.js aponta essa entrada. A existência de src/App.jsx não significa que seja a interface principal: use a configuração do build para identificar o código executado.
+A representação correspondente é apresentada na Figura 1.
 
-7.1 Comunicação entre as camadas
+![Faixa etária](assets/graficos/idade.png)
 
-O navegador carrega o React e faz chamadas JSON à API /api/v1. O cliente compartilhado resources/js/api.js usa sessão do mesmo domínio. Para alterações, obtém o cookie CSRF e envia X-XSRF-TOKEN. O middleware exige autenticação e aplica limites de frequência. Controllers e Form Requests validam o conteúdo e o acesso. Ações de domínio executam regras e transações. Modelos Eloquent consultam e persistem no PostgreSQL.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-Respostas de erro têm implicação de produto: 403 representa falta de permissão; 404 pode esconder um recurso fora do escopo; 409 sinaliza conflito de estado, como projeto finalizado; 422 indica validação ou regra de negócio. A interface apresenta mensagens de erro e só atualiza os registros após confirmação da API.
+As categorias exibidas somam os 94 participantes declarados. A distribuição permite discutir diversidade etária de uso; não mede habilidades digitais individuais nem autoriza definir uma interface para uma única faixa. O documento também informa 88 participantes empregados, equivalentes a 93,6% da base, sem detalhar os demais estados de emprego.
 
-As rotas sem /v1 mantêm JWT como compatibilidade. A sessão principal não guarda token de autenticação em localStorage. Preferências visuais em localStorage não são o mecanismo de login.
+#### 4.2.2 Atuação em gestão de projetos
 
-8. Decisões arquiteturais e seus motivos
+Os dados correspondentes constam da Tabela 2.
 
-Os motivos a seguir são leitura técnica dos benefícios e compromissos das escolhas existentes, apoiada no código e na documentação; não são entrevistas com os autores sobre cada decisão histórica.
+Atuação em gestão de projetos
 
-1. Laravel no backend. Reúne autenticação, validação, ORM, migrações, filas e testes. Reduz a necessidade de implementar infraestrutura comum do zero. O compromisso é depender de atualizações e convenções do framework.
-2. React na interface. Permite estado local, formulários e alternância de visualizações sem recarregar a página inteira. O código usa navegação por estado em App.jsx; não foi identificado React Router como dependência.
-3. Mesmo repositório e origem. Facilita implantação e sessão/CSRF. Não exige vários serviços de aplicação para um TCC com equipe pequena. O compromisso é coordenar releases frontend e backend.
-4. Ações de domínio. Finalizar projeto, aceitar convite ou registrar movimento ficam em classes identificáveis. Isso ajuda a testar regras e evita duplicação. A separação é parcial: vários controllers ainda concentram regras.
-5. PostgreSQL. Banco relacional único da versão atual, com transações, chaves, consultas e bloqueio de linhas. O ambiente de testes usa schema separado. A monografia que cita SQLite precisa de atualização.
-6. Modelagem por entidades e associações. Projeto, membro, tarifa, tarefa, apontamento, despesa e imposto têm responsabilidades próprias. Relações preservam vínculos e evitam repetir cadastros em cada lançamento.
-7. Duração em minutos. A interface recebe horas e minutos e converte para inteiro. Reduz ambiguidade de frações de hora; o valor monetário é calculado proporcionalmente por 60.
-8. Tarifas com vigência e snapshot. O período encontra o preço correto e a fotografia preserva o histórico. Alterar uma tarefa em campos que afetam sua precificação pode disparar recaptura; isso é diferente de um reajuste futuro retroagir sozinho.
-9. BigDecimal para finanças. Evita depender de ponto flutuante binário no cálculo principal. O arredondamento ocorre em centavos; agregações gráficas posteriores usam números Python/JavaScript.
-10. Transação e lockForUpdate. Operações sensíveis releem e bloqueiam a linha antes de mudar estado. Estoque evita duas saídas concorrentes sobre o mesmo saldo. Há custo de contenção e necessidade de transações curtas.
-11. Auditoria junto da mutação. Nos fluxos transacionais relevantes, a operação e seu histórico são confirmados ou revertidos juntos. Isso melhora rastreabilidade, mas não transforma a tabela em log inviolável.
-12. Exclusão lógica e arquivamento. Projetos usam SoftDeletes; parâmetros são inativados para preservar referências. Não se aplica uniformemente a toda entidade: tarefas, por exemplo, têm exclusão efetiva no fluxo analisado.
-13. Sanctum e sessão na SPA. Usa cookies e CSRF para o navegador do mesmo domínio; JWT fica no legado. Diminui a necessidade de manipular bearer tokens no frontend.
-14. OAuth sem senha externa. Google/Microsoft autenticam e autorizam acesso às suas APIs. Tokens são criptografados no modelo; dependem de consentimento, expiração e renovação.
-15. Python/Pandas separado por processo. Laravel filtra e autoriza os projetos e envia JSON. Python agrega sem conexão própria ao banco. Facilita análise, mas adiciona dependência e custo de inicialização por requisição; o timeout é de 30 segundos.
-16. Fila para e-mails. Evita que SMTP prolongue a requisição de criação do convite. O worker revalida o link e tenta novamente em falhas. Depende de supervisão e não garante entrega exatamente uma vez.
-17. Scheduler para manutenção. Retenção de auditoria, limpeza de mensagens e geração/entrega de notificações não dependem de uma aba aberta. Exige um agendador operacional e execução coordenada.
-18. CSS e gráficos próprios. Favorece identidade visual e customização sem biblioteca de gráficos de alto nível. Aumenta responsabilidade por acessibilidade, contraste, escalas e manutenção.
-19. Traduções e preferências no navegador. Três idiomas, temas e tutorial reduzem barreiras de adoção. Preferências não são sincronizadas automaticamente entre dispositivos.
-20. Docker com processos separados. Reproduz dependências e separa web/fila/agendador/banco. Não fornece sozinho redundância, backup, monitoramento ou recuperação de desastre.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Não atua | 65 | 69,1% |
+| Atua parcialmente | 20 | 21,3% |
+| Totalmente | 4 | 4,3% |
+| Sim | 3 | 3,2% |
 
-9. Modelo de dados e regras que a banca pode perguntar
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-Company, Person, User, Profile e Permission representam identidade, empresa e acesso. Vínculos de perfil por empresa e exceções individuais resolvem permissões. A empresa atual orienta o escopo das consultas centrais.
+A representação correspondente é apresentada na Figura 2.
 
-Project é a entidade operacional central: cliente, responsáveis, datas, valores e encerramento. ProjectMember relaciona pessoas ao projeto com função e estado de acesso. AnalystProjectRate representa tarifas e períodos; Task representa a atividade visível na interface, com participantes em task_participants; WorkLog representa apontamento de horas. ProjectExpense, ProjectTax e TaxType compõem o financeiro. ProjectInvitation e UserActivationToken cuidam de acesso temporário/ativação. AuditLog registra ações. ProjectDocument, CalendarEvent e InboxItem apoiam a rotina. Produtos, categorias e movimentos compõem estoque.
+![Atuação em gestão de projetos](assets/graficos/atuacao.png)
 
-Não somar uma tarefa duas vezes: o cálculo identifica tarefas já representadas em work_logs por task_id, excluindo sua contribuição direta adicional. Não dividir o custo pelo número de coparticipantes: na implementação, o responsável é a base de precificação da tarefa; participantes representam colaboração, não rateio de trabalho.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-Tarifas sobrepostas são rejeitadas para o mesmo analista/projeto. WorkLog exige vínculo ativo e tarifa válida na data. Tarefa pode ser criada sem tarifa e aparecer como pendência; cadastrar tarifa pode precificar tarefas pendentes, com auditoria. Esse comportamento precisa ser explicado como escolha para permitir registro operacional sem apresentar resultado financeiro completo.
+As categorias exibidas somam 92; a diferença de 2 em relação à base de 94 não foi discriminada na fonte. A maioria das pessoas nas categorias exibidas não atua diretamente em gestão de projetos. Isso fundamenta a prioridade de linguagem clara e tutorial, mas não comprova que a interface final foi validada por esse grupo.
 
-10. Guia técnico de cada tela e funcionalidade
+#### 4.2.3 Ferramentas utilizadas
 
-Em cada item: objetivo, caminho de código, comunicação, regra e decisão de desenvolvimento. Os caminhos são relativos à raiz /home/alexander/Documentos/Spot.
+Os dados correspondentes constam da Tabela 3.
 
-10.1 Login, recuperação e primeiro acesso
+Ferramentas utilizadas
 
-Interface: resources/js/App.jsx, componentes LegacySpotApp, FirstAccessPage, ForgotPasswordPage, ResetPasswordPage e AcceptInvitationPage. O nome LegacySpotApp não torna a API principal JWT: o login da SPA usa a rota de sessão. Backend: Api/AuthController.php, Api/FirstAccessController.php, controllers de Auth/, Domain/Identity/Actions/CreateActivationLink.php.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Microsoft Office 365 | 52 | 55,3% |
+| Software próprio | 26 | 27,7% |
+| Microsoft Office 2021 | 19 | 20,2% |
+| Nenhum software | 17 | 18,1% |
+| Bloco de Notas | 16 | 17,0% |
+| Notion | 4 | 4,3% |
 
-Fluxo: administrador provisiona, conta fica pendente, link ativa e define senha; conta ativa entra por sessão. OAuth valida identidades autorizadas. Não existe cadastro público. A UI pede código adicional quando o login por senha informa exigência de 2FA. A decisão é controlar quem entra antes de autorizar recursos internos.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-10.2 Shell, navegação, pesquisa e aplicativos
+A representação correspondente é apresentada na Figura 3.
 
-App.jsx: Dashboard, Sidebar, navGroups, pageMeta, popovers e busca. app.jsx monta a aplicação; api.js centraliza chamadas. O estado activePage seleciona a área e os popovers mantêm interações do topo. A pesquisa consulta dados acessíveis e não é um motor de indexação de todos os arquivos. Os atalhos externos usam nova aba e proteções de opener.
+![Ferramentas utilizadas](assets/graficos/ferramentas.png)
 
-Decisão: manter navegação e identidade visual consistentes. Compromisso: App.jsx está grande; extrair telas e navegação para módulos menores facilitaria manutenção. Não afirmar uso de TypeScript: o frontend está em JavaScript/JSX.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-10.3 Home
+As frequências são menções não exclusivas e somam 134. As menções indicam coexistência de ferramentas de escritório e soluções específicas. Trata-se de uma pergunta de menções não exclusivas; não há base para inferir migração integral dos participantes para o SPOT.
 
-App.jsx e Api/HomeDashboardController.php; GET /api/v1/home-dashboard, PATCH de conclusão e prioridade. Consulta os projetos da empresa e, conforme autorização, os atribuídos. Mostra tarefas próprias/participadas em certos perfis. Resumo limitado a 20 projetos e 30 tarefas, não a carteira inteira. Mutações de tarefa revalidam projeto e autorização e geram auditoria.
+#### 4.2.4 Software de projetos na empresa
 
-Decisão: resumo para ação rápida. Demonstração: abrir uma tarefa, explicar responsável versus participantes e mostrar seu histórico; não alterar um projeto real para exemplificar.
+Os dados correspondentes constam da Tabela 4.
 
-10.4 Projetos e novo projeto
+Software de projetos na empresa
 
-App.jsx/NewProjectPage, Management.jsx/ProjectWorkspace; ProjectController, SaveProjectRequest, ProjectFields, Project e ações FinalizeProject, ReopenProject, DeleteProject. Endpoints /projects, /projects/{id}/configuration, /finalize e /reopen.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Não possui | 33 | 35,1% |
+| Possui | 32 | 34,0% |
+| Possui, mas sem foco | 27 | 28,7% |
 
-Valida proposta, status, situação, contrato e referências da empresa. Campos financeiros são omitidos na resposta quando falta autorização, além dos controles da interface. Algumas permissões de campo têm autorização por exceção com padrão permissivo; não são uma política universal de negar todo campo por padrão.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-Finalização exige motivo, registra autor/data e revoga vínculos ativos. Reabertura exige motivo e não reativa esses vínculos. Projetos finalizados têm destaque vermelho. Os bloqueios são fortes nos fluxos centrais, mas não afirmar bloqueio universal de todo módulo: o fluxo de documentos, por exemplo, não verifica finalização.
+A representação correspondente é apresentada na Figura 4.
 
-10.5 Detalhes financeiros e configuração do projeto
+![Software de projetos na empresa](assets/graficos/software.png)
 
-Management.jsx: ProjectWorkspace, Editor, FinancialResult. Backend: ProjectConfigurationController, ManagementController, ProjectExpenseController, FinancialReportController. Domínio: TaskCosting, ReviewProjectExpense, ProjectFinancialSummary.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-Abas/formulários trabalham membros, tarifas, impostos, despesas e relatório. Tarifas exigem membro ativo e vigência sem conflito. Composição tributária é substituída com auditoria. Despesas editadas voltam à aprovação. Só aprovadas entram no resultado.
+As categorias exibidas somam 92; a diferença de 2 em relação à base de 94 não foi discriminada na fonte. As respostas mostram situações diversas de disponibilidade de software. A distribuição não identifica quais ferramentas atendem a cada organização nem constitui comparação de custo total.
 
-Decisão: manter o contexto financeiro junto do projeto. Relatórios exigem financial.view, e a API financeira agrega a carteira da empresa; não assumir que ela sempre usa o mesmo filtro de projetos atribuídos da lista operacional.
+#### 4.2.5 Satisfação com a solução atual
 
-10.6 Tarefas e detalhes
+Os dados correspondentes constam da Tabela 5.
 
-TasksPage.jsx, TaskDetails.jsx, AuditTrail.jsx; TaskV1Controller, Task, TaskCosting; /tasks e /history?project_id=...&task_id=.... A migração 2026_10_26_150000_create_task_participants_table.php adiciona participantes.
+Satisfação com a solução atual
 
-A tela carrega tarefas e opções; busca e filtros são aplicados no cliente à coleção recebida. Formulário converte horas/minutos para duration_minutes; valida de 1 a 1.440 minutos por registro. Há descrição, tipo, data, hora extra, responsável e coparticipantes. O título pode ser derivado da descrição. A tela confirma exclusão e usa dialog para detalhes/edição.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Sim, mas pode melhorar | 30 | 31,9% |
+| Não temos | 29 | 30,9% |
+| Sim, atende | 23 | 24,5% |
+| Não é usado no dia a dia | 7 | 7,4% |
 
-API valida pessoas ativas e participantes do projeto, regras próprias/de terceiros, status e projeto finalizado. A versão atual permite atribuição de responsável no contexto autorizado do projeto; o README antigo que associa toda atribuição somente a work_logs.create_for_others não descreve integralmente o comportamento atual de ensureAnalyst. Não confundir essa regra de tarefa com a API separada de work logs.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-Decisão: quadro, lista e calendário são visões dos mesmos registros; não três bancos diferentes. Editar apenas descrição não deveria alterar o preço histórico; mudanças de data/analista/projeto/hora extra podem recapturar tarifa, conforme o código.
+A representação correspondente é apresentada na Figura 5.
 
-10.7 Equipes
+![Satisfação com a solução atual](assets/graficos/satisfacao.png)
 
-App.jsx/TeamsPage, Api/TeamController.php, ProjectMember, ProjectConfigurationController. Rotas /teams, /teams/{project} e membros do projeto. Exibe nome da equipe, pessoas e funções. Vínculos são registros próprios e podem ser desativados.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-Decisão: uma equipe é contextual ao projeto; a mesma pessoa pode ter relações distintas em projetos diferentes. Não é um sistema completo de recursos humanos ou capacidade de alocação.
+As categorias exibidas somam 89; a diferença de 5 em relação à base de 94 não foi discriminada na fonte. A presença de satisfação parcial e ausência de ferramenta sugere oportunidades de melhoria. Não é avaliação posterior à implantação do SPOT e não deve ser apresentada como índice de satisfação com o produto.
 
-10.8 Clientes
+#### 4.2.6 Interface atual é intuitiva?
 
-App.jsx/ClientsPage, Management.jsx/ParametersWorkspace, ManagementController; /management/parameters/clients. Cadastro inclui nome, razão social, CNPJ, e-mail e telefone. CNPJ tem normalização de dígitos e validação de tamanho/unicidade; não afirmar verificação de autenticidade na Receita Federal ou cálculo completo dos dígitos só por esse trecho.
+Os dados correspondentes constam da Tabela 6.
 
-Arquivamento inativa e mantém referências históricas. Consultas filtram empresa e, em certos perfis, clientes dos projetos acessíveis. Decisão: separar cadastro de cliente dos campos textuais legados do projeto.
+Interface atual é intuitiva?
 
-10.9 Portfólios e gráficos
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Não temos software | 29 | 30,9% |
+| Sim | 28 | 29,8% |
+| Mais ou menos | 25 | 26,6% |
+| Não | 4 | 4,3% |
+| Absolutamente | 4 | 4,3% |
 
-App.jsx/ProjectAnalyticsPage, PortfolioDashboard.jsx, PortfolioChart.jsx, portfolioReports.js; ProjectAnalyticsController, FinancialReportController, scripts/project_analytics.py.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-Laravel autoriza, consulta projetos da empresa, calcula resumo financeiro e envia JSON ao processo Python. Pandas normaliza, agrupa e devolve JSON. React renderiza cartões, tabelas e gráficos; portfolioReports.js prepara agrupamentos e indicadores. Preferências são locais por painel. useAutoRefresh.js atualiza a carteira e o detalhe financeiro a cada 30 segundos quando a tela está visível, ao recuperar foco e após alterações locais/entre abas, sem aplicar um filtro ainda não confirmado.
+A representação correspondente é apresentada na Figura 6.
 
-Há barras, colunas, linhas, área, pizza, rosca, radar, árvore, funil, cartões e tabela, além de indicador circular quando apropriado. Radar precisa de pelo menos três indicadores. Composições negativas recebem explicação e alternativa tabular. CSV permite reutilizar os valores.
+![Interface atual é intuitiva?](assets/graficos/interface.png)
 
-Período seleciona projetos pela data de início ou criação e mostra os totais desses projetos. Não é filtro de fluxo de caixa dentro do mês. O backend financeiro usa decimal; os gráficos usam números comuns. Decisão: manter regras financeiras no servidor e apresentação configurável no cliente.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-10.10 Agenda
+As categorias exibidas somam 90; a diferença de 4 em relação à base de 94 não foi discriminada na fonte. A percepção de interface é um dado descritivo do cenário anterior relatado. A responsividade e o tutorial do SPOT são decisões de implementação, cuja eficácia com usuários precisa de ensaio próprio.
 
-App.jsx/CalendarPage, CalendarController, CalendarEvent; /calendar e /calendar/events. Consulta eventos próprios e externos no intervalo e cria em Spot/Google/Microsoft/Teams. APIs externas recebem tokens e dados do evento; o servidor renova credenciais quando necessário e percorre as páginas de consulta, com limites e aviso de mais resultados. Next links Microsoft só podem apontar para HTTPS no host Graph. A criação normaliza o fuso do usuário para UTC e a conexão PostgreSQL fixa UTC. A tela consulta novamente a cada 60 segundos enquanto visível.
+#### 4.2.7 Fluxo de projetos externos
 
-Decisão: reunir compromissos no contexto de trabalho. Limites: requer OAuth/consentimento e pode falhar por provedor; não há CRUD completo de eventos ou serviço contínuo de sincronização demonstrado. A criação externa e gravação local não formam uma transação distribuída; uma falha entre etapas exige tratamento operacional.
+Os dados correspondentes constam da Tabela 7.
 
-10.11 Caixa de entrada
+Fluxo de projetos externos
 
-App.jsx/InboxPage e InboxPopover, InboxController, InboxItem. Rotas de consulta, leitura, leitura em lote, arquivo, limpeza e restauração. O usuário vê seus próprios itens, atualizados automaticamente a cada 30 segundos enquanto a tela está visível. Mensagens arquivadas são restauráveis na janela de 30 dias e depois elegíveis a expurgo.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Sim | 42 | 44,7% |
+| Não | 21 | 22,3% |
+| Quase nunca | 18 | 19,1% |
+| Absolutamente | 9 | 9,6% |
 
-Decisão: concentrar avisos e leitura. Não existe envio de conversa/chat completo nesse controlador. O scheduler possui inbox:prune às 03h15 no fuso do aplicativo.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-10.12 Meus documentos
+A representação correspondente é apresentada na Figura 7.
 
-App.jsx/DocumentsPage, ProjectDocumentController, ProjectDocument; /documents, /{id}/download. Arquivos até 10 MB e lista de formatos permitidos. Armazenamento privado local e metadados no banco. Se a transação de criação falha, o controlador tenta remover o arquivo já salvo.
+![Fluxo de projetos externos](assets/graficos/externos.png)
 
-Download/exclusão verificam proprietário; listagem também é pessoal. A associação de projeto não libera automaticamente os arquivos à equipe. O histórico registra operação e metadados, não conteúdo. Limites atuais: sem versionamento, edição colaborativa, antivírus ou bloqueio explícito de upload por projeto finalizado nesse fluxo.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-10.13 Histórico geral e por entidade
+As categorias exibidas somam 90; a diferença de 4 em relação à base de 94 não foi discriminada na fonte. Os fluxos externos motivam observar fronteiras de acesso e responsabilidade. As alternativas foram mantidas literalmente, sem converter o termo absolutamente em uma medida numérica de intensidade.
 
-App.jsx/HistoryPage, AuditTrail.jsx, resources/css/audit.css; HistoryController, AuditRecorder, AuditLog. Paginação por cursor before, filtros de projeto/tarefa e até 100 eventos por página. Contexto preserva item/autor nos eventos novos. audit.view amplia consulta da empresa; sem ela o usuário vê suas ações. Detalhes old/new e request_id exigem security.manage.
+#### 4.2.8 Fluxo de projetos internos
 
-Decisão: rastrear ações sem expor detalhes a todos. Logs antigos não são reconstruídos; retenção remove eventos vencidos. Não apresentar o histórico como inviolável ou como auditoria de cada clique.
+Os dados correspondentes constam da Tabela 8.
 
-10.14 Perfil e avatar
+Fluxo de projetos internos
 
-App.jsx/ProfilePage, ProfileController, ProfileAvatarController; PATCH /profile, POST/DELETE /profile/avatar. Atualiza dados e imagem do usuário. Fuso horário é usado em recursos da conta. O avatar tem validação própria e persistência de arquivo/URL conforme o fluxo.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Sim | 57 | 60,6% |
+| Absolutamente | 16 | 17,0% |
+| Não | 9 | 9,6% |
+| Quase nunca | 7 | 7,4% |
 
-Decisão: manter identificação pessoal separada do cadastro de acesso administrativo. A tela de perfil não deve conceder a si mesma funções administrativas.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-10.15 Segurança da conta
+A representação correspondente é apresentada na Figura 8.
 
-App.jsx/SecurityPanel, AccountSecurityController, AuthController, User. Rotas /security/* para senha, sessões, provedores e 2FA. Alterar senha exige confirmação da atual e encerra outras sessões. TOTP usa Google2FA e QR Code; códigos de recuperação são exibidos e armazenados por hash, com estrutura criptografada no modelo.
+![Fluxo de projetos internos](assets/graficos/internos.png)
 
-Decisão: oferecer proteção e revogação de acesso no próprio produto. A evidência de 2FA cobre o login por senha; não afirmar cobertura idêntica de todos os caminhos OAuth e JWT. A presença desses recursos não é certificação de conformidade.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-10.16 Preferências de notificações
+As categorias exibidas somam 89; a diferença de 5 em relação à base de 94 não foi discriminada na fonte. A ocorrência de projetos internos sustenta o tratamento de equipes e vínculos. O resultado não define por si as permissões; estas foram especificadas nas regras de negócio e verificadas no código.
 
-App.jsx/NotificationPanel, NotificationPreferenceController. Eventos/canais variam conforme permissão; o usuário salva e restaura preferências, resumo e silêncio. O catálogo passou a apresentar apenas eventos com produção implementada; opções antigas de comentários e revisão de arquivos foram removidas dessa configuração.
+#### 4.2.9 Dificuldade de organização
 
-Decisão: o domínio app/Domain/Notifications/ liga operações auditadas a uma outbox persistente, em notification_deliveries, sem SMTP na requisição de negócio. DueReminders gera prazos de tarefas, compromissos locais a até 30 minutos e convites a até 24 horas da expiração. NotificationCenter aplica canais, fuso, silêncio e resumos; SendNotificationBatch revalida acesso e entrega pela fila. Chaves únicas e locks evitam duplicações normais. Diário é um lote por dia e semanal inicia na segunda-feira; avisos posteriores ao lote seguem ao próximo período. Lotes têm até 500 eventos. Eventos externos nunca registrados no Spot não recebem lembrete local. A entrega externa requer SMTP e ativação da configuração; notificações internas funcionam independentemente dela.
+Os dados correspondentes constam da Tabela 9.
 
-10.17 Integrações e Apps
+Dificuldade de organização
 
-App.jsx/AppsPopover, IntegrationsModal, controllers Google/Microsoft em Auth/, configuração config/services.php, tokens criptografados no modelo User. Conectar encaminha para o provedor; desconectar remove credenciais do Spot. A API informa se a aplicação está configurada, se a conta está vinculada e se há credencial de calendário, sem devolver segredos. A tela diferencia falta de configuração e necessidade de reconectar.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Sim | 49 | 52,1% |
+| Não | 16 | 17,0% |
+| Talvez | 13 | 13,8% |
+| Absolutamente | 11 | 11,7% |
 
-Decisão: delegar autenticação à conta corporativa e aproveitar calendários. Os atalhos Drive/Gmail/Word/Excel e outros são links; não há edição de seus dados dentro do Spot apenas por estarem no menu.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-10.18 Administração de usuários e permissões
+A representação correspondente é apresentada na Figura 9.
 
-App.jsx (área administrativa), Management.jsx/ParametersWorkspace, AdminUserController, ManagementController, User, Profile, Permission, ProjectFields, AppServiceProvider.
+![Dificuldade de organização](assets/graficos/organizacao.png)
 
-Administrador cria/ativa/desativa usuários e perfis; último administrador ativo é protegido. hasPermission considera administrador, override individual e permissões dos perfis da empresa. Gate::before integra habilidades com ponto ao mecanismo. Campos do projeto recebem direitos view/edit. Não confundir esconder botão com autorizar no servidor: ambas as camadas são necessárias.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-Decisão: atender reclamações de acesso indiscriminado do sistema anterior. Há escopo multiempresa no núcleo, mas não prova de cobertura uniforme de todos os módulos.
+As categorias exibidas somam 89; a diferença de 5 em relação à base de 94 não foi discriminada na fonte. A dificuldade declarada de organização apoia a prioridade de projetos, tarefas e acompanhamento. Não foi medido o tempo antes/depois da adoção da solução.
 
-10.19 Parâmetros, retenção e diretório Microsoft
+#### 4.2.10 Dificuldade de alinhamento
 
-Management.jsx/ParametersWorkspace, ManagementController, DirectoryController, CompanySetting; rotas /management/settings, /management/parameters/*, /management/directory e /import.
+Os dados correspondentes constam da Tabela 10.
 
-Tipos de atividade, despesa, imposto, situação e status são cadastros da empresa. Retenção de auditoria permite 1 a 120 meses, padrão 12. routes/console.php agenda audit:prune às 03h00 no fuso do aplicativo. Diretório Graph exige tenant/client/segredo e User.Read.All de aplicação; importação é explícita, como analista, sem elevar a administrador.
+Dificuldade de alinhamento
 
-Decisão: reduzir mudanças de código para manter opções de negócio e políticas. Login Microsoft e consulta de diretório são configurações/consentimentos distintos.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Não | 31 | 33,0% |
+| Sim | 31 | 33,0% |
+| Talvez | 20 | 21,3% |
+| Absolutamente | 8 | 8,5% |
 
-10.20 Convites
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-App.jsx/ProjectInvitationModal e AcceptInvitationPage; ProjectInvitationController, CreateProjectInvitation, AcceptProjectInvitation, ProjectInvitation, SendAccessEmail, ProjectInvitationMail.
+A representação correspondente é apresentada na Figura 10.
 
-Convite concede escopo de projeto, validade de até sete dias e aceite único; token exibido na criação e armazenado como SHA-256. Conta existente precisa provar identidade por login; convite pode exigir nova senha. Revogação impede uso futuro.
+![Dificuldade de alinhamento](assets/graficos/alinhamento.png)
 
-E-mail usa fila emails, payload criptografado, até três tentativas, revalidação do link e agendamento após commit. Decisão: acesso externo controlado, sem transformar convite em acesso geral à empresa. “Convite criado” não significa “e-mail entregue”.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-10.21 Apontamentos de horas por API
+As categorias exibidas somam 90; a diferença de 4 em relação à base de 94 não foi discriminada na fonte. A distribuição de respostas sobre alinhamento não estabelece causalidade. O chat com aprovação específica responde à necessidade de comunicação sem liberar acesso irrestrito entre empresas.
 
-WorkLogController, CreateWorkLog, WorkLog, AnalystProjectRate; GET/POST /projects/{id}/work-logs. Exige projeto mutável, membro ativo e tarifa da data. Persiste custo e venda do período. Há API própria; a principal tela operacional usa tarefas. Não inventar uma tela autônoma completa para cada endpoint existente.
+#### 4.2.11 Organização ajuda no faturamento?
 
-Decisão: distinguir registro de trabalho de organização de tarefa e preservar compatibilidade com o modelo financeiro. A ligação por task_id evita contagem dupla.
+Os dados correspondentes constam da Tabela 11.
 
-10.22 Estoque
+Organização ajuda no faturamento?
 
-InventoryApp.jsx e seleção /estoque em App.jsx; CategoryController, ProductController, MovementController, StoreStockMovementRequest, RegisterStockMovement, Product, StockMovement.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Sim | 57 | 60,6% |
+| Absolutamente | 26 | 27,7% |
+| Talvez | 4 | 4,3% |
+| Não | 4 | 4,3% |
 
-Saldo só muda via movimentação após criação inicial; saída maior que saldo é rejeitada. A ação usa transação e bloqueio da linha e admite repetição em conflitos transacionais. Existem endpoints de sessão e JWT legado.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-Decisão: registrar saldo e histórico juntos. Limites: o CRUD examinado não aplica o mesmo filtro por empresa nem permissões granulares dos projetos. Não foi encontrada baixa de estoque que vire automaticamente despesa/custo de projeto. Apresentar como módulo complementar.
+A representação correspondente é apresentada na Figura 11.
 
-11. Exemplo completo: do clique ao resultado financeiro
+![Organização ajuda no faturamento?](assets/graficos/faturamento.png)
 
-Exemplo didático, não dados de cliente: projeto de R$ 10.000,00; duas horas normais com custo de R$ 100/h; uma hora extra com custo de R$ 150/h e venda de R$ 200/h; despesa aprovada de R$ 300,00; imposto de 10% sobre receita total e comissão de 5% sobre bruto.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-Receita gerencial: 10.000 + 200 = R$ 10.200,00. Mão de obra: 2 × 100 + 1 × 150 = R$ 350,00. Imposto: R$ 1.020,00. Comissão: R$ 510,00. Custo operacional: 350 + 300 = R$ 650,00. Lucro: 10.200 − 1.020 − 510 − 650 = R$ 8.020,00. Margem: aproximadamente 78,63%.
+As categorias exibidas somam 91; a diferença de 3 em relação à base de 94 não foi discriminada na fonte. A percepção de relação entre organização e faturamento não é uma mensuração financeira. Os indicadores implementados oferecem apoio gerencial, sem provar aumento de receita decorrente do software.
 
-O valor é gerencial com receita contratual como base, não caixa recebido. Se a comissão fosse líquida de impostos, a base seria R$ 9.180 e a comissão R$ 459: isso mudaria o resultado. O sistema permite distinguir essas bases.
+#### 4.2.12 Dificuldade de registrar custos extras
 
-Caminho de uma tarefa: TasksPage.save converte horas em minutos → sessionRequest obtém CSRF → POST /api/v1/tasks → middleware de sessão → TaskV1Controller.store valida e verifica projeto/pessoas → transação cria tarefa e participantes → TaskCosting.capture busca tarifa vigente e salva snapshot → AuditRecorder.record registra histórico → JSON atualiza a tela. Quando o financeiro é consultado, ProjectFinancialSummary.calculate soma os registros válidos, evita duplicidades e informa pendências.
+Os dados correspondentes constam da Tabela 12.
 
-Se um passo dentro da transação de banco falhar, tarefa/participantes/auditoria desse fluxo são revertidos. Arquivos, SMTP e APIs externas exigem mecanismos específicos: não participam magicamente do mesmo commit do PostgreSQL.
+Dificuldade de registrar custos extras
 
-12. Tecnologias e versões declaradas
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Não | 33 | 35,1% |
+| Talvez | 26 | 27,7% |
+| Sim | 21 | 22,3% |
+| Absolutamente | 9 | 9,6% |
 
-Backend: PHP ^8.3, Laravel ^13.8, Sanctum ^4.3, Socialite ^5.29, provider Microsoft, JWT Auth ^2.3, Google2FA e QR Code. Persistência: PostgreSQL, com imagem postgres:17-alpine no Compose; Eloquent e migrações. Frontend: React ^18.3.1, Vite ^8.0.0, JavaScript/JSX, CSS próprio, Lucide e Iconify. Node declarado ^22.12.0; a linha do Node é 22. Análise: Python e Pandas >=2.2,<3. Cálculo financeiro: Brick Math/BigDecimal. Testes: PHPUnit ^12.5.12 e Playwright. Execução: FrankenPHP/Caddy, Composer/npm e Docker/Compose.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-Intervalos dos manifestos não são garantia de patch instalado nem “última versão”. O build desta tarefa identificou Vite 8.3.5. Não há dependência de React Router, framework de CSS ou biblioteca de IA identificada como base do produto.
+A representação correspondente é apresentada na Figura 12.
 
-13. Testes, evidências e limites da validação
+![Dificuldade de registrar custos extras](assets/graficos/custos.png)
 
-Em 26/10/2026 foram executados ./php vendor/bin/phpunit: 122 testes aprovados, 788 asserções, duração reportada 17.437 ms. O npm run build também concluiu, com 1.583 módulos transformados. A configuração PHP usa PostgreSQL e schema spot_testing, além de transporte de e-mail de teste. Não foram usados cadastros reais como massa de teste.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-A suíte existente cobre autenticação, recuperação, perfil, conta, permissões, usuários, projetos, equipes, tarefas, convites, horas, despesas, financeiro, agenda, estoque, auditoria e outros fluxos. Scripts Playwright existentes cobrem interface, idiomas, tutorial, administração e portfólio, frequentemente com API simulada. Capturas deste material usam esse mesmo princípio de isolamento.
+As categorias exibidas somam 89; a diferença de 5 em relação à base de 94 não foi discriminada na fonte. A questão de custos adicionais motivou a rastreabilidade de despesas e planejamento. As frequências não permitem calcular perdas monetárias nem retorno do investimento.
 
-Os testes novos cobrem entregas, resumos, silêncio, deduplicação, revogação, falha SMTP, paginação de calendários, renovação de tokens e fusos. test-live-updates.mjs verifica atualização por timer/eventos/abas, filtros não aplicados e limpeza ao sair. Asserção é uma verificação feita pelo teste, e não sinônimo de funcionalidade. Passar 122 testes não significa ausência de defeitos, 100% de cobertura, usabilidade comprovada ou homologação externa. Não foi executado ensaio de carga, auditoria ofensiva, avaliação formal de acessibilidade ou teste real de entrega SMTP/OAuth nesta tarefa. Os resultados de navegador efetivamente executados nesta entrega estão em assets/validacao.txt.
+#### 4.2.13 Necessidade de software dedicado
 
-14. Implantação e manutenção
+Os dados correspondentes constam da Tabela 13.
 
-iniciar.sh inicia PHP/FrankenPHP na porta 8000, Vite na 5173, worker e scheduler. A aplicação usa PostgreSQL; credenciais e APP_KEY ficam na configuração de ambiente e não devem ser incluídas em slides. O Python pode ser selecionado por PYTHON_BINARY. O comando notifications:dispatch é agendado a cada minuto; notifications:status apenas consulta pendências. A nova migração de notificações foi aplicada ao ambiente local sem seed. SPOT_ACTIVITY_EMAIL_ENABLED inicia em false para não disparar mensagens externas na implantação: exige SMTP homologado e ativação explícita da configuração para e-mails de atividades. Eventos enquanto desativado não formam campanha de e-mail retroativo. Convites/ativação preservam sua fila anterior. O worker revalida permissão e estado antes do envio.
+Necessidade de software dedicado
 
-A imagem Docker faz build do frontend em Node e instala dependências PHP/Python para execução. O Compose usa web, worker, scheduler e database, com volumes para dados e arquivos. Caddy fornece a camada HTTP/HTTPS conforme domínio e configuração. O processo roda como usuário não root na imagem.
+| Alternativa | Frequência | % da base 94 |
+| --- | --- | --- |
+| Talvez | 33 | 35,1% |
+| Sim | 32 | 34,0% |
+| Não | 14 | 14,9% |
+| Absolutamente | 11 | 11,7% |
 
-Para produção: domínio/HTTPS, APP_DEBUG=false, cookies adequados, migrações controladas, SMTP, worker supervisionado, scheduler único, backup e restauração testada, monitoramento de falhas, rotação de segredos e atualizações. A presença de Docker não comprova que um servidor de produção já esteja implantado ou escalável.
+Fonte: Dados da pesquisa da equipe (Longo et al., 2026a); percentuais calculados nesta edição.
 
-Comandos de estudo: ./php artisan route:list, ./php vendor/bin/phpunit, npm run build, ./php artisan schedule:list, ./php artisan queue:status e ./php artisan audit:prune --dry-run. O expurgo sem dry-run apaga dados elegíveis; não deve ser parte de uma demonstração improvisada.
+A representação correspondente é apresentada na Figura 13.
 
-15. Ajustes necessários entre monografia e produto atual
+![Necessidade de software dedicado](assets/graficos/necessidade.png)
 
-1. Substituir SQLite por PostgreSQL nos trechos que descrevem a versão atual. Preservar SQLite só se houver um relato histórico explicitamente datado.
-2. Revisar resumo, abstract, objetivos e conclusões que apresentam IA como entregue. Não há serviço de inferência do produto identificado. Uso de ferramentas de desenvolvimento não é integração de IA ao Spot.
-3. Atualizar números históricos: 52 testes/262 asserções e 105 rotas pertencem à documentação anterior. Nesta execução há 122 testes/788 asserções; o inventário atual de rotas está no anexo, com critério separado de rotas do framework.
-4. Descrever portfólio como código local implementado e validado nesta data. Estar ou não commitado/publicado é outra questão; não inferir implantação a partir de código presente.
-5. Não apresentar AWS como concorrente direto de tarefas: é infraestrutura possível para hospedagem.
-6. Não apresentar preços históricos como atuais ou comparar licenças sem custo total e unidade de cobrança.
-7. Corrigir referências de pesquisa: conferir totais por figura, 57 comentários versus 49 frequências e ausência de tabela cruzada.
-8. Diferenciar integração efetiva de atalhos, painéis de consulta de tempo real por push, catálogo de notificações de funcionalidades externas ao escopo, documentos pessoais de biblioteca colaborativa.
-9. Distinguir lucro gerencial de caixa/contabilidade e adequação ao cliente de superioridade comprovada sobre concorrentes.
-10. Harmonizar a identificação da licença entre os manifestos e o texto, sem prometer cessão contratual que não foi analisada.
+Fonte: Dados de Longo et al. (2026a), reconstituídos pela equipe; base declarada de 94 participantes.
 
-16. Roteiro oral — 15 slides, 14min10s
+As categorias exibidas somam 90; a diferença de 4 em relação à base de 94 não foi discriminada na fonte. As respostas sobre necessidade de solução dedicada orientam a investigação, sem constituir estimativa de adesão ao SPOT. Não há cruzamento individual disponível para afirmar preferência em subgrupos específicos.
 
-Cada bloco é uma base de fala. Os tempos incluem apontar para o gráfico ou imagem; o texto deve ser ensaiado em voz alta. Não abrir uma demonstração ao vivo adicional dentro dos mesmos 15 minutos. Se quiser demonstrar o sistema, substituir a exposição das telas, mantendo o tempo total.
+### 4.3 Resultados qualitativos e inconsistências
 
-Slide 1 — SPOT: pesquisa que virou sistema — 20 s
+Os dados correspondentes constam da Tabela 14.
 
-“Somos a equipe do Spot, Sistemas de Projetos, Organização e Tarefas. O projeto nasceu de uma necessidade da Computécnica: organizar a execução dos projetos com mais clareza e ligar esse trabalho ao seu resultado financeiro. Vamos mostrar como a pesquisa orientou as decisões e como elas aparecem no sistema.”
+Sugestões abertas recuperadas
 
-Slide 2 — Problema real e duas pesquisas — 50 s
+| Tema | Frequência publicada |
+| --- | --- |
+| Interface simples | 12 |
+| Controle financeiro | 6 |
+| Integrações e e-mail | 6 |
+| Dashboards | 5 |
+| Tarefas, agenda e prazos | 5 |
+| Automação e IA | 3 |
+| Sem sugestão específica | 12 |
 
-“O ponto de partida foi um sistema com visual antigo, dificuldades de integração e controle insuficiente de responsabilidades e custos. Usamos duas bases: a pesquisa de campo, para identificar dores e expectativas, e o estudo de sistemas, para conhecer soluções existentes. O formulário reuniu 94 respostas entre março e agosto de 2026. A amostra é de conveniência: orienta nosso projeto, mas não representa estatisticamente todas as empresas. Também confrontamos essas evidências com o memorial e as necessidades específicas do cliente.”
+Fonte: Documento da pesquisa (Longo et al., 2026a); frequências temáticas, não falas literais.
 
-Slide 3 — Quem respondeu e onde já trabalha — 60 s
+O texto original declara 57 comentários, enquanto a tabela temática soma 49 frequências. Sem os registros individuais e o procedimento de codificação, não é possível reconciliar as oito unidades de diferença nem verificar sobreposição. Não foram criadas categorias ou depoimentos para completar o total.
 
-Leitura do gráfico de linhas: cada ponto representa uma faixa etária, com percentual calculado sobre 94. A ligação mostra o perfil das faixas ordenadas; não representa evolução temporal nem acompanhamento das mesmas pessoas.
+### 4.4 Relação entre achados e requisitos
 
-“Dos 94 participantes, 88 estavam empregados. A amostra reúne diferentes idades e 65 pessoas que não atuam diretamente em gestão de projetos. Isso nos ajudou a pensar no uso cotidiano, além de especialistas. O Office 365 teve 52 menções e 17 pessoas disseram não utilizar software. As ferramentas podem aparecer juntas, por isso essas contagens não somam 94. No Spot, essa presença do Microsoft se traduz em login, agenda e integração de diretório; a diversidade de usuários levou à prioridade de interface simples e tutorial.”
+As informações correspondentes estão organizadas no Quadro 2.
 
-Slide 4 — As dores que orientaram o núcleo — 70 s
+Da pesquisa às decisões de implementação
 
-“Os dois números centrais são 63,8% com dificuldade de organização e 88,3% que percebem relação entre organização e faturamento. Também encontramos 41,5% com dificuldade de alinhamento e 31,9% com dificuldade de registrar custos adicionais. O Spot responde com tarefas e responsáveis, equipes, despesas revisadas e resultado financeiro. Esses números são percepções da amostra, não provas de que o Spot aumentou faturamento. Usamos 94 como base e sinalizamos que algumas figuras não discriminam todos os participantes.”
+| Achado documental | Resposta técnica | Evidência e limite |
+| --- | --- | --- |
+| Interface e organização | Navegação, tarefas e tutorial em três idiomas | Testes de interface; eficácia com público real pendente. |
+| Integração e comunicação | Correio, agenda, notificações e chat com aprovador | Fluxos testados com serviços simulados; homologação externa pendente. |
+| Controle financeiro | Horas, tarifas, despesas e portfólio | Cálculos e acesso cobertos por testes; não demonstra ganho financeiro. |
+| Automação e IA | Regras de notificação e tradução opcional | Não se afirma implementação de agente gerencial ou IA generativa. |
 
-Slide 5 — Existe espaço para uma solução dedicada — 65 s
+Fonte: Elaboração própria a partir da pesquisa (Longo et al., 2026a) e do código (Longo et al., 2026c).
 
-Leitura do gráfico de setores: concordância = 43/94 (45,7%); talvez = 33/94 (35,1%); não = 14/94 (14,9%); diferença documental = 4/94 (4,3%). A última fatia é apenas a diferença entre a base declarada e as categorias publicadas, não uma resposta observada. As legendas também mostram as contagens.
+## 5 ARQUITETURA E AMBIENTE TECNOLÓGICO
 
-“Sobre software de projetos, 33 não têm e 27 usam uma solução cujo foco não é esse. Ao perguntar sobre uma ferramenta dedicada, 43 concordam diretamente e 33 respondem talvez. Assim, 80,9% demonstram concordância ou abertura, mas não intenção comprovada de compra. O estudo também identifica fluxos internos e externos e opiniões intermediárias sobre a interface atual. Isso levou a centralizar projetos e criar diferentes visões de trabalho. O suporte a contextos internos e externos tem base no modelo, mas não afirmamos dois fluxos completos e separados.”
+O SPOT organiza interface, interface de programação de aplicações (API), regras de domínio e persistência no mesmo repositório, com responsabilidades separadas. O navegador apresenta o estado e envia requisições; o servidor valida e autoriza cada operação; classes de domínio e modelos implementam invariantes e transações. A integração não depende de um servidor de inferência para executar as funções centrais (Longo et al., 2026c).
 
-Slide 6 — O que os participantes pediram — 70 s
+### 5.1 Componentes e versões
 
-“A análise aberta destacou interface simples, financeiro, integrações, indicadores e tarefas com agenda. Mostramos a ligação de cada tema com a entrega: tutorial e navegação; horas, tarifas e despesas; calendários; portfólio; quadro, lista e calendário de tarefas. Os alertas agora são gerados por prazo e evento, com caixa de entrada, fila de e-mail, resumos e horário de silêncio. O portfólio atualiza automaticamente. Serviços externos continuam exigindo credenciais, consentimento e SMTP; isso é condição de operação, não ausência do código. A tabela da pesquisa soma 49 frequências e o texto cita 57 comentários: registramos essa diferença e não a preenchemos com respostas inventadas.”
+A documentação oficial do Laravel descreve o ciclo de requisição e os serviços de uma aplicação PHP: Hypertext Preprocessor (PHP); o React estrutura a interface em componentes, enquanto o Vite fornece o servidor de desenvolvimento e a construção dos recursos estáticos (Laravel, 2026; Meta Platforms, [20--]; Vite, [20--]). As versões do produto são obtidas dos manifestos, lockfiles e verificações do projeto, não da versão mais recente anunciada nos sites.
 
-Slide 7 — Referências do mercado e nosso recorte — 75 s
+As informações correspondentes estão organizadas no Quadro 3.
 
-“Estudamos Monday, Asana, Jira, Trello, ClickUp e Notion, além das ferramentas brasileiras e de automação citadas no trabalho. Eles já oferecem recursos fortes de organização, colaboração e automação. O diferencial que defendemos não é exclusividade de quadros ou dashboards: é entregar um fluxo específico da Computécnica, com tarifas por vigência, despesas aprovadas e regras de encerramento em código próprio. TaskRush também trabalha com margem, então rentabilidade não é invenção nossa. AWS é infraestrutura, não concorrente direto. Código próprio dá autonomia de evolução, mas continua exigindo hospedagem e manutenção.”
+Tecnologias da versão consultada
 
-Slide 8 — Do contrato à margem — 65 s
+| Camada | Tecnologia | Aplicação |
+| --- | --- | --- |
+| Servidor | PHP 8.3; Laravel 13 | Rotas, validação, autorização, transações, filas e correio. |
+| Interface | React 18.3.1; Vite 8.3.5 | Componentes, estado, navegação da aplicação e compilação dos assets. |
+| Persistência | PostgreSQL; imagem PostgreSQL 17 | Banco relacional único; SQLite não é o banco da versão final. |
+| Analytics | Python 3; pandas 2.3.3 na imagem verificada | Consolidação de indicadores; requirements.txt admite pandas >=2.2 e <3.0. |
+| Editor do chat | Tiptap / ProseMirror | Documento estruturado, listas, links e atalhos, com validação no servidor. |
+| Autenticação | Sessão/Sanctum e JWT | Sessão da aplicação principal; JWT nas rotas de compatibilidade e estoque. |
+| Operação | Docker Compose; FrankenPHP/Caddy | Serviços web, worker, scheduler e PostgreSQL; certificados dependem do domínio real. |
 
-“No núcleo financeiro, receita gerencial é contrato mais horas extras faturáveis. Dela saem impostos, comissão, mão de obra e despesas aprovadas. A tarifa é capturada na atividade, preservando o histórico quando há reajuste. Se faltar tarifa, o resultado é marcado como parcial. Neste exemplo didático, R$ 10.200 de receita, menos tributos, comissão, mão de obra e despesas, resultam em R$ 8.020. O cálculo usa aritmética decimal. Não chamamos isso de fluxo de caixa: não há comprovação de recebimento bancário.”
+Fonte: Elaboração própria com base no código-fonte do SPOT (Longo et al., 2026c).
 
-Slide 9 — Organização na tela de trabalho — 60 s
+A representação correspondente é apresentada na Figura 14.
 
-“Estas são telas reais com dados demonstrativos. A Home resume o que merece atenção. Em tarefas, quadro, lista e calendário mostram os mesmos registros. Cada atividade tem responsável, colaboradores, data, tipo e duração. O histórico permite consultar mudanças. Não basta esconder um botão: a API também valida acesso e estado do projeto. Tutorial, temas e três idiomas procuram reduzir a barreira de entrada; a facilidade de uso ainda precisa ser medida em testes com usuários.”
+![Organização das principais camadas do SPOT](../assets/documentacao-final/arquitetura.png)
 
-Slide 10 — Indicadores para decidir — 55 s
+Fonte: Elaboração própria a partir do código-fonte (Longo et al., 2026c).
 
-“O portfólio reúne a carteira e permite escolher indicadores, agrupamentos e gráficos. É possível comparar valores planejados e realizados e exportar CSV. O Laravel aplica a autorização e envia dados em JSON ao Python com Pandas; o script devolve os indicadores para o React. Preferências são salvas no navegador. A tela atualiza a cada 30 segundos quando visível e depois de alterações locais ou entre abas, mantendo os filtros aplicados. O período seleciona projetos pela data de início ou criação: não é um extrato de entradas financeiras do mês. A atualização é por consultas, não WebSocket.”
+### 5.2 Banco relacional e concorrência
 
-Slide 11 — Governança e integração no fluxo — 60 s
+O PostgreSQL é a persistência única da versão final. Referências a SQLite na monografia preliminar descrevem um estado anterior e foram retiradas da descrição do sistema atual. As migrations definem evolução de tabelas e relacionamentos; transações e bloqueios de linha protegem decisões, movimentações e alterações de equipe. A documentação PostgreSQL fundamenta o uso de integridade e controle transacional (PostgreSQL Global Development Group, 2026).
 
-“O controle de acesso combina perfis, permissões e vínculo com projeto. Finalizar exige justificativa, bloqueia os principais lançamentos e revoga vínculos ativos; reabrir não restaura esses vínculos automaticamente. A auditoria registra ações relevantes e possui retenção configurável. Na integração, o que existe de fato é OAuth, calendários, criação de Teams e diretório Microsoft, com configuração externa. Os 24 ícones de aplicativos são atalhos. Convites usam links com validade, uso único e envio por fila.”
+Na alteração de equipe, um bloqueio no registro do projeto serializa operações que poderiam remover simultaneamente os últimos responsáveis. No chat, o par de usuários é representado por uma conversa e os pedidos pendentes são conferidos sob transação. Esses controles sustentam o comportamento verificado nos testes; não constituem, por si, um ensaio de escalabilidade (Longo et al., 2026c).
 
-Slide 12 — Como a arquitetura sustenta isso — 60 s
+### 5.3 Comunicação e implantação
 
-“O Spot é um monólito organizado por camadas. React apresenta a interface; a API Laravel valida acesso e dados; ações de domínio executam regras; Eloquent persiste no PostgreSQL. Python faz a agregação analítica, sem acesso direto ao banco. Worker processa e-mails e scheduler executa manutenção. A escolha mantém uma implantação administrável para a equipe, sem exigir microserviços. Separar responsabilidades ajuda a testar e evoluir, embora alguns controllers e o componente principal ainda possam ser divididos melhor.”
+A aplicação principal utiliza JavaScript Object Notation (JSON) e rotas versionadas sob /api/v1, com sessão, cookies e proteção Cross-Site Request Forgery (CSRF) nas operações mutáveis. A compatibilidade por token e o estoque utilizam JSON Web Token (JWT) em suas rotas. OAuth conecta provedores externos; sua homologação requer credenciais e permissões reais. Falhas de validação são apresentadas próximas aos formulários e não devem expor Structured Query Language (SQL), traces ou segredos.
 
-Slide 13 — Uma tarefa, do clique ao banco — 55 s
+O Docker Compose descreve serviços e volumes da aplicação (Docker, 2026). O empacotamento do SPOT inclui web, worker e scheduler, além do PostgreSQL. E-mails usam a fila emails; atividades e limpezas periódicas são agendadas dentro do processo PHP. O arquivo .env e dados de usuários não integram a imagem (Longo et al., 2026c).
 
-“Ao salvar, TasksPage transforma horas e minutos em um número inteiro. O cliente de API prepara CSRF e envia a requisição. TaskV1Controller verifica o projeto e as pessoas. Dentro da transação, cria a tarefa, vincula participantes, captura tarifa e registra auditoria. O JSON atualiza a tela. Quando o relatório é aberto, o cálculo usa essa fotografia e evita somar novamente tarefas que já tenham apontamento associado. Esse caminho mostra que a funcionalidade existe além do desenho da tela.”
+## 6 REQUISITOS, REGRAS E FUNCIONALIDADES
 
-Slide 14 — O que validamos e o que falta — 50 s
+As funcionalidades são descritas por operações, critérios de acesso e condições de funcionamento. As regras estabelecem as responsabilidades dos perfis e os controles aplicados pelo servidor.
 
-“Nesta versão local, os 122 testes passaram, com 788 asserções, e o build de produção concluiu. Isso dá evidência dos comportamentos cobertos, não garantia de ausência de problemas. Completamos as notificações de atividade, os lembretes de tarefas/agenda e a atualização automática dos painéis. Permanecem a homologação com usuários e provedores reais e os ensaios de carga; o envio externo exige a configuração de operação. A monografia precisa refletir PostgreSQL e a versão técnica mais recente. A honestidade sobre o escopo evita defender algo que o código não demonstra.”
+### 6.1 Requisitos rastreáveis
 
-Slide 15 — Contribuição do trabalho — 35 s
+Os requisitos foram derivados das necessidades registradas pela equipe e refinados por comportamento observável no código. Requisito funcional descreve uma operação ou restrição; requisito não funcional trata de qualidades e condições de uso. A entrega inclui autenticação, governança, projetos, tarefas, horas, finanças, comunicação e operação, com rastreabilidade entre regra, componente e teste (Longo et al., 2026c).
 
-“O trabalho conecta três coisas: uma necessidade real, pesquisa para priorizar requisitos e implementação verificável. O Spot organiza a execução e a relaciona ao resultado financeiro, com governança e autonomia de evolução. Nossa contribuição é uma solução adaptada à Computécnica e uma base técnica que pode amadurecer com uso e validação. Obrigado.”
+As informações correspondentes estão organizadas no Quadro 4.
 
-17. Perguntas prováveis da banca
+Regras centrais verificadas
 
-Por que desenvolver se já existe Trello, Asana ou ClickUp? Porque o objetivo foi atender regras e contexto do cliente e aplicar conhecimentos em uma solução controlável. Sistemas existentes são referências e alternativas reais; a decisão precisa considerar adequação e custo total, não alegar que não fazem gestão.
+| Identificação | Tema | Regra |
+| --- | --- | --- |
+| RN01 | Provisionamento | Somente usuário com alçada administrativa provisiona conta e gera link de ativação; não há solicitação pública de primeiro acesso. |
+| RN02 | Ativação | O e-mail deve corresponder à conta do token; o nome não precisa coincidir. Token deve estar válido e não utilizado; senha precisa de confirmação. |
+| RN03 | Reenvio | Uma transição de outro estado para aguardando ativação gera novo link e agenda e-mail; editar uma conta já pendente não repete o envio. |
+| RN04 | Projeto | Gerente do projeto obrigatório na criação v1; o responsável entra como manager na equipe. Não se permite remover ou rebaixar o último gerente elegível da equipe. |
+| RN05 | Visibilidade | Empresa atual, perfis, participação e exceções de permissão limitam os dados e as operações. Interface não substitui autorização do servidor. |
+| RN06 | Chat direto | Exige vínculo ativo de analyst ou manager dos dois usuários em um mesmo projeto, ou autorização específica válida para o par. |
+| RN07 | Pedido de chat | Pessoa, motivo e aprovador são obrigatórios. O aprovador é administrador ou gerente administrador ativo da mesma empresa, diferente do solicitante, inclusive fora do projeto. |
+| RN08 | Decisão | Novo pedido vai apenas ao aprovador escolhido; só ele aprova/recusa. Uma pendência por par impede duplicação, inclusive inversa. Pedidos antigos sem destinatário mantêm a compatibilidade. |
+| RN09 | Restrições do chat | Convidados e contas inativas não usam o chat. Aprovar não concede leitura de conversas de terceiros. Revogação preserva histórico. |
+| RN10 | Mensagens | Apenas autor edita até 24 horas do envio original; versões concorrentes são verificadas. Original e revisões são preservados. |
+| RN11 | Tradução | Bandeiras pt/en/es escolhem apenas destino de tradução da mensagem; original preservado. Serviço externo configurado é necessário. |
+| RN12 | Recuperação | Intervalo de 60 segundos entre gerações para o mesmo e-mail; link vale 60 minutos. Nova geração substitui a anterior, sem divulgar existência da conta. |
+| RN13 | Projetos finalizados | Restrições a alterações e preservação do histórico seguem os endpoints e permissões aplicáveis. |
+| RN14 | Despesas e tarifas | Despesas passam pelo fluxo de revisão; custos e preços usam tarifas e vigências, sem sobreposições indevidas. |
+| RN15 | Notificações | Preferências, canal, frequência e silêncio condicionam entrega; processamento em fila e deduplicação evitam reenvios indevidos. |
 
-Qual é o diferencial mais concreto? A combinação, no fluxo do cliente, de tarefas, tarifas históricas, despesas aprovadas, planejado × realizado e transições auditadas. É adequação de domínio; cada recurso isolado pode existir em outros produtos.
+Fonte: Elaboração própria com base no código-fonte do SPOT (Longo et al., 2026c).
 
-A pesquisa prova demanda de mercado? Identifica padrões e necessidades na amostra de conveniência. Não comprova mercado total, compra, representatividade ou retorno sobre investimento.
+### 6.2 Identidade, convite e primeiro acesso
 
-Por que 94 pessoas e gráficos com menos respostas? O documento publicado não discrimina toda a diferença. Mantivemos os valores originais, denominador explícito e a ressalva; a solução correta é reconciliar com a exportação original, não inventar respostas.
+O primeiro acesso é iniciado por provisionamento administrativo. O link utiliza token com hash persistido, validade e controle de uso. A identificação da ativação compara somente o e-mail com a conta associada ao convite, desconsiderando caixa e espaços nas extremidades; não exige que o nome digitado coincida com o cadastro. O nome administrativo é preservado. Quando o e-mail diverge, a interface orienta: Por gentileza, insira o e-mail correspondente ao do convite enviado! A validade do token e a confirmação da senha continuam obrigatórias.
 
-Por que apresentar 80,9% e não 81% de compradores? Porque 43 concordam e 33 estão em dúvida. O agregado representa abertura; não compradores. O valor vem de 76/94, arredondado a uma casa decimal.
+Uma nova entrada da conta em aguardando ativação revoga links anteriores ainda não usados, cria outro token e agenda a mensagem após confirmar a transação. A validade da ativação administrativa é de 48 horas. Edição de cargo ou perfil de uma conta já pendente não é um novo evento de reenvio. A recuperação de senha é um fluxo diferente: o link vale 60 minutos e há intervalo de 60 segundos entre gerações para a mesma conta (Longo et al., 2026c).
 
-Como comprovar que é fácil? O código implementa mecanismos favoráveis à aprendizagem, mas a comprovação exige teste de usabilidade. Definir tarefas, perfis, taxa de sucesso, tempo e satisfação seria um próximo estudo.
+### 6.3 Projetos, equipe e execução
 
-Por que Python se o Laravel já calcula? Laravel mantém a regra financeira e a autorização; Pandas consolida análises. É uma separação conveniente para o módulo, mas há custo operacional. Não é a única arquitetura possível.
+O cadastro v1 exige gerente do projeto elegível. O usuário selecionado entra na equipe como manager, sem duplicação se também constar na seleção inicial. Equipes, atribuições e remoções de membros preservam ao menos um gerente ativo elegível, sincronizando o campo de referência quando necessário. Perfis de administrador, gerente administrador e gerente podem ser elegíveis para a função, conforme as regras do servidor.
 
-Por que PostgreSQL? É o banco adotado no estado atual, com transações e bloqueios úteis às operações. Sua escolha não significa que todo projeto pequeno precise dele; aqui também simplifica manter um único banco suportado.
+Projetos concentram contrato, situação, datas, membros e planejamento. Tarefas oferecem visualizações de trabalho e apontamentos; tarifas possuem vigência, e despesas passam por revisão. Finalização e reabertura seguem autorização e preservação do histórico. O módulo de documentos mantém suas regras de privacidade: associar um arquivo a projeto ou tarefa não equivale a compartilhá-lo com toda a equipe (Longo et al., 2026c).
 
-Por que não microserviços? O domínio e a equipe não exigem esse custo de comunicação/implantação. Um monólito em camadas permite desenvolver e testar com menos infraestrutura; processos de fila não o tornam automaticamente microserviços.
+### 6.4 Chat e aprovação direcionada
 
-Como manter resultado correto após reajuste? Tarifa com vigência é copiada para o registro. Reajuste posterior não altera a fotografia, exceto recaptura motivada por alteração relevante ou precificação pendente prevista na regra.
+O chat é individual e restrito à empresa atual. Há acesso direto quando os dois usuários possuem participação ativa, não revogada, com papel analyst ou manager em um mesmo projeto. Fora desse vínculo, o formulário solicita pessoa, motivo e o destinatário em Enviar aprovação para. A lista contém administradores e gerentes administradores ativos e elegíveis da mesma empresa, excluindo o solicitante; podem estar fora do projeto.
 
-Concluir uma tarefa e finalizar um projeto são a mesma coisa? Não. Status de tarefa organiza execução; finalização do projeto é um estado governado, com justificativa, autor, bloqueios e efeitos de acesso.
+O campo assigned_reviewer_id registra quem recebeu o novo pedido; reviewer_id registra quem decidiu. Somente o escolhido recebe o aviso e pode aprovar ou recusar. A autorização vale para o par, e não libera a leitura de conversas de terceiros. Pedidos antigos sem atribuição mantêm compatibilidade com o fluxo anterior. Uma pendência por par impede duplicação, inclusive em sentido inverso; pedidos recusados ou revogados permitem nova tentativa conforme a elegibilidade (Longo et al., 2026c).
 
-A reabertura devolve acesso à equipe? Não automaticamente. A implementação preserva os vínculos revogados; o gestor precisa revisar as atribuições.
+Apenas o autor pode editar uma mensagem, até 24 horas do envio original. As revisões são preservadas e uma versão é conferida para evitar sobrescrita concorrente. Anexos usam acesso autorizado e descrições de imagem podem ser informadas. O editor fornece formatação e atalhos; Enter envia e Ctrl + Shift + Enter insere nova linha. A existência de autorização de revisão não concede acesso ao conteúdo de uma conversa alheia.
 
-O lucro representa dinheiro no banco? Não. É resultado gerencial com contrato e horas extras como receita-base. Recebimento, conciliação e emissão fiscal não estão implementados como ERP completo.
+A representação correspondente é apresentada na Figura 15.
 
-O administrador acessa tudo de qualquer empresa? O desenho central dá poderes no contexto da empresa atual. Não se deve afirmar isolamento uniforme de todos os módulos: estoque é uma lacuna identificada.
+![Solicitação de chat com escolha do aprovador](../assets/documentacao-final/chat-aprovador.png)
 
-Por que existe estoque no TCC de projetos? É módulo adicional/compatibilidade do repositório. Serve como exemplo de transação e concorrência, mas não é a justificativa principal da pesquisa de projetos nem está ligado automaticamente ao financeiro do projeto.
+Fonte: Interface do build local, com massa sintética e API simulada; captura de teste, 10 nov. 2026.
 
-Como funcionam os avisos? Eventos de negócio geram entregas persistentes e um agendador avalia prazos a cada minuto. Canais, fuso e silêncio são revalidados; os e-mails usam fila e podem ser imediatos, diários ou semanais. É necessário ativar SMTP para envio externo. Não confundir alerta de agenda local com todos os eventos de calendários externos.
+### 6.5 Agenda, notificações e e-mails
 
-Os documentos são da equipe? O fluxo atual é pessoal por proprietário; associar projeto não libera o arquivo a todos os membros.
+A agenda reúne eventos internos e conexões externas disponíveis. Grupos, participantes, fuso e detalhes são validados. As notificações consideram preferências por canal, silêncio, frequência e deduplicação. Resumos diários ou semanais e envios imediatos são processados em lotes e filas, com tratamento de falha e nova tentativa (Longo et al., 2026c).
 
-O sistema está em produção e homologado? Este material comprova código local, build e testes executados. Não confirma implantação produtiva, consentimentos de tenant, SMTP real ou desempenho sob carga.
+Ativação, convite, recuperação e notificações compartilham o layout de correio: cabeçalho Spot, título, ação, link alternativo e rodapé, com alternativa em texto simples. Textos de estrutura possuem pt/en/es; dados escritos por pessoas são preservados e escapados no HTML. Disponibilidade de Simple Mail Transfer Protocol (SMTP), reputação do remetente e apresentação em clientes de e-mail reais exigem homologação separada.
 
-122 testes significam 122 funcionalidades? Não. Testes verificam cenários; asserções verificam condições. A cobertura e a qualidade dependem dos casos escolhidos.
+### 6.6 Portfólio e processamento analítico
 
-Como a segurança é garantida? Há medidas concretas — sessão/CSRF, autorização, hash de senha, proteção de tokens, 2FA, limites e auditoria —, mas não garantia absoluta. Validar todos os caminhos e o ambiente de produção continua necessário.
+Os relatórios consolidam situação, custos, receitas, margens, horas e despesas, usando processos Python com pandas. A biblioteca fornece estruturas e operações de análise de dados (Pandas Development Team, 2026). No SPOT, os cálculos dependem dos registros e permissões existentes; falta de tarifa ou base de cálculo não é convertida automaticamente em evidência de lucro ou desempenho.
 
-O sistema é gratuito? O repositório não impõe assinatura SaaS por usuário para rodar esse código, mas infraestrutura, suporte e manutenção custam. Não foi calculada economia comprovada nem verificada cessão contratual.
+Painéis permitem indicadores e diferentes visualizações, agregações e exportação CSV. Resultados parciais são identificados. Uma falha do detalhamento financeiro é tratada localmente sem cobrir todos os outros indicadores com uma tela global de erro. O resultado financeiro é gerencial, depende da qualidade dos dados e não equivale a demonstração contábil auditada (Longo et al., 2026c).
 
-18. Próximos passos com critério de conclusão
+### 6.7 Idiomas, acessibilidade e tutorial
 
-1. Reconciliar a exportação original do Forms e a codificação aberta; publicar tabelas com n por pergunta e regras claras para múltiplas respostas.
-2. Validar usabilidade com tarefas reais e usuários da Computécnica; medir sucesso, tempo e satisfação antes/depois.
-3. Homologar Google/Microsoft, expiração/renovação, Graph, criação de Teams e envio SMTP em ambiente controlado.
-4. Operar e acompanhar as notificações implementadas: revisar destinatários, homologar SMTP, habilitar o envio de atividades, supervisionar worker e scheduler e acompanhar falhas. Os canais, eventos, resumos e silêncio têm testes automatizados.
-5. Revisar isolamento e autorização do estoque; definir se terá vínculo financeiro com projeto.
-6. Medir portfólio com grande volume, reduzir consultas repetidas e avaliar cache/execução analítica se necessário.
-7. Melhorar modularização do frontend e consistência de permissões entre tela, endpoints e documentação.
-8. Preparar produção com backup restaurável, monitoramento, supervisão de filas e plano de atualização.
+A interface dispõe de português, inglês e espanhol, ajustes de fonte, escala e tema, indicação de foco e respeito à redução de movimento e cores forçadas. O objetivo de acessibilidade é WCAG 2.2 nível AA, referência que abrange diferentes necessidades de uso; resultados automatizados não substituem avaliação humana nem certificam conformidade integral (World Wide Web Consortium, 2024).
 
-19. Material de apoio e demonstração
+O tutorial é opcional e seleciona as etapas conforme permissões e disponibilidade do chat. Explica navegação, projetos, execução, segurança e solicitações, sem enviar formulários de negócio. A mudança de idioma dentro do passeio não grava alterações na conta. A posição dos destaques é verificada para telas disponíveis e áreas restritas. Nomes e conteúdos pessoais usam marcação para impedir tradução automática da interface (Longo et al., 2026c).
 
-Arquivos entregues: apresentação PPTX editável, PDF dos slides, este guia em Markdown/TXT/DOCX/PDF, roteiro de tempo, dados JSON/CSV, gráficos PNG/SVG e capturas da interface. Slides usam gráficos de pesquisa como vetores/elementos editáveis quando construídos no PowerPoint; gráficos completos de apoio estão exportados como imagens e SVG.
+### 6.8 Tradução automática e escopo de IA
 
-Demonstração curta opcional em substituição aos slides de tela: abrir Home; entrar em Minhas tarefas; mostrar responsável/participantes e histórico; abrir Portfólios; explicar planejado × realizado e pendência de tarifa. Preparar dados fictícios e não depender de envio de e-mail ou autorização OAuth ao vivo. Se a conexão falhar, usar as capturas/PDF já entregues.
+As bandeiras no cabeçalho da conversa escolhem apenas o destino da tradução da mensagem, sem alterar o idioma global. O texto traduzido é apresentado no balão, identificado como automático, com acesso ao original. A integração opcional usa o endpoint de tradução do LibreTranslate (LibreTranslate, [20--]). Credenciais e endereço do serviço permanecem no servidor.
 
-Divisão sugerida para quatro integrantes: slides 1–3 (problema/método/contexto); 4–7 (resultados e comparação); 8–11 (funcionalidades/diferenciais); 12–15 (arquitetura, validação e conclusão). Cada pessoa deve conhecer também o caminho de uma tarefa e as limitações metodológicas.
+É necessário distinguir tradução automática de agentes de planejamento ou geração de conteúdo. A versão final não demonstra um agente generativo para estimar projetos, redistribuir equipes ou tomar decisões gerenciais. Automação de notificações, regras determinísticas e consolidação com pandas também não são, por si, implementação de inteligência artificial. A pesquisa de tecnologias de IA é referência de possibilidades, não prova de entrega dessas funções.
 
-20. Referências e procedência
+## 7 MODELO DE DADOS E CONTRATOS DE API
 
-EQUIPE SPOT. Capítulo de levantamento de pesquisa de campo. 2026. Documento DOCX fornecido pelo usuário, arquivo /home/alexander/Downloads/Capitulo_Levantamento_Pesquisa_ABNT.docx. Atribuição operacional ao projeto; autoria específica do capítulo não foi individualizada no arquivo analisado.
+O esquema é descrito por migrations versionadas. As entidades agrupam identidade, organização, trabalho, finanças, comunicação e operação. O quadro a seguir é um mapa de domínio; o apêndice de migrations e os arquivos do repositório são a referência para nomes, tipos, nulabilidade, índices e chaves exatos (Longo et al., 2026c).
 
-LONGO, Alexander Molany; SOARES, Lucas Rodrigues; MATOS, Pedro Galvão de; SOUZA, Yasmin Regina de. SPOT: Sistemas de Projetos, Organização e Tarefas. Santo André: Colégio Dr. Clóvis Bevilacqua, 2026. Monografia em elaboração, arquivo Monografia_SPOT_documentacao_integrada.docx.
+As informações correspondentes estão organizadas no Quadro 5.
 
-SPOT. Código-fonte e documentação local. 2026. Diretório /home/alexander/Documentos/Spot; inclui alterações locais não commitadas. Consulta e validação: 26 out. 2026. Fontes técnicas principais: README.md, docs/MAPA-DO-CODIGO.md, docs/memorial/levantamento.md, manifestos, rotas, controllers, domínio, modelos, migrações e testes.
+Grupos de dados
 
-MONDAY.COM. Gestão de projetos e plataforma. Disponível em: https://monday.com/w/use-cases/ai-project-management-software. Acesso em: 26 out. 2026.
+| Domínio | Entidades principais | Responsabilidade |
+| --- | --- | --- |
+| Identidade e acesso | users, profiles, permissions, company_user_profiles, user_permission_overrides | Contas, empresa atual, perfis e exceções. |
+| Organização e projetos | companies, organizations, clients, projects, project_members | Responsáveis, contrato, equipe e vínculos. |
+| Execução e finanças | tasks, work_logs, project_expenses, analyst_project_rates, project_taxes | Atividades, horas, despesas, tarifas e composição financeira. |
+| Convites e ativação | project_invitations, user_activation_tokens | Tokens armazenados como hash, validade e uso/revogação. |
+| Chat | chat_conversations, chat_access_requests, chat_messages, chat_message_revisions, chat_attachments | Par de usuários, aprovador escolhido/decisor, versões e anexos privados. |
+| Agenda e notificações | calendar_events, calendar_deliveries, calendar_event_changes, inbox_items, notification_deliveries, notification_mail_batches | Eventos, participantes/grupos, alertas, entregas e resumos. |
+| Operação | jobs, failed_jobs, audit_logs e tabelas de sessão/cache | Fila, falhas, rastreabilidade e suporte ao runtime. |
+| Estoque | categories, products, stock_movements | Camada de compatibilidade com autenticação JWT e movimentação atômica. |
 
-ASANA. Features. Disponível em: https://asana.com/features. Acesso em: 26 out. 2026.
+Fonte: Elaboração própria com base no código-fonte do SPOT (Longo et al., 2026c).
 
-ATLASSIAN. Jira features. Disponível em: https://www.atlassian.com/software/jira/features. Acesso em: 26 out. 2026.
+### 7.1 Vínculos e integridade
 
-TRELLO. Tour. Disponível em: https://trello.com/tour. Acesso em: 26 out. 2026.
+Uma empresa limita as contas e os projetos visíveis. Projetos relacionam responsáveis e membros; tarefas, horas e despesas referenciam o contexto de execução. Conversas representam um par ordenado de usuários, enquanto solicitações, mensagens, revisões e anexos mantêm relações separadas. Tokens de acesso não são armazenados em texto simples. O responsável escolhido para aprovação não é confundido com o usuário que concluiu a decisão.
 
-CLICKUP. Features. Disponível em: https://clickup.com/features. Acesso em: 26 out. 2026.
+A preservação do histórico é parte do domínio: revogar autorização não remove mensagens; finalização limita operações sem apagar a trajetória do projeto; exclusão de registros com dependências segue restrições e regras aplicáveis. A normalização lógica evita repetir a mesma credencial, perfil ou estado em entidades sem necessidade, embora haja snapshots controlados para rastreabilidade de valores e decisões.
 
-NOTION. Projects. Disponível em: https://www.notion.com/product/projects. Acesso em: 26 out. 2026.
+### 7.2 Contratos e erros
 
-TASKRUSH. Gerenciamento de projetos. Disponível em: https://taskrush.com.br/gerenciamento-de-projetos/. Acesso em: 26 out. 2026.
+O inventário exportado pelo Laravel contém 170 rotas no ambiente consultado, incluindo infraestrutura e framework. Esse total não representa 170 funcionalidades de negócio. O apêndice discrimina rotas da aplicação e o manifesto preserva o critério de extração.
 
-ARTIA. Inteligência artificial para projetos e cronogramas. Disponível em: https://artia.com/produto/ia-do-artia/. Acesso em: 26 out. 2026.
+Respostas de validação usam a estrutura errors e os códigos Hypertext Transfer Protocol (HTTP) compatíveis com o problema. Requisições sem autorização, recursos não visíveis, conflito de estado e indisponibilidade têm tratamentos distintos. O cliente de sessão inicializa CSRF antes das mutações e só publica eventos de atualização após sucesso; logout não dispara recarga automática de dados privados. Validações críticas continuam no servidor (Longo et al., 2026c).
 
-JESTOR. IA e MCP. Disponível em: https://jestor.com/pt/ai/. Acesso em: 26 out. 2026.
+As informações correspondentes estão organizadas no Quadro 6.
 
-AMAZON WEB SERVICES. What is cloud computing? Disponível em: https://aws.amazon.com/what-is-cloud-computing/. Acesso em: 26 out. 2026.
+Rastreabilidade entre implementação e testes
 
-As referências de mercado foram usadas para posicionamento funcional, sem reprodução de preços e sem ranking de desempenho. A apresentação usa referências abreviadas e o guia mantém os endereços completos. A organização em seções, fontes e referências segue uma apresentação acadêmica; a formatação final do TCC deve seguir o modelo da instituição. Não foi alterada nem certificada a conformidade integral da monografia com normas ABNT.
+| Área | Artefatos | Verificação |
+| --- | --- | --- |
+| Identidade | app/Http/Controllers/Api/AdminUserController.php; FirstAccessController.php | AdministrativeProvisioningTest; ActivationStatusEmailTest |
+| Projetos/equipe | ProjectController.php; TeamController.php; ProjectTeamManagers.php | RequiredProjectManagerTest; InitialProjectTeamTest |
+| Chat e aprovação | app/Domain/Chat/ChatAccess.php; ChatController.php; ChatPage.jsx | ChatTest; scripts/test-chat.mjs |
+| Editor e original | ChatRichEditor.jsx; ChatFormattedText.jsx; chatFormatting.js | scripts/test-chat-formatting.mjs |
+| Correio e idioma | app/Mail; app/Domain/Mail; resources/views/mail | LocalizedResetMailTest; StandardizedMailTest |
+| Notificações/agenda | NotificationCenter; SendNotificationBatch; CalendarController | NotificationDeliveryTest; testes de agenda |
+| Acessibilidade/tutorial | useModalFocus.js; usePopoverPosition.js; tutorial/content.js | test-accessibility.mjs; test-public-accessibility.mjs; test-tutorial.mjs |
+| Analytics | ProjectAnalyticsController.php; scripts/project_analytics.py; PortfolioChart.jsx | FinancialReportTest; test-portfolio.mjs |
+| Implantação | Dockerfile; docker-compose.yml; routes/console.php | ProductionSchedulerTest; verify-container-tests.py; check-production.php |
 
+Fonte: Elaboração própria com base no código-fonte do SPOT (Longo et al., 2026c).
 
-Anexo A. Inventário atual de rotas
+## 8 VERIFICAÇÃO, RESULTADOS E LIMITES
 
-Inventário obtido por ./php artisan route:list --json: 139 entradas totais (incluindo framework). Subconjunto por critério automático de action fora de Laravel/Illuminate e sem healthcheck: 134. Esses números não são contagens de funcionalidades.
+A evidência técnica corresponde à execução registrada em 10 de novembro de 2026. O código consultado foi identificado por commit e acompanhado de logs e inventários. Resultados antigos de 52 testes e 262 asserções pertencem a uma edição anterior e não descrevem a versão final. A quantidade de testes não deve ser interpretada como quantidade de funcionalidades nem como cobertura total (Longo et al., 2026c).
 
-| Método | URI | Ação |
-|---|---|---|
-| POST | /api/auth/login | Api\AuthController@login |
-| POST | /api/auth/logout | Api\AuthController@logout |
-| GET / HEAD | /api/auth/me | Api\AuthController@me |
-| GET / HEAD | /api/categories | Api\CategoryController@index |
-| POST | /api/categories | Api\CategoryController@store |
-| PUT / PATCH | /api/categories/{category} | Api\CategoryController@update |
-| DELETE | /api/categories/{category} | Api\CategoryController@destroy |
-| GET / HEAD | /api/dashboard | Api\MovementController@dashboard |
-| GET / HEAD | /api/movements | Api\MovementController@index |
-| POST | /api/movements | Api\MovementController@store |
-| GET / HEAD | /api/products | Api\ProductController@index |
-| POST | /api/products | Api\ProductController@store |
-| GET / HEAD | /api/products/{product} | Api\ProductController@show |
-| PUT / PATCH | /api/products/{product} | Api\ProductController@update |
-| DELETE | /api/products/{product} | Api\ProductController@destroy |
-| GET / HEAD | /api/projects | Api\ProjectController@index |
-| POST | /api/projects | Api\ProjectController@store |
-| GET / HEAD | /api/projects/{project} | Api\ProjectController@show |
-| PUT / PATCH | /api/projects/{project} | Api\ProjectController@update |
-| DELETE | /api/projects/{project} | Api\ProjectController@destroy |
-| GET / HEAD | /api/tasks | Api\TaskController@index |
-| POST | /api/tasks | Api\TaskController@store |
-| PUT / PATCH | /api/tasks/{task} | Api\TaskController@update |
-| DELETE | /api/tasks/{task} | Api\TaskController@destroy |
-| GET / HEAD | /api/v1/admin/users | Api\AdminUserController@index |
-| POST | /api/v1/admin/users | Api\AdminUserController@store |
-| PATCH | /api/v1/admin/users/{user} | Api\AdminUserController@update |
-| DELETE | /api/v1/admin/users/{user} | Api\AdminUserController@destroy |
-| POST | /api/v1/auth/login | Api\AuthController@loginSession |
-| POST | /api/v1/auth/logout | Api\AuthController@logoutSession |
-| GET / HEAD | /api/v1/auth/me | Api\AuthController@meSession |
-| GET / HEAD | /api/v1/auth/me/projects | Api\AuthController@myProjects |
-| GET / HEAD | /api/v1/auth/timezones | Api\AuthController@timezones |
-| GET / HEAD | /api/v1/calendar | Api\CalendarController@index |
-| POST | /api/v1/calendar/events | Api\CalendarController@store |
-| GET / HEAD | /api/v1/categories | Api\CategoryController@index |
-| POST | /api/v1/categories | Api\CategoryController@store |
-| PUT / PATCH | /api/v1/categories/{category} | Api\CategoryController@update |
-| DELETE | /api/v1/categories/{category} | Api\CategoryController@destroy |
-| GET / HEAD | /api/v1/dashboard | Api\MovementController@dashboard |
-| GET / HEAD | /api/v1/documents | Api\ProjectDocumentController@index |
-| POST | /api/v1/documents | Api\ProjectDocumentController@store |
-| DELETE | /api/v1/documents/{document} | Api\ProjectDocumentController@destroy |
-| GET / HEAD | /api/v1/documents/{document}/download | Api\ProjectDocumentController@download |
-| PUT | /api/v1/expenses/{expense} | Api\ManagementController@updateExpense |
-| DELETE | /api/v1/expenses/{expense} | Api\ManagementController@deleteExpense |
-| POST | /api/v1/expenses/{expense}/review | Api\ProjectExpenseController@review |
-| POST | /api/v1/first-access | Api\FirstAccessController@requestLink |
-| POST | /api/v1/first-access/{token} | Api\FirstAccessController@activate |
-| GET / HEAD | /api/v1/history | Api\HistoryController@index |
-| GET / HEAD | /api/v1/home-dashboard | Api\HomeDashboardController@show |
-| PATCH | /api/v1/home-dashboard/tasks/{task}/priority | Api\HomeDashboardController@updatePriority |
-| PATCH | /api/v1/home-dashboard/tasks/{task}/toggle | Api\HomeDashboardController@toggleTask |
-| GET / HEAD | /api/v1/inbox | Api\InboxController@index |
-| DELETE | /api/v1/inbox | Api\InboxController@clear |
-| PATCH | /api/v1/inbox/read-all | Api\InboxController@readAll |
-| DELETE | /api/v1/inbox/{inboxItem} | Api\InboxController@archive |
-| PATCH | /api/v1/inbox/{inboxItem}/read | Api\InboxController@read |
-| PATCH | /api/v1/inbox/{inboxItem}/restore | Api\InboxController@restore |
-| POST | /api/v1/invitations/{invitation}/revoke | Api\ProjectInvitationController@revoke |
-| GET / HEAD | /api/v1/invitations/{token} | Api\ProjectInvitationController@showAcceptance |
-| POST | /api/v1/invitations/{token}/accept | Api\ProjectInvitationController@accept |
-| GET / HEAD | /api/v1/management/access | Api\ManagementController@access |
-| GET / HEAD | /api/v1/management/directory | Api\DirectoryController@index |
-| POST | /api/v1/management/directory/import | Api\DirectoryController@import |
-| GET / HEAD | /api/v1/management/parameters/{type} | Api\ManagementController@parameters |
-| POST | /api/v1/management/parameters/{type} | Api\ManagementController@saveParameter |
-| PUT | /api/v1/management/parameters/{type}/{id} | Api\ManagementController@saveParameter |
-| DELETE | /api/v1/management/parameters/{type}/{id} | Api\ManagementController@deleteParameter |
-| GET / HEAD | /api/v1/management/settings | Api\ManagementController@settings |
-| PUT | /api/v1/management/settings | Api\ManagementController@saveSettings |
-| GET / HEAD | /api/v1/management/users/{user}/permissions | Api\ManagementController@permissions |
-| PUT | /api/v1/management/users/{user}/permissions | Api\ManagementController@savePermissions |
-| GET / HEAD | /api/v1/movements | Api\MovementController@index |
-| POST | /api/v1/movements | Api\MovementController@store |
-| GET / HEAD | /api/v1/notification-preferences | Api\NotificationPreferenceController@show |
-| PUT | /api/v1/notification-preferences | Api\NotificationPreferenceController@update |
-| DELETE | /api/v1/notification-preferences | Api\NotificationPreferenceController@reset |
-| GET / HEAD | /api/v1/parameters | Api\ParameterController@index |
-| GET / HEAD | /api/v1/products | Api\ProductController@index |
-| POST | /api/v1/products | Api\ProductController@store |
-| GET / HEAD | /api/v1/products/{product} | Api\ProductController@show |
-| PUT / PATCH | /api/v1/products/{product} | Api\ProductController@update |
-| DELETE | /api/v1/products/{product} | Api\ProductController@destroy |
-| GET / HEAD | /api/v1/projects | Api\ProjectController@index |
-| POST | /api/v1/projects | Api\ProjectController@store |
-| DELETE | /api/v1/projects/{project} | Api\ProjectWorkflowController@destroy |
-| GET / HEAD | /api/v1/projects/{project} | Api\ProjectController@show |
-| PUT / PATCH | /api/v1/projects/{project} | Api\ProjectController@update |
-| GET / HEAD | /api/v1/projects/{project}/configuration | Api\ProjectConfigurationController@show |
-| GET / HEAD | /api/v1/projects/{project}/expenses | Api\ProjectExpenseController@index |
-| POST | /api/v1/projects/{project}/expenses | Api\ProjectExpenseController@store |
-| POST | /api/v1/projects/{project}/finalize | Api\ProjectWorkflowController@finalize |
-| GET / HEAD | /api/v1/projects/{project}/financial-result | Api\FinancialReportController@show |
-| POST | /api/v1/projects/{project}/invitations | Api\ProjectInvitationController@store |
-| POST | /api/v1/projects/{project}/members | Api\ProjectConfigurationController@addMember |
-| DELETE | /api/v1/projects/{project}/members/{user} | Api\ManagementController@removeMember |
-| POST | /api/v1/projects/{project}/rates | Api\ProjectConfigurationController@storeRate |
-| POST | /api/v1/projects/{project}/reopen | Api\ProjectWorkflowController@reopen |
-| PUT | /api/v1/projects/{project}/taxes | Api\ProjectConfigurationController@replaceTaxes |
-| GET / HEAD | /api/v1/projects/{project}/work-logs | Api\WorkLogController@index |
-| POST | /api/v1/projects/{project}/work-logs | Api\WorkLogController@store |
-| PUT | /api/v1/rates/{rate} | Api\ManagementController@updateRate |
-| DELETE | /api/v1/rates/{rate} | Api\ManagementController@deleteRate |
-| GET / HEAD | /api/v1/reports/portfolio | Api\FinancialReportController@portfolio |
-| GET / HEAD | /api/v1/reports/project-analytics | Api\ProjectAnalyticsController |
-| GET / HEAD | /api/v1/security | Api\AccountSecurityController@show |
-| PUT | /api/v1/security/password | Api\AccountSecurityController@updatePassword |
-| PUT | /api/v1/security/preferences | Api\AccountSecurityController@updatePreferences |
-| DELETE | /api/v1/security/providers/{provider} | Api\AccountSecurityController@disconnectProvider |
-| DELETE | /api/v1/security/sessions | Api\AccountSecurityController@revokeOtherSessions |
-| DELETE | /api/v1/security/sessions/{session} | Api\AccountSecurityController@revokeSession |
-| DELETE | /api/v1/security/two-factor | Api\AccountSecurityController@disableTwoFactor |
-| POST | /api/v1/security/two-factor/confirm | Api\AccountSecurityController@confirmTwoFactor |
-| POST | /api/v1/security/two-factor/setup | Api\AccountSecurityController@beginTwoFactor |
-| GET / HEAD | /api/v1/tasks | Api\TaskV1Controller@index |
-| POST | /api/v1/tasks | Api\TaskV1Controller@store |
-| PUT / PATCH | /api/v1/tasks/{task} | Api\TaskV1Controller@update |
-| DELETE | /api/v1/tasks/{task} | Api\TaskV1Controller@destroy |
-| GET / HEAD | /api/v1/teams | Api\TeamController@index |
-| GET / HEAD | /api/v1/teams/{project} | Api\TeamController@show |
-| PUT | /api/v1/teams/{project} | Api\TeamController@update |
-| GET / HEAD | /auth/google | Auth\GoogleAuthController@redirect |
-| GET / HEAD | /auth/google/callback | Auth\GoogleAuthController@callback |
-| GET / HEAD | /auth/microsoft | Auth\MicrosoftAuthController@redirect |
-| GET / HEAD | /auth/microsoft/callback | Auth\MicrosoftAuthController@callback |
-| POST | /forgot-password | Auth\PasswordResetLinkController@store |
-| POST | /logout | Auth\SessionController@destroy |
-| PATCH | /profile | ProfileController@update |
-| POST | /profile/avatar | ProfileAvatarController@update |
-| DELETE | /profile/avatar | ProfileAvatarController@destroy |
-| POST | /reset-password | Auth\NewPasswordController@store |
-| GET / HEAD | /storage/{path} | Closure |
-| PUT | /storage/{path} | Closure |
+As informações correspondentes estão organizadas no Quadro 7.
 
-Anexo B. Conferência numérica de cada figura
+Síntese da verificação da versão final
 
-| Figura | Tema | Soma exibida | Diferença até 94 |
-|---|---|---:|---:|
-| 1 | Faixa etária | 94 | 0 |
-| 2 | Atuação em gestão de projetos | 92 | 2 |
-| 3 | Ferramentas utilizadas | 134 | Múltiplas menções |
-| 4 | Software de projetos na empresa | 92 | 2 |
-| 5 | Satisfação com a solução atual | 89 | 5 |
-| 6 | Interface atual é intuitiva? | 90 | 4 |
-| 7 | Fluxo de projetos externos | 90 | 4 |
-| 8 | Fluxo de projetos internos | 89 | 5 |
-| 9 | Dificuldade de organização | 89 | 5 |
-| 10 | Dificuldade de alinhamento | 90 | 4 |
-| 11 | Organização ajuda no faturamento? | 91 | 3 |
-| 12 | Dificuldade de registrar custos extras | 89 | 5 |
-| 13 | Necessidade de software dedicado | 90 | 4 |
+| Verificação | Resultado | Limite |
+| --- | --- | --- |
+| PHPUnit local | 256 testes; 3.487 asserções; aprovado | Schema spot_testing; dados sintéticos. |
+| PHPUnit em contêiner | 256 testes; 3.487 asserções; aprovado | PHP 8.3 e PostgreSQL descartável; serviços externos simulados. |
+| Navegador | 36 suítes aprovadas | Chromium; não representa todos os navegadores. |
+| Responsividade | 323 verificações aprovadas | 320–1440 px; orientação vertical/horizontal; leitura 100%/120%. |
+| Tutorial | 756 verificações; sem erros | Regras de navegação, permissões, idioma e ausência de mutações de negócio. |
+| Idiomas | 144 verificações; sem falhas ou apontamentos | Cobertura dos percursos automatizados; não certifica toda expressão possível. |
+| Chat/editor | 170 verificações; formatação 3 × 100 | Inclui atalhos, destinatário e preservação do original. |
+| Correio | 36 prévias de layout | Seis variantes; três idiomas; duas larguras; sem destinatários reais. |
+| Build e dependências | Build e auditorias sem avisos na rodada final | Situação verificada na data de corte, não garantia permanente. |
+| Docker | Imagem construída e rotas públicas com HTTP 200 | Não é ensaio de certificado, rede de produção ou SMTP real. |
 
-Anexo C. Gráficos completos da pesquisa
-Todos os gráficos abaixo foram reconstruídos dos valores publicados. Nas barras, o valor é contagem, não percentual. A diferença até a base declarada não recebeu categoria inventada.
+Fonte: Elaboração própria com base no código-fonte do SPOT (Longo et al., 2026c).
 
-Figura 1 — Faixa etária
-[Gráfico: Faixa etária | arquivo: assets/graficos/idade.png]
+### 8.1 Cobertura comportamental
 
-Figura 2 — Atuação em gestão de projetos
-[Gráfico: Atuação em gestão de projetos | arquivo: assets/graficos/atuacao.png]
+Os testes incluem autorização, isolamento de empresa, identidade, ativação e reenvio, recuperação, mudanças de projeto, gerente obrigatório, acesso a documentos, despesas, tarifas e notificações. No chat, verificam participação, aprovação selecionada, autoaprovação proibida, duplicatas, edição, versões, anexos e revogação. Nos testes de correio, a entrega usa transporte em memória; não há envio para destinatários reais.
 
-Figura 3 — Ferramentas utilizadas
-[Gráfico: Ferramentas utilizadas | arquivo: assets/graficos/ferramentas.png]
+Na interface, foram usados nomes longos, tela estreita, orientação horizontal, tema, escala de leitura, fluxo por teclado, foco em modais, retorno de foco e tradução. O teste do editor foi repetido após corrigir a disputa de foco. O passeio do tutorial foi percorrido segundo permissões, inclusive quando relatórios não estão disponíveis (Longo et al., 2026c).
 
-Figura 4 — Software de projetos na empresa
-[Gráfico: Software de projetos na empresa | arquivo: assets/graficos/software.png]
+### 8.2 Ameaças à validade e critérios de aceite
 
-Figura 5 — Satisfação com a solução atual
-[Gráfico: Satisfação com a solução atual | arquivo: assets/graficos/satisfacao.png]
+A avaliação automatizada comprova apenas os cenários exercitados no ambiente descrito. Não houve comprovação empírica de redução de custo, aumento de produtividade ou satisfação após implantação. Não foram realizados testes de carga com volume real, auditoria ofensiva completa, homologação com todos os clientes de e-mail ou avaliação humana integral com leitor de tela.
 
-Figura 6 — Interface atual é intuitiva?
-[Gráfico: Interface atual é intuitiva? | arquivo: assets/graficos/interface.png]
+Para aceite operacional, devem ser confirmados domínio e Hypertext Transfer Protocol Secure (HTTPS), segredos, banco e migrations, armazenamento, backup e restauração, workers e scheduler. Recursos Google, Microsoft, SMTP e tradução dependem das permissões e serviços reais. A existência de uma integração no código não equivale à autorização de um tenant nem à disponibilidade do provedor. Não se declara conformidade integral WCAG ou liberação incondicional para produção.
 
-Figura 7 — Fluxo de projetos externos
-[Gráfico: Fluxo de projetos externos | arquivo: assets/graficos/externos.png]
+## 9 IMPLANTAÇÃO E CONTINUIDADE
 
-Figura 8 — Fluxo de projetos internos
-[Gráfico: Fluxo de projetos internos | arquivo: assets/graficos/internos.png]
+A entrada em operação depende do ambiente de destino e da homologação das integrações. Esta seção organiza os requisitos de configuração, validação e manutenção.
 
-Figura 9 — Dificuldade de organização
-[Gráfico: Dificuldade de organização | arquivo: assets/graficos/organizacao.png]
+### 9.1 Preparação e configuração
 
-Figura 10 — Dificuldade de alinhamento
-[Gráfico: Dificuldade de alinhamento | arquivo: assets/graficos/alinhamento.png]
+A implantação proposta usa Docker Compose com serviços web, worker, scheduler e PostgreSQL. O domínio precisa apontar para o servidor e o proxy depende de condições reais para emitir HTTPS. O arquivo .env.production é preenchido a partir do modelo; APP_KEY e JWT_SECRET devem ser configuradas e preservadas nas atualizações. A chave JWT é necessária para o estoque e a autenticação por token. Segredos não integram o Git nem os documentos de consulta.
 
-Figura 11 — Organização ajuda no faturamento?
-[Gráfico: Organização ajuda no faturamento? | arquivo: assets/graficos/faturamento.png]
+O build inclui os arquivos estáticos, dependências PHP de produção e ambiente Python para os relatórios. Backups, uploads locais, evidências de testes, .env e public/hot são excluídos do artefato. Uploads reais permanecem nos volumes de armazenamento. Migrations são aplicadas após backup e revisão; o seed da conta inicial não deve ser executado como rotina de atualização (Longo et al., 2026c).
 
-Figura 12 — Dificuldade de registrar custos extras
-[Gráfico: Dificuldade de registrar custos extras | arquivo: assets/graficos/custos.png]
+### 9.2 Validação do servidor de destino
 
-Figura 13 — Necessidade de software dedicado
-[Gráfico: Necessidade de software dedicado | arquivo: assets/graficos/necessidade.png]
+O verificador scripts/check-production.php é somente leitura: verifica ambiente, debug, origem HTTPS, cookies, chaves, correio configurado, existência de assets, diretórios graváveis e conexão/migrations. Sua saída não expõe credenciais nem envia mensagens. Mesmo com saída zero, é necessária a homologação externa e a conferência dos responsáveis nos dados transferidos.
 
-Tabela temática representada em gráfico
-[Gráfico: Frequências temáticas | arquivo: assets/graficos/qualitativa.png]
+A revisão local identificou três projetos antigos sem o campo de gerente do projeto preenchido, embora todos possuíssem gerente ativo na equipe. Não houve escolha automática de responsáveis. Esse achado refere-se ao conjunto local revisado e deve ser reavaliado na base que será implantada; não é uma característica fixa do software.
+
+### 9.3 Operação e manutenção
+
+Workers devem consumir emails e default, e o scheduler deve ser executado por minuto. Há controles de nova tentativa e consulta de falhas. Backups devem incluir banco e arquivos, com restauração efetivamente testada. Uma mudança de chave pode afetar dados e jobs criptografados; atualizar a aplicação não exige substituir as chaves existentes.
+
+A manutenção deve preservar rastreabilidade entre alteração, teste, documentação e release. A equipe ainda precisa concluir a validação humana de acessibilidade, os testes com provedores reais e a observação sob carga de uso. O custo de infraestrutura, correio, manutenção e suporte continua existindo; ausência de uma assinatura de software de terceiros não significa operação sem custos.
+
+### 9.4 Consulta ao código e reprodução
+
+O repositório abaixo permite consultar a estrutura, as regras, as migrations e os testes. A referência de versão evita atribuir à monografia funcionalidades introduzidas posteriormente. A data de acesso foi registrada e a disponibilidade de consulta depende das permissões configuradas no GitHub.
+
+[Repositório do SPOT: https://github.com/iamnotlittleprince/SPOT](https://github.com/iamnotlittleprince/SPOT)
+
+[Versão do código analisada: 146bd986867ecb25bc75db53c6d1944c6d89ae66](https://github.com/iamnotlittleprince/SPOT/tree/146bd986867ecb25bc75db53c6d1944c6d89ae66)
+
+O commit consultado corresponde ao HEAD remoto confirmado durante a revisão. A documentação gerada nesta atualização pode ainda estar como alteração local; ela não é considerada publicada apenas por existir na pasta do projeto. O manifesto de fontes e a pasta de evidências registram a procedência da edição.
+
+## 10 CONSIDERAÇÕES FINAIS
+
+A versão final do SPOT materializa uma aplicação integrada para identidade, projetos, equipes, execução, finanças e comunicação. A governança é parte funcional da solução: projeto exige responsável, acesso é verificado no servidor e a conversa externa depende de autorização direcionada. O resultado acadêmico é uma base implementada, documentada e verificável, relacionada às necessidades e sugestões da pesquisa.
+
+A verificação registrou aprovação dos testes de servidor e navegador, construção do frontend e da imagem, e auditorias de dependências sem avisos na rodada final. Esses resultados demonstram os cenários cobertos, com dados sintéticos e serviços simulados; não provam ausência de defeitos, ganho financeiro ou conformidade integral das diretrizes de acessibilidade. A revisão também identifica ações de configuração, responsáveis antigos e serviços reais antes de liberar produção.
+
+A continuidade deve incluir homologação com usuários e tecnologias assistivas, validação das integrações no domínio definitivo e observação sob carga. O repositório e o identificador de versão permitem consultar a implementação e acompanhar evolução posterior sem confundi-la com o recorte desta monografia. Dessa forma, o trabalho articula pesquisa, construção e evidência, preservando os limites de cada uma dessas dimensões.
+
+## 11 PREPARAÇÃO PARA A DEFESA
+
+A demonstração deve utilizar dados sintéticos e acompanhar a versão analisada. O roteiro e as questões de ensaio distinguem resultados verificados de pendências de homologação.
+
+### 11.1 Demonstração sugerida
+
+Preparar uma base sintética e demonstrar: acesso administrativo, cadastro de projeto com gerente, tarefa e apontamento, leitura de indicadores, pedido de chat com pessoa, motivo e aprovador escolhido, decisão do destinatário e conversa autorizada. Mostrar o tutorial e os três idiomas. Usar prévias de e-mail quando não houver SMTP homologado. Não expor nomes, mensagens, credenciais ou contratos reais.
+
+### 11.2 Perguntas e limites
+
+As informações correspondentes estão organizadas no Quadro 8.
+
+Questões para ensaio
+
+| Pergunta | Resposta sustentada pela versão final |
+| --- | --- |
+| Os testes comprovam ausência de defeitos? | Não. Os 256 testes e 3.487 asserções cobrem cenários definidos; as 36 suítes de navegador complementam a verificação. |
+| Quem aprova o chat? | O administrador ou gerente administrador ativo da mesma empresa escolhido pelo solicitante, sem autoaprovação; vínculos diretos de equipe dispensam pedido. |
+| Qual banco é usado? | PostgreSQL. SQLite não descreve o ambiente da versão final. |
+| Há inteligência artificial? | Há integração opcional de tradução automática. Não foi entregue agente generativo de planejamento ou decisão gerencial. |
+| A pesquisa demonstra ganho de receita? | Não. A amostra de conveniência descreve percepções; não houve estudo de impacto antes/depois. |
+| Já pode afirmar produção homologada? | A configuração real, os responsáveis legados, SMTP/OAuth e avaliação humana ainda precisam de aceite. |
+| Onde consultar a implementação? | https://github.com/iamnotlittleprince/SPOT; commit 146bd986867ecb25bc75db53c6d1944c6d89ae66. |
+
+Fonte: Elaboração própria com base no código-fonte do SPOT (Longo et al., 2026c).
+
+### 11.3 Material histórico
+
+Os slides e roteiros produzidos anteriormente foram preservados. Eles não foram sincronizados automaticamente nesta revisão: números, capturas, tempos e falas precisam de conferência antes da apresentação. Este guia e a monografia final identificam a referência técnica vigente, sem inventar duração de ensaio ou aprovação da banca.
+
+## REFERÊNCIAS
+
+AMAZON WEB SERVICES. **Cloud computing services**. AWS, c2026. Disponível em: https://aws.amazon.com/. Acesso em: 10 nov. 2026.
+
+ASANA. **Asana work management**. Asana, c2026. Disponível em: https://asana.com/product. Acesso em: 10 nov. 2026.
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **ABNT NBR 10520:2023**. Informação e documentação — Citações em documentos — Apresentação. Rio de Janeiro: ABNT, 2023.
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **ABNT NBR 14724:2024**. Informação e documentação — Trabalhos acadêmicos — Apresentação. Rio de Janeiro: ABNT, 2024. Versão corrigida em 1 abr. 2025.
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **ABNT NBR 6023:2025**. Informação e documentação — Referências — Elaboração. Rio de Janeiro: ABNT, 2025.
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **ABNT NBR 6024:2012**. Informação e documentação — Numeração progressiva das seções de um documento — Apresentação. Rio de Janeiro: ABNT, 2012a.
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **ABNT NBR 6027:2012**. Informação e documentação — Sumário — Apresentação. Rio de Janeiro: ABNT, 2012b.
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **ABNT NBR 6028:2021**. Informação e documentação — Resumo, resenha e recensão — Apresentação. Rio de Janeiro: ABNT, 2021.
+
+ATLASSIAN. **Jira**. Atlassian, c2026a. Disponível em: https://www.atlassian.com/software/jira. Acesso em: 10 nov. 2026.
+
+ATLASSIAN. **Trello**. Atlassian, c2026b. Disponível em: https://trello.com/. Acesso em: 10 nov. 2026.
+
+CLICKUP. **ClickUp**. ClickUp, c2026. Disponível em: https://clickup.com/. Acesso em: 10 nov. 2026.
+
+DOCKER. **Docker Compose**. Docker, c2026. Disponível em: https://docs.docker.com/compose/. Acesso em: 10 nov. 2026.
+
+LARAVEL. **Laravel 13.x documentation**. Laravel, c2026. Disponível em: https://laravel.com/docs/13.x. Acesso em: 10 nov. 2026.
+
+LIBRETRANSLATE. **Translate text**. LibreTranslate, [20--]. Disponível em: https://docs.libretranslate.com/api/operations/translate/. Acesso em: 10 nov. 2026.
+
+LONGO, Alexander Molany; SOARES, Lucas Rodrigues; MATOS, Pedro Galvão de; SOUZA, Yasmin Regina de. **Levantamento de pesquisa de campo do SPOT**. Santo André: [s. n.], 2026a. Documento de trabalho fornecido pela equipe; arquivo Capitulo_Levantamento_Pesquisa_ABNT.docx.
+
+LONGO, Alexander Molany; SOARES, Lucas Rodrigues; MATOS, Pedro Galvão de; SOUZA, Yasmin Regina de. **Monografia SPOT: documentação integrada**. Santo André: Colégio Dr. Clóvis Bevilacqua, 2026b. Versão preliminar fornecida pela equipe; arquivo Monografia_SPOT_documentacao_integrada.docx.
+
+LONGO, Alexander Molany; SOARES, Lucas Rodrigues; MATOS, Pedro Galvão de; SOUZA, Yasmin Regina de. **SPOT: sistemas de projetos, organização e tarefas**. 2026c. Código-fonte. Versão consultada: commit 146bd986867ecb25bc75db53c6d1944c6d89ae66. Disponível em: https://github.com/iamnotlittleprince/SPOT/tree/146bd986867ecb25bc75db53c6d1944c6d89ae66. Acesso em: 10 nov. 2026.
+
+META PLATFORMS. **React 18: quick start**. Meta, [20--]. Disponível em: https://18.react.dev/learn. Acesso em: 10 nov. 2026.
+
+MONDAY.COM. **monday.com**. monday.com, [20--]. Disponível em: https://monday.com/. Acesso em: 10 nov. 2026.
+
+NOTION. **Notion**. Notion, c2026. Disponível em: https://www.notion.com/. Acesso em: 10 nov. 2026.
+
+PANDAS DEVELOPMENT TEAM. **pandas 2.3.3 documentation**. pandas, c2026. Disponível em: https://pandas.pydata.org/pandas-docs/version/2.3/. Acesso em: 10 nov. 2026.
+
+POSTGRESQL GLOBAL DEVELOPMENT GROUP. **PostgreSQL 17 documentation**. PostgreSQL, c2026. Disponível em: https://www.postgresql.org/docs/17/. Acesso em: 10 nov. 2026.
+
+UNIVERSIDADE FEDERAL DO ABC. Sistema de Bibliotecas. **Normalização**. Santo André: UFABC, [20--]. Disponível em: https://portal.biblioteca.ufabc.edu.br/servicos/normalizacao. Acesso em: 10 nov. 2026.
+
+UNIVERSIDADE FEDERAL DO ESPÍRITO SANTO. Sistema Integrado de Bibliotecas. **Normalização**. Vitória: UFES, 2026. Atualizado em 28 out. 2026. Disponível em: https://biblioteca.ufes.br/manuais-de-normalizacao. Acesso em: 10 nov. 2026.
+
+VITE. **Getting started**. Vite, [20--]. Disponível em: https://vite.dev/guide/. Acesso em: 10 nov. 2026.
+
+WORLD WIDE WEB CONSORTIUM. **Web Content Accessibility Guidelines (WCAG) 2.2**. W3C Recommendation, 12 dez. 2024. Disponível em: https://www.w3.org/TR/WCAG22/. Acesso em: 10 nov. 2026.
+
+## APÊNDICE A — INVENTÁRIO DAS ROTAS DA APLICAÇÃO
+
+O quadro foi gerado a partir de artisan route:list --json. Rotas de infraestrutura fora dos prefixos relacionados à aplicação não são reproduzidas; o inventário integral permanece no arquivo de fontes documentais.
+
+As informações correspondentes estão organizadas no Quadro 9.
+
+Rotas inventariadas
+
+| Método | URI | Nome |
+| --- | --- | --- |
+| GET/HEAD | accept-invitation/{token} | — |
+| POST | api/auth/login | — |
+| POST | api/auth/logout | — |
+| GET/HEAD | api/auth/me | — |
+| GET/HEAD | api/categories | categories.index |
+| POST | api/categories | categories.store |
+| PUT/PATCH | api/categories/{category} | categories.update |
+| DELETE | api/categories/{category} | categories.destroy |
+| GET/HEAD | api/dashboard | — |
+| GET/HEAD | api/movements | — |
+| POST | api/movements | — |
+| GET/HEAD | api/products | products.index |
+| POST | api/products | products.store |
+| GET/HEAD | api/products/{product} | products.show |
+| PUT/PATCH | api/products/{product} | products.update |
+| DELETE | api/products/{product} | products.destroy |
+| GET/HEAD | api/projects | projects.index |
+| POST | api/projects | projects.store |
+| GET/HEAD | api/projects/{project} | projects.show |
+| PUT/PATCH | api/projects/{project} | projects.update |
+| DELETE | api/projects/{project} | projects.destroy |
+| GET/HEAD | api/tasks | tasks.index |
+| POST | api/tasks | tasks.store |
+| PUT/PATCH | api/tasks/{task} | tasks.update |
+| DELETE | api/tasks/{task} | tasks.destroy |
+| GET/HEAD | api/v1/admin/users | v1.admin.users.index |
+| POST | api/v1/admin/users | v1.admin.users.store |
+| PATCH | api/v1/admin/users/{user} | v1.admin.users.update |
+| DELETE | api/v1/admin/users/{user} | v1.admin.users.destroy |
+| PATCH | api/v1/auth/locale | v1. |
+| POST | api/v1/auth/login | v1. |
+| POST | api/v1/auth/logout | v1. |
+| GET/HEAD | api/v1/auth/me | v1. |
+| GET/HEAD | api/v1/auth/me/projects | v1. |
+| GET/HEAD | api/v1/auth/timezones | v1. |
+| POST | api/v1/auth/two-factor/challenge | v1. |
+| GET/HEAD | api/v1/calendar | v1. |
+| POST | api/v1/calendar/events | v1. |
+| PATCH | api/v1/calendar/events/{calendarEvent} | v1. |
+| DELETE | api/v1/calendar/events/{calendarEvent} | v1. |
+| PATCH | api/v1/calendar/events/{eventId}/agendas | v1. |
+| GET/HEAD | api/v1/categories | v1.categories.index |
+| POST | api/v1/categories | v1.categories.store |
+| PUT/PATCH | api/v1/categories/{category} | v1.categories.update |
+| DELETE | api/v1/categories/{category} | v1.categories.destroy |
+| GET/HEAD | api/v1/chat | v1. |
+| GET/HEAD | api/v1/chat/attachments/{attachment}/download | v1. |
+| GET/HEAD | api/v1/chat/attachments/{attachment}/preview | v1. |
+| PATCH | api/v1/chat/messages/{message} | v1. |
+| GET/HEAD | api/v1/chat/messages/{message}/revisions | v1. |
+| POST | api/v1/chat/messages/{message}/translate | v1. |
+| POST | api/v1/chat/requests/{chatRequest}/decision | v1. |
+| POST | api/v1/chat/requests/{chatRequest}/revoke | v1. |
+| GET/HEAD | api/v1/chat/users/{user}/messages | v1. |
+| POST | api/v1/chat/users/{user}/messages | v1. |
+| POST | api/v1/chat/users/{user}/requests | v1. |
+| GET/HEAD | api/v1/dashboard | v1. |
+| GET/HEAD | api/v1/documents | v1. |
+| POST | api/v1/documents | v1. |
+| PATCH | api/v1/documents/{document} | v1. |
+| DELETE | api/v1/documents/{document} | v1. |
+| GET/HEAD | api/v1/documents/{document}/download | v1. |
+| PUT | api/v1/expenses/{expense} | v1. |
+| DELETE | api/v1/expenses/{expense} | v1. |
+| POST | api/v1/expenses/{expense}/review | v1.expenses.review |
+| POST | api/v1/first-access/{token} | v1.first-access.activate |
+| GET/HEAD | api/v1/history | v1. |
+| GET/HEAD | api/v1/home-dashboard | v1. |
+| PATCH | api/v1/home-dashboard/tasks/{task}/priority | v1. |
+| PATCH | api/v1/home-dashboard/tasks/{task}/toggle | v1. |
+| GET/HEAD | api/v1/inbox | v1. |
+| DELETE | api/v1/inbox | v1. |
+| PATCH | api/v1/inbox/read-all | v1. |
+| DELETE | api/v1/inbox/{inboxItem} | v1. |
+| PATCH | api/v1/inbox/{inboxItem}/read | v1. |
+| PATCH | api/v1/inbox/{inboxItem}/restore | v1. |
+| POST | api/v1/invitations/{invitation}/revoke | v1.invitations.revoke |
+| GET/HEAD | api/v1/invitations/{token} | v1.invitations.show |
+| POST | api/v1/invitations/{token}/accept | v1.invitations.accept |
+| GET/HEAD | api/v1/management/access | v1. |
+| GET/HEAD | api/v1/management/directory | v1. |
+| POST | api/v1/management/directory/import | v1. |
+| GET/HEAD | api/v1/management/parameters/{type} | v1. |
+| POST | api/v1/management/parameters/{type} | v1. |
+| PUT | api/v1/management/parameters/{type}/{id} | v1. |
+| DELETE | api/v1/management/parameters/{type}/{id} | v1. |
+| GET/HEAD | api/v1/management/settings | v1. |
+| PUT | api/v1/management/settings | v1. |
+| GET/HEAD | api/v1/management/users/{user}/permissions | v1. |
+| PUT | api/v1/management/users/{user}/permissions | v1. |
+| GET/HEAD | api/v1/movements | v1. |
+| POST | api/v1/movements | v1. |
+| GET/HEAD | api/v1/notification-preferences | v1. |
+| PUT | api/v1/notification-preferences | v1. |
+| DELETE | api/v1/notification-preferences | v1. |
+| GET/HEAD | api/v1/parameters | v1.parameters.index |
+| GET/HEAD | api/v1/products | v1.products.index |
+| POST | api/v1/products | v1.products.store |
+| GET/HEAD | api/v1/products/{product} | v1.products.show |
+| PUT/PATCH | api/v1/products/{product} | v1.products.update |
+| DELETE | api/v1/products/{product} | v1.products.destroy |
+| GET/HEAD | api/v1/project-access | v1. |
+| POST | api/v1/project-access | v1. |
+| GET/HEAD | api/v1/project-access/meetings | v1. |
+| PATCH | api/v1/project-access/projects/{project}/data | v1. |
+| POST | api/v1/project-access/{accessRequest}/decision | v1. |
+| POST | api/v1/project-access/{accessRequest}/revoke | v1. |
+| GET/HEAD | api/v1/projects | v1.projects.index |
+| POST | api/v1/projects | v1.projects.store |
+| DELETE | api/v1/projects/{project} | v1.projects.governed-destroy |
+| GET/HEAD | api/v1/projects/{project} | v1.projects.show |
+| PUT/PATCH | api/v1/projects/{project} | v1.projects.update |
+| GET/HEAD | api/v1/projects/{project}/configuration | v1.projects.configuration.show |
+| GET/HEAD | api/v1/projects/{project}/expenses | v1.projects.expenses.index |
+| POST | api/v1/projects/{project}/expenses | v1.projects.expenses.store |
+| POST | api/v1/projects/{project}/finalize | v1.projects.finalize |
+| GET/HEAD | api/v1/projects/{project}/financial-result | v1.projects.financial-result |
+| POST | api/v1/projects/{project}/invitations | v1.projects.invitations.store |
+| POST | api/v1/projects/{project}/members | v1.projects.members.store |
+| DELETE | api/v1/projects/{project}/members/{user} | v1. |
+| POST | api/v1/projects/{project}/rates | v1.projects.rates.store |
+| POST | api/v1/projects/{project}/reopen | v1.projects.reopen |
+| GET/HEAD | api/v1/projects/{project}/resources | v1. |
+| PUT | api/v1/projects/{project}/taxes | v1.projects.taxes.replace |
+| GET/HEAD | api/v1/projects/{project}/work-logs | v1.projects.work-logs.index |
+| POST | api/v1/projects/{project}/work-logs | v1.projects.work-logs.store |
+| PUT | api/v1/rates/{rate} | v1. |
+| DELETE | api/v1/rates/{rate} | v1. |
+| GET/HEAD | api/v1/reports/portfolio | v1.reports.portfolio |
+| GET/HEAD | api/v1/reports/project-analytics | v1.reports.project-analytics |
+| GET/HEAD | api/v1/security | v1. |
+| PUT | api/v1/security/password | v1. |
+| PUT | api/v1/security/preferences | v1. |
+| DELETE | api/v1/security/providers/{provider} | v1. |
+| DELETE | api/v1/security/sessions | v1. |
+| DELETE | api/v1/security/sessions/{session} | v1. |
+| DELETE | api/v1/security/two-factor | v1. |
+| POST | api/v1/security/two-factor/confirm | v1. |
+| POST | api/v1/security/two-factor/setup | v1. |
+| GET/HEAD | api/v1/tasks | v1.tasks.index |
+| POST | api/v1/tasks | v1.tasks.store |
+| PUT/PATCH | api/v1/tasks/{task} | v1.tasks.update |
+| DELETE | api/v1/tasks/{task} | v1.tasks.destroy |
+| PATCH | api/v1/tasks/{task}/status | v1. |
+| GET/HEAD | api/v1/teams | v1.teams.index |
+| GET/HEAD | api/v1/teams/{project} | v1.teams.show |
+| PUT | api/v1/teams/{project} | v1.teams.update |
+| GET/HEAD | auth/google | auth.google |
+| GET/HEAD | auth/google/callback | auth.google.callback |
+| GET/HEAD | auth/microsoft | auth.microsoft |
+| GET/HEAD | auth/microsoft/callback | auth.microsoft.callback |
+| GET/HEAD | first-access/{token?} | — |
+| GET/HEAD | forgot-password | password.request |
+| POST | forgot-password | password.email |
+| PATCH | profile | profile.update |
+| POST | profile/avatar | profile.avatar.update |
+| DELETE | profile/avatar | profile.avatar.destroy |
+| POST | profile/avatar/microsoft | — |
+| POST | reset-password | password.update |
+| GET/HEAD | reset-password/{token} | password.reset |
+
+Fonte: Elaboração própria com base no código-fonte do SPOT (Longo et al., 2026c).
+
+## APÊNDICE B — EVOLUÇÃO DO ESQUEMA E ARTEFATOS
+
+As migrations abaixo registram a evolução disponível na revisão; a ordem é a do nome dos arquivos, e não uma afirmação de que todas foram introduzidas na mesma etapa. A criação de uma coluna não prova a homologação do recurso correspondente.
+
+As informações correspondentes estão organizadas no Quadro 10.
+
+Migrations disponíveis
+
+| Arquivo |
+| --- |
+| 0001_01_01_000000_create_users_table.php |
+| 0001_01_01_000001_create_cache_table.php |
+| 0001_01_01_000002_create_jobs_table.php |
+| 2026_08_06_000000_add_google_auth_fields_to_users_table.php |
+| 2026_08_09_000000_add_microsoft_id_to_users_table.php |
+| 2026_08_09_010000_create_spot_domain_tables.php |
+| 2026_08_09_020000_expand_user_avatar_url.php |
+| 2026_08_20_000000_create_inventory_tables.php |
+| 2026_08_20_010000_create_project_management_tables.php |
+| 2026_08_23_161756_create_personal_access_tokens_table.php |
+| 2026_08_23_170000_create_project_governance_tables.php |
+| 2026_08_23_200000_align_project_membership_roles_and_lifecycle.php |
+| 2026_08_23_210000_add_timezone_to_users_table.php |
+| 2026_08_23_220000_add_administrative_identity_fields.php |
+| 2026_08_23_230000_add_account_security_fields.php |
+| 2026_08_23_240000_add_notification_preferences_to_users.php |
+| 2026_08_23_250000_create_inbox_items_table.php |
+| 2026_08_23_260000_create_calendar_integrations.php |
+| 2026_09_13_235000_create_project_documents_table.php |
+| 2026_09_16_150000_add_activity_fields_to_tasks.php |
+| 2026_09_16_160000_add_memorial_configuration.php |
+| 2026_09_16_170000_add_expense_analyst.php |
+| 2026_09_18_151700_add_password_requirement_to_project_invitations.php |
+| 2026_09_18_160500_add_team_name_to_projects.php |
+| 2026_10_26_150000_create_task_participants_table.php |
+| 2026_10_26_160000_create_notification_delivery_tables.php |
+| 2026_10_28_170000_add_task_to_project_documents.php |
+| 2026_11_05_160000_create_project_access_requests_table.php |
+| 2026_11_06_000000_unify_manager_profile_labels.php |
+| 2026_11_06_120000_create_chat_tables.php |
+| 2026_11_06_150000_create_chat_attachments_table.php |
+| 2026_11_06_170000_add_chat_message_format.php |
+| 2026_11_06_180000_add_chat_image_descriptions.php |
+| 2026_11_07_120000_add_notification_access_to_users.php |
+| 2026_11_07_140000_add_calendar_event_details.php |
+| 2026_11_07_160000_create_calendar_deliveries_table.php |
+| 2026_11_07_180000_add_calendar_event_groups.php |
+| 2026_11_09_120000_add_preferred_locale_to_users.php |
+| 2026_11_10_130000_add_assigned_reviewer_to_chat_requests.php |
+
+Fonte: Elaboração própria com base no código-fonte do SPOT (Longo et al., 2026c).
+
+As informações correspondentes estão organizadas no Quadro 11.
+
+Documentos operacionais complementares
+
+| Arquivo | Finalidade |
+| --- | --- |
+| docs/chat.md | Regras e testes do chat. |
+| docs/padrao-emails.md | Modelos e prévias de mensagens. |
+| docs/acessibilidade-e-inclusao.md | Escopo e limites das verificações. |
+| docs/revisao-producao-2026-11-10.md | Evidência e condições para homologação. |
+| docs/implantacao-docker.md | Procedimento de implantação. |
+| docs/fontes-documentais/manifesto-versao-final.json | Commit, hashes e fontes desta edição. |
+
+Fonte: Elaboração própria com base no código-fonte do SPOT (Longo et al., 2026c).

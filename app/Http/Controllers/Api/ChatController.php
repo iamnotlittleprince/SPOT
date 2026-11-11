@@ -43,14 +43,17 @@ class ChatController extends Controller
         $accessEntries = ChatAccessRequest::with('reviewer.profiles')->whereIn('conversation_id', $conversations->pluck('id'))
             ->whereIn('status', ['pending', 'approved'])->whereNull('revoked_at')->get()->groupBy('conversation_id');
         $teamPeerIds = $this->access->teamPeerIds($actor);
-        $contacts = $users->filter(fn ($peer) => $this->access->eligible($peer))->map(function ($peer) use ($actor, $conversations, $accessEntries, $teamPeerIds) {
+        $canStartWithoutApproval = $this->access->canReview($actor);
+        $peerMessageConversations = ChatMessage::whereIn('conversation_id', $conversations->pluck('id'))->where('sender_id', '!=', $actor->id)->distinct()->pluck('conversation_id')->flip();
+        $contacts = $users->filter(fn ($peer) => $this->access->eligible($peer))->map(function ($peer) use ($actor, $conversations, $accessEntries, $teamPeerIds, $canStartWithoutApproval, $peerMessageConversations) {
             $conversation = $conversations->get($peer->id);
             $entries = $conversation ? $accessEntries->get($conversation->id, collect()) : collect();
             $sameTeam = in_array($peer->id, $teamPeerIds, true);
             $approved = $entries->contains(fn ($entry) => $entry->status === 'approved' && $entry->reviewer
                 && $entry->reviewer->current_company_id === $actor->current_company_id && $this->access->canReview($entry->reviewer));
+            $administrativeAccess = $canStartWithoutApproval || ($conversation && $this->access->canReview($peer) && $peerMessageConversations->has($conversation->id));
             return ['id' => $peer->id, 'name' => $peer->name, 'avatar_url' => $peer->avatar_url,
-                'can_chat' => $sameTeam || $approved, 'same_team' => $sameTeam, 'pending' => $entries->contains('status', 'pending')];
+                'can_chat' => $sameTeam || $approved || $administrativeAccess, 'administrative_access' => $administrativeAccess, 'same_team' => $sameTeam, 'pending' => $entries->contains('status', 'pending')];
         })->values();
         $canReview = $this->access->canReview($actor);
         $reviewers = User::with('profiles')->where('current_company_id', $actor->current_company_id)->get()
@@ -73,7 +76,7 @@ class ChatController extends Controller
                     'can_decide' => $canReview && (! $entry->assigned_reviewer_id || $entry->assigned_reviewer_id === $actor->id) && $eligible && $entry->requester_id !== $actor->id && $entry->status === 'pending',
                     'can_revoke' => $canReview && $entry->status === 'approved'];
             });
-        return response()->json(['contacts' => $contacts, 'requests' => $entries, 'can_review' => $canReview,
+        return response()->json(['contacts' => $contacts, 'requests' => $entries, 'can_review' => $canReview, 'can_start_without_approval' => $canStartWithoutApproval,
             'reviewers_available' => $reviewers->isNotEmpty(), 'reviewers' => $reviewers->map->only(['id', 'name'])->all(), 'translation_available' => filled(config('services.chat_translation.url'))]);
     }
 

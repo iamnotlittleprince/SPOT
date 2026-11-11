@@ -213,6 +213,14 @@ body {
   background: #f3f5f6;
 }
 
+.language-switcher .language-flag {
+  display: block;
+  width: 22px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
 .language-switcher button {
   display: grid;
   place-items: center;

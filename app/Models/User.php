@@ -118,6 +118,7 @@ class User extends Authenticatable implements JWTSubject, \Illuminate\Contracts\
     {
         return [
             'email_verified_at' => 'datetime',
+            'archived_at' => 'datetime',
             'password' => 'hashed',
             'active' => 'boolean',
             'last_login_at' => 'datetime',

@@ -8,10 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Profile;
 use App\Models\Permission;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -22,9 +24,10 @@ class AdminUserController extends Controller
         Gate::authorize('security.manage');
 
         $companyId = $request->user()->current_company_id;
-        $managedProfiles = ['administrador', 'gestor-administrador', 'gestor', 'analista'];
+        $managedProfiles = ['administrador', 'gestor-administrador', 'gestor', 'analista', 'convidado'];
 
         $users = User::query()
+            ->whereNull('archived_at')
             ->where('current_company_id', $companyId)
             ->with(['profiles' => fn ($query) => $query
                 ->wherePivot('company_id', $companyId)
@@ -57,7 +60,7 @@ class AdminUserController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'google_email' => ['nullable', 'email', 'max:255', 'unique:users,google_email'],
             'microsoft_email' => ['nullable', 'email', 'max:255', 'unique:users,microsoft_email'],
-            'profile' => ['required', Rule::in(['administrador', 'gestor-administrador', 'gestor', 'analista'])],
+            'profile' => ['required', Rule::in(['administrador', 'gestor-administrador', 'gestor', 'analista', 'convidado'])],
             'organization_id' => ['required', 'integer', 'exists:organizations,id'],
             'job_title' => ['required', 'string', 'max:120'],
             'department' => ['required', 'string', 'max:120'],
@@ -80,10 +83,10 @@ class AdminUserController extends Controller
     public function update(Request $request, User $user, AuditRecorder $audit, CreateActivationLink $activation): JsonResponse
     {
         Gate::authorize('security.manage');
-        abort_unless($user->current_company_id === $request->user()->current_company_id, 404);
+        abort_unless($user->current_company_id === $request->user()->current_company_id && ! $user->archived_at, 404);
         $data = $request->validate([
             'can_create_projects' => ['sometimes', 'boolean'],
-            'profile' => ['required', Rule::in(['administrador', 'gestor-administrador', 'gestor', 'analista'])],
+            'profile' => ['required', Rule::in(['administrador', 'gestor-administrador', 'gestor', 'analista', 'convidado'])],
             'account_status' => ['required', Rule::in(['pending_activation', 'active', 'suspended', 'disabled'])],
             'job_title' => ['sometimes', 'nullable', 'string', 'max:120'],
             'department' => ['sometimes', 'nullable', 'string', 'max:120'],
@@ -126,15 +129,12 @@ class AdminUserController extends Controller
     }
 
     /**
-     * Remove somente cadastros que nunca foram ativados.
-     *
-     * Usuários já ativados podem possuir projetos, horas e despesas. Excluí-los
-     * apagaria ou deixaria órfão esse histórico; por isso devem ser desativados.
+     * Exclui pendentes sem vínculos; arquiva os que precisam preservar histórico.
      */
     public function destroy(Request $request, User $user, AuditRecorder $audit): JsonResponse
     {
         Gate::authorize('security.manage');
-        abort_unless($user->current_company_id === $request->user()->current_company_id, 404);
+        abort_unless($user->current_company_id === $request->user()->current_company_id && ! $user->archived_at, 404);
 
         if ($user->account_status !== 'pending_activation') {
             throw ValidationException::withMessages([
@@ -142,17 +142,56 @@ class AdminUserController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($request, $user, $audit): void {
-            $audit->record(
-                'user.deleted',
-                $user,
-                $request->user(),
-                $user->only(['id', 'name', 'email', 'account_status']),
-                [],
-            );
-            $user->delete();
-        });
+        try {
+            DB::transaction(function () use ($request, $user, $audit): void {
+                $user = User::whereKey($user->id)->whereNull('archived_at')->lockForUpdate()->firstOrFail();
+                if ($user->account_status !== 'pending_activation') {
+                    throw ValidationException::withMessages(['user' => 'Contas já ativadas não podem ser excluídas. Desative o acesso para preservar o histórico.']);
+                }
+                $audit->record(
+                    'user.deleted',
+                    $user,
+                    $request->user(),
+                    $user->only(['id', 'name', 'email', 'account_status']),
+                    [],
+                );
+                $user->delete();
+            });
+        } catch (QueryException $exception) {
+            if (($exception->errorInfo[0] ?? null) !== '23503') {
+                throw $exception;
+            }
+
+            $this->archivePendingUser($request, $user, $audit);
+        }
 
         return response()->json(status: 204);
     }
+
+    private function archivePendingUser(Request $request, User $user, AuditRecorder $audit): void
+    {
+        DB::transaction(function () use ($request, $user, $audit): void {
+            $user = User::whereKey($user->id)->whereNull('archived_at')->lockForUpdate()->firstOrFail();
+            if ($user->account_status !== 'pending_activation') {
+                throw ValidationException::withMessages(['user' => 'Contas já ativadas não podem ser excluídas. Desative o acesso para preservar o histórico.']);
+            }
+            $old = $user->only(['id', 'name', 'email', 'account_status']);
+            $user->forceFill([
+                'archived_at' => now(), 'active' => false, 'account_status' => 'disabled',
+                'email' => 'deleted-'.$user->id.'-'.Str::uuid().'@users.invalid',
+                'password' => null, 'remember_token' => null,
+                'google_id' => null, 'google_email' => null,
+                'google_access_token' => null, 'google_refresh_token' => null, 'google_token_expires_at' => null,
+                'microsoft_id' => null, 'microsoft_email' => null,
+                'microsoft_access_token' => null, 'microsoft_refresh_token' => null, 'microsoft_token_expires_at' => null,
+                'two_factor_secret' => null, 'two_factor_recovery_codes' => null, 'two_factor_confirmed_at' => null,
+            ])->save();
+            DB::table('user_activation_tokens')->where('user_id', $user->id)->whereNull('revoked_at')->update(['revoked_at' => now(), 'updated_at' => now()]);
+            DB::table('password_reset_tokens')->where('email', $old['email'])->delete();
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            $user->tokens()->delete();
+            $audit->record('user.deleted', $user, $request->user(), $old, ['mode' => 'archived', 'history_preserved' => true]);
+        });
+    }
+
 }

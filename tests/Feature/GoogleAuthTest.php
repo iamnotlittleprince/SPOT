@@ -31,6 +31,7 @@ class GoogleAuthTest extends TestCase
 
     public function test_google_redirect_starts_oauth_flow(): void
     {
+        config(['services.google.client_id' => 'test-client', 'services.google.client_secret' => 'test-secret', 'services.google.redirect' => 'http://localhost/auth/google/callback']);
         $provider = Mockery::mock(Provider::class);
         $provider->shouldReceive('scopes')->once()->with(['https://www.googleapis.com/auth/calendar.events'])->andReturnSelf();
         $provider->shouldReceive('with')->once()->with(['prompt' => 'consent select_account', 'access_type' => 'offline', 'include_granted_scopes' => 'true'])->andReturnSelf();
@@ -39,6 +40,16 @@ class GoogleAuthTest extends TestCase
 
         $this->get('/auth/google')
             ->assertRedirect('https://accounts.google.com/o/oauth2/auth');
+    }
+
+    public function test_google_redirect_stays_in_spot_when_configuration_is_missing(): void
+    {
+        Socialite::shouldReceive('driver')->never();
+        foreach (['client_id', 'client_secret', 'redirect'] as $missing) {
+            config(['services.google.client_id' => 'test-client', 'services.google.client_secret' => 'test-secret', 'services.google.redirect' => 'http://localhost/auth/google/callback']);
+            config(['services.google.'.$missing => '   ']);
+            $this->get('/auth/google')->assertRedirect('/?auth_error=google_configuration');
+        }
     }
 
     public function test_google_login_makes_calendar_available_without_a_second_connection(): void

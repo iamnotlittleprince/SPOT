@@ -1,0 +1,41 @@
+{
+  "Monografia_SPOT_documentacao_integrada_final": {
+    "paginas": 58,
+    "marcadores": 62,
+    "paginas_vazias": [],
+    "blocos_fora_margens": [],
+    "links_github": [
+      "https://github.com/iamnotlittleprince/SPOT",
+      "https://github.com/iamnotlittleprince/SPOT/tree/146bd986867ecb25bc75db53c6d1944c6d89ae66"
+    ],
+    "imagens_html_ausentes": [],
+    "numeros_testes_presentes": true,
+    "aprovador_direcionado_presente": true
+  },
+  "documentacao-tecnica-spot-abnt": {
+    "paginas": 37,
+    "marcadores": 30,
+    "paginas_vazias": [],
+    "blocos_fora_margens": [],
+    "links_github": [
+      "https://github.com/iamnotlittleprince/SPOT",
+      "https://github.com/iamnotlittleprince/SPOT/tree/146bd986867ecb25bc75db53c6d1944c6d89ae66"
+    ],
+    "imagens_html_ausentes": [],
+    "numeros_testes_presentes": true,
+    "aprovador_direcionado_presente": true
+  },
+  "tcc/GUIA-COMPLETO-TCC-SPOT": {
+    "paginas": 60,
+    "marcadores": 66,
+    "paginas_vazias": [],
+    "blocos_fora_margens": [],
+    "links_github": [
+      "https://github.com/iamnotlittleprince/SPOT",
+      "https://github.com/iamnotlittleprince/SPOT/tree/146bd986867ecb25bc75db53c6d1944c6d89ae66"
+    ],
+    "imagens_html_ausentes": [],
+    "numeros_testes_presentes": true,
+    "aprovador_direcionado_presente": true
+  }
+}

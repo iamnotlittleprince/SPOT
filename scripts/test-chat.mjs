@@ -23,6 +23,8 @@ try {
     ];
     let requests = [];
     let canReview = false;
+    let canStartWithoutApproval = false;
+    let outsiderMessages = [];
     let translationAvailable = true;
     let reviewersAvailable = true;
     let chatDenied = false;
@@ -38,14 +40,15 @@ try {
       if (path.match(/^\/attachments\/\d+\/preview$/)) return route.fulfill({body:png,contentType:'image/png'});
       if (path.match(/^\/attachments\/\d+\/download$/)) return route.fulfill({body:'Arquivo de teste',contentType:'application/octet-stream',headers:{'Content-Disposition':'attachment; filename="entrega.txt"'}});
       if (path === '' && chatDenied) return route.fulfill({ status: 403, json: { message: 'Seu perfil não tem acesso ao chat.' } });
-      if (path === '') return route.fulfill({ json: { contacts: [teammate, outsider], requests, can_review: canReview, reviewers_available: reviewersAvailable, reviewers: reviewersAvailable ? [{id:9,name:'Administrador escolhido'},{id:10,name:'Gerente administrador'}] : [], translation_available: translationAvailable } });
+      if (path === '') return route.fulfill({ json: { contacts: [teammate, outsider].map(person => ({...person, can_chat: canStartWithoutApproval || person.can_chat, administrative_access: canStartWithoutApproval})), requests, can_review: canReview, can_start_without_approval: canStartWithoutApproval, reviewers_available: reviewersAvailable, reviewers: reviewersAvailable ? [{id:9,name:'Administrador escolhido'},{id:10,name:'Gerente administrador'}] : [], translation_available: translationAvailable } });
       if (path.match(/^\/users\/\d+\/messages$/) && request.method() === 'GET') {
-        return route.fulfill({ json: { messages: path.includes('/2/') ? messages : [], has_more: false } });
+        return route.fulfill({ json: { messages: path.includes('/2/') ? messages : outsiderMessages, has_more: false } });
       }
-      if (path === '/users/2/messages' && request.method() === 'POST') {
-        const item = { id: 10 + messages.length, sender_id: '1', is_mine: true, sender_name: 'Ana Teste', attachments: (body.files || []).map((name,index) => ({id:(name.endsWith('.png')?700:500)+index,name,size:16,mime_type:name.endsWith('.png')?'image/png':'text/plain',alt_text:body.descriptions?.[index] || null,preview_url:name.endsWith('.png')?`/api/v1/chat/attachments/${700+index}/preview`:null,download_url:`/api/v1/chat/attachments/${(name.endsWith('.png')?700:500)+index}/download`})), body: body.body, body_format: body.body_format || null, version: 1, created_at: now.toISOString(), editable_until: new Date(now.getTime() + 86400000).toISOString(), can_edit: true };
+      if (['/users/2/messages','/users/3/messages'].includes(path) && request.method() === 'POST') {
+        const targetMessages = path.includes('/2/') ? messages : outsiderMessages;
+        const item = { id: 10 + targetMessages.length + (path.includes('/3/') ? 100 : 0), sender_id: '1', is_mine: true, sender_name: 'Ana Teste', attachments: (body.files || []).map((name,index) => ({id:(name.endsWith('.png')?700:500)+index,name,size:16,mime_type:name.endsWith('.png')?'image/png':'text/plain',alt_text:body.descriptions?.[index] || null,preview_url:name.endsWith('.png')?`/api/v1/chat/attachments/${700+index}/preview`:null,download_url:`/api/v1/chat/attachments/${(name.endsWith('.png')?700:500)+index}/download`})), body: body.body, body_format: body.body_format || null, version: 1, created_at: now.toISOString(), editable_until: new Date(now.getTime() + 86400000).toISOString(), can_edit: true };
         originals[item.id] = item.body;
-        messages.push(item);
+        targetMessages.push(item);
         return route.fulfill({ status: 201, json: { message: item } });
       }
       if (path.match(/^\/messages\/\d+$/) && request.method() === 'PATCH') {
@@ -251,7 +254,7 @@ try {
     await page.getByLabel('Filtrar por situação', {exact:true}).selectOption('all');
 
     // Simulate a refreshed session for the reviewer without sending real notifications.
-    canReview = true; requests[0].can_decide = true;
+    canReview = true; canStartWithoutApproval = true; requests[0].can_decide = true;
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await page.getByRole('button', { name: 'Aprovar conversa', exact: true }).waitFor();
     await page.getByRole('button', { name: 'Aprovar conversa', exact: true }).click();
@@ -259,6 +262,7 @@ try {
     await page.getByRole('button', { name: 'Revogar autorização', exact: true }).click();
     await page.locator('.chat-request-history > article').getByText('Revogada', { exact: true }).waitFor();
     check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+    canReview = false; canStartWithoutApproval = false;
     reviewersAvailable = false;
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await requestMenu.getByText('Não há administrador ou gerente administrador disponível. Peça à administração para verificar os perfis.', {exact:true}).waitFor();
@@ -268,18 +272,28 @@ try {
     await requestForm.getByLabel('Motivo da solicitação', {exact:true}).fill('Novo alinhamento com outra equipe.');
     check(await requestForm.getByRole('button', {name:'Enviar solicitação de acesso',exact:true}).isDisabled(), true);
     await page.screenshot({path:`/tmp/spot-chat-access-panels-${width}.png`,fullPage:true});
-    reviewersAvailable = true;
+    reviewersAvailable = true; canReview = true; canStartWithoutApproval = true;
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     // Interface changes language; personal content remains exactly as entered.
     for (const [locale, title] of [['en', 'Chat approvals'], ['es', 'Aprobaciones de chat']]) {
       await page.evaluate(locale => { localStorage.setItem('spot.locale', locale); window.dispatchEvent(new Event('spot:language')); }, locale);
       await page.getByRole('heading', { name: title, exact: true }).waitFor();
-      await requestMenu.getByText(locale === 'en' ? 'Request chat access' : 'Solicitar acceso al chat', {exact:true}).waitFor();
+      await requestMenu.getByText(locale === 'en' ? 'Conversations without requests' : 'Conversaciones sin solicitud', {exact:true}).waitFor();
       check(await page.getByText('Preciso alinhar a entrega com esta equipe.', { exact: true }).innerText(), 'Preciso alinhar a entrega com esta equipe.');
     }
     await page.evaluate(() => { localStorage.setItem('spot.locale', 'pt'); window.dispatchEvent(new Event('spot:language')); });
-    await page.getByRole('button', { name: 'Conversas', exact: true }).click();
+    await page.getByRole('button', { name: 'Ir para conversas', exact: true }).click();
+    await page.waitForFunction(()=>document.activeElement?.id==='chat-search');
+    check(await page.getByLabel('Buscar pessoa', { exact: true }).evaluate(el=>el===document.activeElement),true);
     await page.getByLabel('Buscar pessoa', { exact: true }).fill('');
+    await page.getByRole('button', { name: outsider.name + ' Conversa direta', exact: true }).click();
+    await page.getByLabel('Mensagem', {exact:true}).waitFor();
+    check(await page.getByLabel('Motivo da solicitação', {exact:true}).count(),0);
+    await page.getByLabel('Mensagem', {exact:true}).fill('Contato direto da administração.');
+    await page.getByRole('button', {name:'Enviar mensagem',exact:true}).click();
+    await page.getByText('Contato direto da administração.', {exact:true}).waitFor();
+    await page.screenshot({path:`/tmp/spot-chat-admin-direct-${width}.png`,fullPage:true});
+    canReview = false; canStartWithoutApproval = false;
     await page.getByRole('button', { name: teammate.name + ' Seu time', exact: true }).click();
     translationAvailable = false;
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
@@ -298,7 +312,7 @@ try {
     await page.getByRole('button', { name: 'Abrir chat e solicitações', exact: true }).click();
     await page.getByRole('heading', { name: outsider.name, exact: true }).waitFor();
     check(await page.getByLabel('Motivo da solicitação', { exact: true }).count(), 1);
-    inboxData = { chat_request_id: 7 };
+    inboxData = { chat_request_id: 7 }; canReview = true; canStartWithoutApproval = true;
     await page.locator('.home-label > button').last().click();
     await page.getByRole('menuitem', { name: 'Caixa de entrada', exact: true }).click();
     await page.getByRole('button', { name: 'Abrir chat e solicitações', exact: true }).click();
