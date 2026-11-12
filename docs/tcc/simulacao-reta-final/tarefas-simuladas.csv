@@ -1,0 +1,29 @@
+﻿id;titulo;responsavel;revisor_documental;prioridade;prazo_relativo;estimativa_minutos;duracao_simulada_minutos;status_final;dependencias_do_roteiro;criterio_de_aceite;natureza
+T01;Inventariar e congelar fontes;alexander;lucas;high;-13;120;120;done;;Inventário com origem, versão e distinção entre fontes atuais e históricas;SIMULAÇÃO — não é registro real de uso
+T02;Configurar equipe e escopo;alexander;pedro;high;-13;90;105;done;T01;"Quatro vínculos ativos; gerente elegível; projeto marcado SIMULAÇÃO";SIMULAÇÃO — não é registro real de uso
+T03;Reconciliar regras com código atual;alexander;pedro;high;-10;240;225;done;T02;Gerente obrigatório, chat e tarefas do projeto descritos sem regras antigas;SIMULAÇÃO — não é registro real de uso
+T04;Consolidar evidências técnicas;alexander;pedro;high;-8;180;180;done;T03;"Separação entre relatórios de 10, 11 e 12/11; nenhuma soma entre execuções";SIMULAÇÃO — não é registro real de uso
+T05;Revisar limites de acesso;alexander;lucas;medium;-6;150;165;done;T03;"Documentos privados; analista vê tarefas autorizadas; acesso financeiro separado";SIMULAÇÃO — não é registro real de uso
+T06;Conferir versão de demonstração;alexander;pedro;medium;-4;180;165;done;T04, T05, T17;"Código, roteiro e arquivos identificados; serviços externos condicionais";SIMULAÇÃO — não é registro real de uso
+T07;Extrair dados da pesquisa;lucas;yasmin;medium;-12;180;180;done;T01;"Base declarada 94 e período preservados; nenhuma resposta individual reconstruída";SIMULAÇÃO — não é registro real de uso
+T08;Conferir totais e percentuais;lucas;yasmin;high;-10;210;225;done;T07;Totais variáveis e 57 comentários versus 49 frequências explicitados;SIMULAÇÃO — não é registro real de uso
+T09;Relacionar pesquisa e requisitos;lucas;alexander;medium;-8;180;165;done;T08;Dor, recurso e limite associados em matriz rastreável;SIMULAÇÃO — não é registro real de uso
+T10;Revisar objetivos e metodologia;lucas;yasmin;medium;-6;180;180;done;T09;Objetivo implementado separado de benefício não medido e simulação;SIMULAÇÃO — não é registro real de uso
+T11;Conferir referências e chamadas;lucas;yasmin;medium;-4;210;225;done;T10;"Referências consistentes com fontes locais; pendências marcadas para conferência";SIMULAÇÃO — não é registro real de uso
+T12;Preparar respostas sobre pesquisa;lucas;pedro;medium;-2;120;105;done;T11;Respostas sobre conveniência, discrepâncias e ausência de avaliação pós-uso;SIMULAÇÃO — não é registro real de uso
+T13;Mapear fluxos demonstráveis;pedro;alexander;medium;-12;180;180;done;T02;Projeto, tarefa, quadro, agenda e consulta documental com permissões;SIMULAÇÃO — não é registro real de uso
+T14;Organizar matriz de verificações;pedro;alexander;medium;-10;180;195;done;T13;Resultado histórico, teste a repetir e revisão humana separados;SIMULAÇÃO — não é registro real de uso
+T15;Preparar percurso de teclado e celular;pedro;yasmin;medium;-8;180;165;done;T14;"Roteiro de foco, Escape, retorno, 320 px e leitura 120%; sem certificar WCAG";SIMULAÇÃO — não é registro real de uso
+T16;Preparar checklist de implantação;pedro;alexander;medium;-6;150;150;done;T14;HTTPS, backup, worker, scheduler, SMTP/OAuth como condições de operação;SIMULAÇÃO — não é registro real de uso
+T17;Preparar demonstração sem provedores;pedro;lucas;medium;-5;180;195;done;T15, T16;Dados sintéticos, agenda interna e alternativa para falha de integração;SIMULAÇÃO — não é registro real de uso
+T18;Ensaiar demonstração e recuperação;pedro;alexander;medium;-2;150;135;done;T06, T17;"Percurso hipotético com falha e retomada; tempo identificado como simulado";SIMULAÇÃO — não é registro real de uso
+T19;Comparar monografia e guias;yasmin;lucas;medium;-12;180;180;done;T01;"Edição final priorizada; versões duplicadas e antigas identificadas";SIMULAÇÃO — não é registro real de uso
+T20;Revisar estrutura e normalização;yasmin;lucas;high;-9;240;255;done;T19, T08;Sumário, listas, fontes, referências e pendências institucionais anotados;SIMULAÇÃO — não é registro real de uso
+T21;Planejar atualização dos 12 slides;yasmin;alexander;high;-6;240;225;done;T20, T04;Plano de atualização baseado em 12 slides, não no roteiro antigo de 15;SIMULAÇÃO — não é registro real de uso
+T22;Planejar falas dos quatro autores;yasmin;pedro;medium;-4;150;150;done;T21, T10;"Divisão de falas com reserva para troca e falhas; duração alvo, não medida";SIMULAÇÃO — não é registro real de uso
+T23;Conferir pacote documental simulado;yasmin;lucas;medium;-2;180;195;done;T11, T22;"Checklist de nomes, versões e leitura; não equivale a aprovação institucional";SIMULAÇÃO — não é registro real de uso
+T24;Registrar retrospectiva simulada;yasmin;alexander;medium;-1;90;75;done;T12, T18, T23;Achados do cenário separados de depoimentos ou ganhos reais;SIMULAÇÃO — não é registro real de uso
+T25;Confirmar folha de aprovação;yasmin;alexander;high;-1;60;0;todo;T20;"Decisão institucional registrada; sem nomes, datas ou assinaturas inventados";SIMULAÇÃO — não é registro real de uso
+T26;Confirmar catalogação e modelo do colégio;lucas;yasmin;high;-1;60;0;todo;T20;Orientação institucional real disponível antes do depósito;SIMULAÇÃO — não é registro real de uso
+T27;Revisar prontidão da entrega;alexander;yasmin;high;-1;90;45;review;T12, T18, T23, T24;Conferência do conjunto e bloqueios explícitos das tarefas 25 e 26;SIMULAÇÃO — não é registro real de uso
+T28;Autorizar entrega e finalizar projeto;alexander;pedro;high;0;30;0;todo;T25, T26, T27;Pendências resolvidas e equipe conferida antes da finalização;SIMULAÇÃO — não é registro real de uso

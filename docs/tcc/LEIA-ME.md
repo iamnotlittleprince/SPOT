@@ -1,5 +1,7 @@
 # Material de estudo e defesa do TCC — SPOT
 
+Levantamento complementar de 12/11/2026: [perfis da equipe e simulação da organização da reta final do TCC](simulacao-reta-final/LEIA-ME.md). O cenário é explicitamente sintético e não representa uso real anterior do sistema.
+
 A referência atual é a [documentação final de 10/11/2026](../DOCUMENTACAO-FINAL.md), baseada no commit `146bd986867ecb25bc75db53c6d1944c6d89ae66`.
 
 - [Monografia final em PDF](../Monografia_SPOT_documentacao_integrada_final.pdf) e [DOCX](../Monografia_SPOT_documentacao_integrada_final.docx).

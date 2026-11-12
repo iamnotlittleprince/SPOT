@@ -1,0 +1,54 @@
+{
+  "natureza": "SIMULAÇÃO DOCUMENTAL OFFLINE; não exercita API, UI ou banco do Spot",
+  "data_elaboracao": "2026-11-12",
+  "calendario": "D = entrega hipotética, sem data real atribuída",
+  "membros": 4,
+  "tarefas": 28,
+  "eventos_sinteticos": 102,
+  "por_status": {
+    "done": 24,
+    "todo": 3,
+    "review": 1
+  },
+  "estimativa_total_horas": 73.0,
+  "duracao_simulada_total_horas": 69.75,
+  "por_membro": [
+    {
+      "id": "alexander",
+      "tarefas": 8,
+      "estimativa_horas": 18.0,
+      "duracao_simulada_horas": 16.75
+    },
+    {
+      "id": "lucas",
+      "tarefas": 7,
+      "estimativa_horas": 19.0,
+      "duracao_simulada_horas": 18.0
+    },
+    {
+      "id": "pedro",
+      "tarefas": 6,
+      "estimativa_horas": 17.0,
+      "duracao_simulada_horas": 17.0
+    },
+    {
+      "id": "yasmin",
+      "tarefas": 7,
+      "estimativa_horas": 19.0,
+      "duracao_simulada_horas": 18.0
+    }
+  ],
+  "bloqueios": [
+    "T25: decisão sobre folha de aprovação",
+    "T26: catalogação e modelo institucional",
+    "T28: aguarda T25, T26 e aceite de T27"
+  ],
+  "projeto_finalizado": false,
+  "checagens": [
+    "IDs e autores válidos",
+    "status nativos",
+    "reprodução das transições",
+    "estado final consistente",
+    "dependências das tarefas concluídas verificadas"
+  ]
+}

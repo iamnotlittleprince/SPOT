@@ -1,0 +1,1746 @@
+{
+  "data": "2026-11-12",
+  "escopo": "README, AGENTS, todos os arquivos docs anteriores a esta entrega e documentos temáticos/auxiliares pertinentes no primeiro nível de Downloads; sem busca em discos externos/nuvem, banco ou segredos",
+  "arquivos": [
+    {
+      "id": "F001",
+      "arquivo": "AGENTS.md",
+      "bytes": 2377,
+      "sha256": "c2c836265f5467efcd94205d9a3ac37bb2abe976c42dfcff58a0a5d5d11a2cc6",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 2312,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F002",
+      "arquivo": "README.md",
+      "bytes": 23273,
+      "sha256": "035d99798008b222b1e91ee7f563dcb3edee22ea1fdd40f171209a8825ff1d5f",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 22684,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F003",
+      "arquivo": "docs/CONFERENCIA-ABNT-2026-11-10.md",
+      "bytes": 7136,
+      "sha256": "afbc69971e7686e7310af0e9a761b6ab267a78341f15258a23061c5a33f52385",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 6904,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F004",
+      "arquivo": "docs/DOCUMENTACAO-FINAL.md",
+      "bytes": 6423,
+      "sha256": "821f1444ce516c1e1a18295ae672db2d6addf85bb98db9f7637bcb4641e546c4",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 6234,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F005",
+      "arquivo": "docs/LEVANTAMENTO-COMPLETO-SPOT.md",
+      "bytes": 24805,
+      "sha256": "8a784687eeaf9dafb5176425193a7a691d28bbbf87020904e8a9e0f6d04f5322",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 23933,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F006",
+      "arquivo": "docs/MAPA-DO-CODIGO.md",
+      "bytes": 3854,
+      "sha256": "9b9c50e922253587e4b0814d954d7a1b8863d47272da961393f41ffcfd54d84c",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 3753,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F007",
+      "arquivo": "docs/Monografia_SPOT_documentacao_integrada_final.docx",
+      "bytes": 950371,
+      "sha256": "3636d47a7a1a5152cfdbafadd2c1a37c03283adf44e12ede289c350ff40fb830",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 72782,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F008",
+      "arquivo": "docs/Monografia_SPOT_documentacao_integrada_final.html",
+      "bytes": 100732,
+      "sha256": "fba4e19474c03d312d76799742f0df89a785a74de3b085dccd7293f926c17cec",
+      "tratamento": "texto HTML extraído; layout não revisado",
+      "caracteres_extraidos": 73765,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F009",
+      "arquivo": "docs/Monografia_SPOT_documentacao_integrada_final.odt",
+      "bytes": 1108092,
+      "sha256": "6aacb0f2af5305214e0f26f967d1b7bdbb8b72f7c18bef32cd933154c99ab7ee",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 37995,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F010",
+      "arquivo": "docs/Monografia_SPOT_documentacao_integrada_final.pdf",
+      "bytes": 1427725,
+      "sha256": "26bbbf09b09be56f5104ea85b72e2a6d824fe6d19a5c33fecc34b288031fb850",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 105347,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F011",
+      "arquivo": "docs/Monografia_SPOT_documentacao_integrada_final.txt",
+      "bytes": 82450,
+      "sha256": "52e5ea329839c993847931ae2210535cf38c43beb3716dc923f2512f24d64440",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 79979,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F012",
+      "arquivo": "docs/SPOT-documentacao-final-2026-11-10.zip",
+      "bytes": 11142614,
+      "sha256": "45c59033b73fdbe2ebc69fac37e20cca22e4da418cbf8af6649031454768ce99",
+      "tratamento": "conteúdo do pacote listado; não contado como fonte independente",
+      "caracteres_extraidos": 3404,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F013",
+      "arquivo": "docs/__pycache__/atualizar_guias_finais.cpython-310.pyc",
+      "bytes": 5441,
+      "sha256": "ebafad77c840d5b7d0a74671622039081f79fd393d240f7be94f279455ad7db4",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F014",
+      "arquivo": "docs/__pycache__/conferir_abnt_documentos.cpython-310.pyc",
+      "bytes": 12118,
+      "sha256": "d8a92de59b1e6aa5ff26a2fee1e26a5322fde53180f6454ce7265ef711ef217a",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F015",
+      "arquivo": "docs/__pycache__/converter_documentos_uno.cpython-310.pyc",
+      "bytes": 5378,
+      "sha256": "6363e8e6316751d2bdcac41e3cdb8f6e4fc313be9860f442076775925dc6c674",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F016",
+      "arquivo": "docs/__pycache__/finalizar_documentos.cpython-310.pyc",
+      "bytes": 3447,
+      "sha256": "b2bc06c526532287b6a97760b05efb19654c23300ccd38c7f822699288b1b611",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F017",
+      "arquivo": "docs/__pycache__/gerar_documentacao_final.cpython-310.pyc",
+      "bytes": 84682,
+      "sha256": "7f909e43579c3841c32dbce3ea182660c03b9e3fa8fd7b0571b8555ebb1d227d",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F018",
+      "arquivo": "docs/acessibilidade-e-inclusao.md",
+      "bytes": 99418,
+      "sha256": "f12647d685276812fb5a6d961f5ee6313f8e44c2d4eb8917694dd142829aca24",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 95846,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F019",
+      "arquivo": "docs/assets/documentacao-final/arquitetura.png",
+      "bytes": 42690,
+      "sha256": "f7b7ad586d1b884c2c110b783e7f5cb2fb1c9168a7e649dc4e74700fe4bb681f",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F020",
+      "arquivo": "docs/assets/documentacao-final/chat-aprovador.png",
+      "bytes": 106173,
+      "sha256": "902259bc9185557b2538d6bcbf658645dfd90237f7396afdbd5dcaab83080a97",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F021",
+      "arquivo": "docs/assets/documentacao-final/gestao-projetos.png",
+      "bytes": 209102,
+      "sha256": "8a8924a4ab66a2192b951addf6adc885c5232276aae86b3445c17416af6137a5",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F022",
+      "arquivo": "docs/assets/documentacao-final/tutorial-mobile.png",
+      "bytes": 69119,
+      "sha256": "10041a08ca5c46f2b8d10e3e2fa9fb34a5c82f228dd6a7809d261d089323e6c0",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F023",
+      "arquivo": "docs/assets/responsividade/home-320-120.png",
+      "bytes": 46664,
+      "sha256": "707f6c0f4c4da431ba7b4e8ffd1674d6e280cd933c60d80249cc520167af748d",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F024",
+      "arquivo": "docs/assets/responsividade/home-740-horizontal-120.png",
+      "bytes": 61892,
+      "sha256": "454f9a9afb430afefe112c90b81b2949df96c5a065eec08bf07087e9b62c91b3",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F025",
+      "arquivo": "docs/atualizar_guias_finais.py",
+      "bytes": 4836,
+      "sha256": "c25ad0b3ba4d0911f88315436d7d7a03b97c2ab93b0558ae7056de74757b18f3",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 4760,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F026",
+      "arquivo": "docs/chat-formatacao.md",
+      "bytes": 6091,
+      "sha256": "0459b40a9867dced5b9357f2ca57a7df9b3224f55c5e884b093da67949c456f4",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 5904,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F027",
+      "arquivo": "docs/chat.md",
+      "bytes": 23106,
+      "sha256": "5af8c307861597d250a4848ada7bb54a890b5e80ffe1d87baca7bbdc5ca9c1f9",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 22285,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F028",
+      "arquivo": "docs/conferir_abnt_documentos.py",
+      "bytes": 9111,
+      "sha256": "7524a91290689a7041ec860e6b583873eecc4ade8e47a0e189a68cd7dc1cdb50",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 9031,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F029",
+      "arquivo": "docs/converter_documentos_uno.py",
+      "bytes": 8721,
+      "sha256": "ae1e6c515191fb8ffb9de15bca9cc5e0a89a0dd34ff7d4a942a60f241013e511",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 8714,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F030",
+      "arquivo": "docs/diagnostico-emails-producao.md",
+      "bytes": 9645,
+      "sha256": "7a0c4e2c84ba4955a5927a06525fa3c1f9489f596971ed5b7ad6d8866749a750",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 9409,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F031",
+      "arquivo": "docs/documentacao-tecnica-spot-abnt.docx",
+      "bytes": 190880,
+      "sha256": "8214988f020badc3926db6875d0f352f2ff5f47d4a709a5b0b0704dcc7a2a5b4",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 47083,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F032",
+      "arquivo": "docs/documentacao-tecnica-spot-abnt.html",
+      "bytes": 62581,
+      "sha256": "44852bd4a307db9ba8cc09a0da8dd202c7dff3f744211ee664c6e820d1e99392",
+      "tratamento": "texto HTML extraído; layout não revisado",
+      "caracteres_extraidos": 47778,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F033",
+      "arquivo": "docs/documentacao-tecnica-spot-abnt.odt",
+      "bytes": 190755,
+      "sha256": "de3e1153238b7f172fd442c7d6cba41bea84bac89a7dfda6a87f471a33361736",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 23722,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F034",
+      "arquivo": "docs/documentacao-tecnica-spot-abnt.pdf",
+      "bytes": 320062,
+      "sha256": "7cf33c7351706169e1e40e6de3af4f224f8e46d03974ec9f89f91f9bac577051",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 67970,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F035",
+      "arquivo": "docs/documentacao-tecnica-spot-abnt.txt",
+      "bytes": 51575,
+      "sha256": "a41008fdef3b7d1e62bb36570d7b465e4b472330b19a9d5ba5155fcf0d21c22a",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 50068,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F036",
+      "arquivo": "docs/dominio-google-e-bandeiras.md",
+      "bytes": 4382,
+      "sha256": "679fda85c7bc355874a9780311b3480026ad796a2a3b41f99a55633a54978b34",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 4272,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F037",
+      "arquivo": "docs/equipe-no-cadastro-do-projeto.md",
+      "bytes": 3896,
+      "sha256": "98ef750bab5854232477394ecf07642ce4d560441a048018661c5bb20039122f",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 3791,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F038",
+      "arquivo": "docs/exclusao-cadastro-com-historico.md",
+      "bytes": 3748,
+      "sha256": "65fe5ad9694ee3326020db18dd66fedfbf13c2ef031186309247ff946cbd34df",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 3617,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F039",
+      "arquivo": "docs/finalizar_documentos.py",
+      "bytes": 2993,
+      "sha256": "563cdfcf1ebdc3ffea5de9ef34add59d133d18e804760808246dfa82089496ce",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 2993,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F040",
+      "arquivo": "docs/fontes-documentais/SHA256SUMS-documentacao-final.txt",
+      "bytes": 8776,
+      "sha256": "cd3157fccf3607116d2c7420094ea64acc9492bf8ec98b868c8ac15cf03b65a3",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 8776,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F041",
+      "arquivo": "docs/fontes-documentais/conferencia-abnt-2026-11-10.json",
+      "bytes": 13672,
+      "sha256": "116e3f986c8ad5b57bfbef9a38b903ce5795f8900702ede2c3ce12e27e9ec6d1",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 13514,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F042",
+      "arquivo": "docs/fontes-documentais/datas-referencias-verificadas.json",
+      "bytes": 3884,
+      "sha256": "f24011fbe6b9a6e2124af1c78d9c20b85ff06d006c0e6a1c072280bc863ba85a",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 3850,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F043",
+      "arquivo": "docs/fontes-documentais/manifesto-versao-final.json",
+      "bytes": 39673,
+      "sha256": "20cba59d13f7eae105470f53b14df8bd7ee874bf1bd63391752b94d6ff9f9a85",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 39673,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F044",
+      "arquivo": "docs/fontes-documentais/rotas-versao-final.json",
+      "bytes": 49479,
+      "sha256": "b90344a6f16f1cf86850aaa88b236157b2b0f3b3db7a704b1ba14f563cd4fc54",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 49479,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F045",
+      "arquivo": "docs/fontes-documentais/validacao-documentos-finais.json",
+      "bytes": 1311,
+      "sha256": "5d2563a8e9cced4cb44e16429d6be0f40056571777d420c8b19a24dbe69f10ee",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 1311,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F046",
+      "arquivo": "docs/fotos-oauth.md",
+      "bytes": 7131,
+      "sha256": "61d5daeb9c565b585b1545afdd648b44aab2abdf4dec54812ddb8033edad2755",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 6957,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F047",
+      "arquivo": "docs/gerar_apresentacao_spot.cjs",
+      "bytes": 15335,
+      "sha256": "5df103fdfbbb4857b267bfe698a1e6fe5bc730fd1c27f8e83b01d0054335dbb8",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 15106,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F048",
+      "arquivo": "docs/gerar_documentacao_final.py",
+      "bytes": 82409,
+      "sha256": "be50c659e47a0d7c43c6f8f157b1a8f6b6d74d0dd45f9a75f058b775deea886e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 80319,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F049",
+      "arquivo": "docs/gerentes-de-projetos.md",
+      "bytes": 2584,
+      "sha256": "5f9fa897f95ee213ed4da8315d3a5bcbb67ebe10bdb5f9329f427de5cf66898e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 2509,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F050",
+      "arquivo": "docs/implantacao-docker.md",
+      "bytes": 5158,
+      "sha256": "808d7be430003c66d50012ff3d02257887fab50c80e19ce8f4f0f648d85f5fc5",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 5087,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F051",
+      "arquivo": "docs/memorial/levantamento.md",
+      "bytes": 11798,
+      "sha256": "61d345f54ea9fe9db8596c4277e58368148b994f0a0ba5c5e0f9ebabf0e59cf3",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 11385,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F052",
+      "arquivo": "docs/mensagens-de-erro.md",
+      "bytes": 72652,
+      "sha256": "10f589d3367a680df1fdcc816cea81c2ed63e8ab74c5bc7fb2ffb15bb483f05c",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 71654,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F053",
+      "arquivo": "docs/navegacao-e-historico.md",
+      "bytes": 2285,
+      "sha256": "d4b5ac8826a0eb808335ae1123efe681b7a60bbef7f0c11ff603129a289a0cbb",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 2215,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F054",
+      "arquivo": "docs/notificacoes-e-atualizacao-automatica.md",
+      "bytes": 6568,
+      "sha256": "59a60ae30eac637005afa32ce6adcc3bc08ddabc6c15e0b48e3b718d055158a0",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 6363,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F055",
+      "arquivo": "docs/padrao-emails.md",
+      "bytes": 3923,
+      "sha256": "6aa0683cac4068ddc1b2bd0b5580ec5b53b3927c5d146a44ff996b4d0edc8301",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 3784,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F056",
+      "arquivo": "docs/quadro-de-tarefas.md",
+      "bytes": 6358,
+      "sha256": "614f22dcd221e498fea8288a3c88e0850037e221362a03808a1c0aefce6677e0",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 6145,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F057",
+      "arquivo": "docs/referencias-documentacao-final.md",
+      "bytes": 5300,
+      "sha256": "8de883b36d565843d8605f90c257c7b3d512f59da188140fc679340a82070bac",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 5168,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F058",
+      "arquivo": "docs/responsividade.md",
+      "bytes": 5326,
+      "sha256": "5d6a0a359a206fe68a6e43d9eb8dfe7eeadc22e26c238a566cc824c7dc83731c",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 5149,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F059",
+      "arquivo": "docs/revisao-producao-2026-11-10.md",
+      "bytes": 8151,
+      "sha256": "326b5c5279c404edbb54fb2f46c984b162f09cd89cd8c0bf5abacefcca104803",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 7911,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F060",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/documentacao-tecnica-spot-abnt.docx",
+      "bytes": 19896,
+      "sha256": "d24825c894faa8968c8671af0327dadc374a42bb2420ee660ef0b7337c61a882",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 25687,
+      "classe": "histórico"
+    },
+    {
+      "id": "F061",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/documentacao-tecnica-spot-abnt.html",
+      "bytes": 35479,
+      "sha256": "d762886b5fae1a16cc461c72c792b4225dc6644f72b1a885bad12db751e768e1",
+      "tratamento": "texto HTML extraído; layout não revisado",
+      "caracteres_extraidos": 29389,
+      "classe": "histórico"
+    },
+    {
+      "id": "F062",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/documentacao-tecnica-spot-abnt.odt",
+      "bytes": 21298,
+      "sha256": "2acdc9b3b7bb4bc3e334f18f2c974b70969bc5ca08ed752edf1f60aabda87b17",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 19696,
+      "classe": "histórico"
+    },
+    {
+      "id": "F063",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/documentacao-tecnica-spot-abnt.pdf",
+      "bytes": 147803,
+      "sha256": "a91455585c3999aaa833865bbdcc8c8b545931093571a934f65e1ff8c4ecfd5b",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 29741,
+      "classe": "histórico"
+    },
+    {
+      "id": "F064",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-COMPLETO-TCC-SPOT.docx",
+      "bytes": 893672,
+      "sha256": "5fd0194d32d7232c884f3dd503ca87bc6e8471675ed059450d4b5bf44340d97a",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 80184,
+      "classe": "histórico"
+    },
+    {
+      "id": "F065",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-COMPLETO-TCC-SPOT.html",
+      "bytes": 93205,
+      "sha256": "c9f9a173e8260d9a0f746ba323b58e49aa959c48b20190fb88bf741b65850edf",
+      "tratamento": "texto HTML extraído; layout não revisado",
+      "caracteres_extraidos": 70238,
+      "classe": "histórico"
+    },
+    {
+      "id": "F066",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-COMPLETO-TCC-SPOT.md",
+      "bytes": 86803,
+      "sha256": "d8590d6c479ec478290cfeafd42d61e4b572ba873e7865d8c9f5b00c94cec05e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 83906,
+      "classe": "histórico"
+    },
+    {
+      "id": "F067",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-COMPLETO-TCC-SPOT.odt",
+      "bytes": 1104781,
+      "sha256": "72d09c56a83707e4521ca726f1ec7f435c68d4b4efc21ceb85ad29aaaca670fd",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 37549,
+      "classe": "histórico"
+    },
+    {
+      "id": "F068",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-COMPLETO-TCC-SPOT.pdf",
+      "bytes": 1355867,
+      "sha256": "883d38536bb7560b249085b0462ff574d98b018b9dc717ffa20cc11738551d48",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 92761,
+      "classe": "histórico"
+    },
+    {
+      "id": "F069",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-COMPLETO-TCC-SPOT.txt",
+      "bytes": 86096,
+      "sha256": "d5c34db9437bf4aebbbc86d9c67cc19f4f3d45534f09fa1c9775efff56c94782",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 83185,
+      "classe": "histórico"
+    },
+    {
+      "id": "F070",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-DEFESA-TCC-SPOT.docx",
+      "bytes": 952801,
+      "sha256": "f825c0f16d45199698b09cfd447d00b78a47248bb769851d8da512164aabeb58",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 66680,
+      "classe": "histórico"
+    },
+    {
+      "id": "F071",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-DEFESA-TCC-SPOT.html",
+      "bytes": 93205,
+      "sha256": "c9f9a173e8260d9a0f746ba323b58e49aa959c48b20190fb88bf741b65850edf",
+      "tratamento": "texto HTML extraído; layout não revisado",
+      "caracteres_extraidos": 70238,
+      "classe": "histórico"
+    },
+    {
+      "id": "F072",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-DEFESA-TCC-SPOT.md",
+      "bytes": 74018,
+      "sha256": "14e46ac79789af330153af4a3be7f1b349edb8608fcf385f656bc61f96235a66",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 71215,
+      "classe": "histórico"
+    },
+    {
+      "id": "F073",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-DEFESA-TCC-SPOT.odt",
+      "bytes": 1104837,
+      "sha256": "e257de52939cd6a66fb833700b6024e14dd6c512036f428164ce043bb7f85b04",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 37569,
+      "classe": "histórico"
+    },
+    {
+      "id": "F074",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-DEFESA-TCC-SPOT.pdf",
+      "bytes": 1398524,
+      "sha256": "841538b9111d1c00fd522e46adbf9ada0948059b5e25d4bc14d2029511c81289",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 100023,
+      "classe": "histórico"
+    },
+    {
+      "id": "F075",
+      "arquivo": "docs/revisoes/2026-11-10-anteriores/tcc/GUIA-DEFESA-TCC-SPOT.txt",
+      "bytes": 68526,
+      "sha256": "a21c58c6a0a40d92d92135baab96cf358526eeb0c42e474affca279ea8222572",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 66557,
+      "classe": "histórico"
+    },
+    {
+      "id": "F076",
+      "arquivo": "docs/revisoes/2026-11-10-antes-conferencia-abnt/Monografia_SPOT_documentacao_integrada_final.docx",
+      "bytes": 947270,
+      "sha256": "a4fd34be28324678526bdfccde5353c3e1747e514fab36d65ca61aa302afa479",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 68181,
+      "classe": "histórico"
+    },
+    {
+      "id": "F077",
+      "arquivo": "docs/revisoes/2026-11-10-antes-conferencia-abnt/Monografia_SPOT_documentacao_integrada_final.html",
+      "bytes": 93610,
+      "sha256": "caf0ea20865d46f51b40eb11586d0b69b88cb5b1db4890b47a28936749d5025b",
+      "tratamento": "texto HTML extraído; layout não revisado",
+      "caracteres_extraidos": 69302,
+      "classe": "histórico"
+    },
+    {
+      "id": "F078",
+      "arquivo": "docs/revisoes/2026-11-10-antes-conferencia-abnt/Monografia_SPOT_documentacao_integrada_final.odt",
+      "bytes": 1105459,
+      "sha256": "9e916237b7cafec99c30564f8eb167da7d1ad7f3b83fc1f332728b3baad73186",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 36388,
+      "classe": "histórico"
+    },
+    {
+      "id": "F079",
+      "arquivo": "docs/revisoes/2026-11-10-antes-conferencia-abnt/Monografia_SPOT_documentacao_integrada_final.pdf",
+      "bytes": 1400106,
+      "sha256": "599b75b86c5af58d184092297fa6da2ac97694e3f78d9ee7d202452d2f0e7497",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 99434,
+      "classe": "histórico"
+    },
+    {
+      "id": "F080",
+      "arquivo": "docs/revisoes/2026-11-10-antes-conferencia-abnt/documentacao-tecnica-spot-abnt.docx",
+      "bytes": 189240,
+      "sha256": "3dbef6130befde0c47a375e13f4b1e743b9e57f2576790081bf80db56b138193",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 45322,
+      "classe": "histórico"
+    },
+    {
+      "id": "F081",
+      "arquivo": "docs/revisoes/2026-11-10-antes-conferencia-abnt/documentacao-tecnica-spot-abnt.html",
+      "bytes": 60091,
+      "sha256": "bad79330d0a76809a903f216bb43601d71695701d98ce1874fe9f2dc40cf4b9d",
+      "tratamento": "texto HTML extraído; layout não revisado",
+      "caracteres_extraidos": 46144,
+      "classe": "histórico"
+    },
+    {
+      "id": "F082",
+      "arquivo": "docs/revisoes/2026-11-10-antes-conferencia-abnt/documentacao-tecnica-spot-abnt.odt",
+      "bytes": 189337,
+      "sha256": "bcdc998095c8b3bdd90cbe27b076dcdd3c3ccdb1192ac9e38064c94014cabbd3",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 21069,
+      "classe": "histórico"
+    },
+    {
+      "id": "F083",
+      "arquivo": "docs/revisoes/2026-11-10-antes-conferencia-abnt/documentacao-tecnica-spot-abnt.pdf",
+      "bytes": 307464,
+      "sha256": "8b1e24b773786f30c2259658ee77ade9af4cfff1c9b579f7211f96ba0f7eaf59",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 66010,
+      "classe": "histórico"
+    },
+    {
+      "id": "F084",
+      "arquivo": "docs/solicitacoes-acesso-indicadores.md",
+      "bytes": 6470,
+      "sha256": "e397b67d91a54164d954b7925f31073742de02713a35b9433b125f7bd20861cf",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 6238,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F085",
+      "arquivo": "docs/tcc/GUIA-COMPLETO-TCC-SPOT.docx",
+      "bytes": 951602,
+      "sha256": "815609db550f07996d479f04fb67350508924a5a6165d72b86391ee9d5d7ff63",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 75089,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F086",
+      "arquivo": "docs/tcc/GUIA-COMPLETO-TCC-SPOT.html",
+      "bytes": 103765,
+      "sha256": "c188e60ac7e0689952bdd4632271e4c8d09b631adb7ea706bf476895a3c3e52e",
+      "tratamento": "texto HTML extraído; layout não revisado",
+      "caracteres_extraidos": 76132,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F087",
+      "arquivo": "docs/tcc/GUIA-COMPLETO-TCC-SPOT.md",
+      "bytes": 72681,
+      "sha256": "871a5bb1cd048c37693aeef03348983a7b2d648e76676989ace61736ae2c9b3e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 70559,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F088",
+      "arquivo": "docs/tcc/GUIA-COMPLETO-TCC-SPOT.odt",
+      "bytes": 1108954,
+      "sha256": "dfe6320d7b0a7c41689e5cf39c8152c1b7c250ac678ff7204b39260ebc9f1b88",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 39006,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F089",
+      "arquivo": "docs/tcc/GUIA-COMPLETO-TCC-SPOT.pdf",
+      "bytes": 1433612,
+      "sha256": "89c299bf8d8d8145941fcb2304921ff0a386e260b0886fffc504c25801b4c1a1",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 109088,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F090",
+      "arquivo": "docs/tcc/GUIA-COMPLETO-TCC-SPOT.txt",
+      "bytes": 72681,
+      "sha256": "871a5bb1cd048c37693aeef03348983a7b2d648e76676989ace61736ae2c9b3e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 70559,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F091",
+      "arquivo": "docs/tcc/GUIA-DEFESA-TCC-SPOT.docx",
+      "bytes": 951602,
+      "sha256": "815609db550f07996d479f04fb67350508924a5a6165d72b86391ee9d5d7ff63",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 75089,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F092",
+      "arquivo": "docs/tcc/GUIA-DEFESA-TCC-SPOT.html",
+      "bytes": 103765,
+      "sha256": "c188e60ac7e0689952bdd4632271e4c8d09b631adb7ea706bf476895a3c3e52e",
+      "tratamento": "texto HTML extraído; layout não revisado",
+      "caracteres_extraidos": 76132,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F093",
+      "arquivo": "docs/tcc/GUIA-DEFESA-TCC-SPOT.md",
+      "bytes": 72681,
+      "sha256": "871a5bb1cd048c37693aeef03348983a7b2d648e76676989ace61736ae2c9b3e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 70559,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F094",
+      "arquivo": "docs/tcc/GUIA-DEFESA-TCC-SPOT.odt",
+      "bytes": 1108954,
+      "sha256": "dfe6320d7b0a7c41689e5cf39c8152c1b7c250ac678ff7204b39260ebc9f1b88",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 39006,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F095",
+      "arquivo": "docs/tcc/GUIA-DEFESA-TCC-SPOT.pdf",
+      "bytes": 1433612,
+      "sha256": "89c299bf8d8d8145941fcb2304921ff0a386e260b0886fffc504c25801b4c1a1",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 109088,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F096",
+      "arquivo": "docs/tcc/GUIA-DEFESA-TCC-SPOT.txt",
+      "bytes": 72681,
+      "sha256": "871a5bb1cd048c37693aeef03348983a7b2d648e76676989ace61736ae2c9b3e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 70559,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F097",
+      "arquivo": "docs/tcc/LEIA-ME.md",
+      "bytes": 2097,
+      "sha256": "41f75383e67c42d796aea6073134c2d047abdfd1d79b65894a3d7e7a769deaa3",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 2043,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F098",
+      "arquivo": "docs/tcc/OPERACAO-NOTIFICACOES.md",
+      "bytes": 6568,
+      "sha256": "59a60ae30eac637005afa32ce6adcc3bc08ddabc6c15e0b48e3b718d055158a0",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 6363,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F099",
+      "arquivo": "docs/tcc/ROTEIRO-14min10s.txt",
+      "bytes": 9682,
+      "sha256": "3df57cc3c6aef7b4a885670c5a08da1951d3ee6879d9dd6c799b71d79d782988",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 9286,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F100",
+      "arquivo": "docs/tcc/SPOT-Defesa-TCC-revisado.pdf",
+      "bytes": 310349,
+      "sha256": "ad9a5ff9c249b033a6c45504461b013a7a5d3f19e0f728f0a1327a9458b96604",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 18042,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F101",
+      "arquivo": "docs/tcc/SPOT-Defesa-TCC-revisado.pptx",
+      "bytes": 149761,
+      "sha256": "ea52a5d43b6e63cfa4f594e5e4436bc861b80a2ea9e6f6e6edaaa739c5b4f108",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 19304,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F102",
+      "arquivo": "docs/tcc/SPOT-Material-Defesa-TCC.zip",
+      "bytes": 5101787,
+      "sha256": "ea401299b53c4237bacda64a44de4e8e10633fa1225137166d2eaa0e8e4e8eaa",
+      "tratamento": "conteúdo do pacote listado; não contado como fonte independente",
+      "caracteres_extraidos": 3048,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F103",
+      "arquivo": "docs/tcc/SPOT-Slides-revisados.zip",
+      "bytes": 226258,
+      "sha256": "f49eb1a6cec14d22493df32aa2d1fc1e8275961ae6ff73392f96cf857c020b4d",
+      "tratamento": "conteúdo do pacote listado; não contado como fonte independente",
+      "caracteres_extraidos": 58,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F104",
+      "arquivo": "docs/tcc/assets/fontes-documentais.json",
+      "bytes": 617,
+      "sha256": "443e2fca1af40fd1abe198a5706615fa192a1d2d3aa1e2883f45910a6bc59ac0",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 614,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F105",
+      "arquivo": "docs/tcc/assets/grafico-linhas-slide-3.png",
+      "bytes": 117210,
+      "sha256": "af3ea6ab4c6d275b06777a681b3faf0dfc1fcf78aaa89b74a7953d48695748a2",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F106",
+      "arquivo": "docs/tcc/assets/grafico-setores-slide-5.png",
+      "bytes": 160586,
+      "sha256": "42b58a1075b6c54ad226c812aba98d02c1850e83e16023f8ca25709784e27975",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F107",
+      "arquivo": "docs/tcc/assets/graficos/alinhamento.png",
+      "bytes": 63845,
+      "sha256": "3cb59a9173d4a231ec410c32c139b072daf9f6662a310cf21078114cb142e0d7",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F108",
+      "arquivo": "docs/tcc/assets/graficos/alinhamento.svg",
+      "bytes": 53402,
+      "sha256": "2b7e3b39f3c972c120d0b94ef275f55544e4592da86e1e584ccff92c06537303",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 53399,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F109",
+      "arquivo": "docs/tcc/assets/graficos/atuacao.png",
+      "bytes": 71800,
+      "sha256": "70435097d05286ba8caaedfb96af8b60cfd2c697695deaec5b64e8eb0152259a",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F110",
+      "arquivo": "docs/tcc/assets/graficos/atuacao.svg",
+      "bytes": 58705,
+      "sha256": "498b7206bd8aa470cb4622fc130d403e72e26d59f2a54930a937993eca4c533b",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 58699,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F111",
+      "arquivo": "docs/tcc/assets/graficos/custos.png",
+      "bytes": 68122,
+      "sha256": "c8e34a83b34a21a16fa05075de3d9f03bea70b0761e2debd1c204c30f46761b9",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F112",
+      "arquivo": "docs/tcc/assets/graficos/custos.svg",
+      "bytes": 56421,
+      "sha256": "7b7fefad257f7773f71eda43f197e334c1898270ab816fb3b0a7566ddd4ce42e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 56418,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F113",
+      "arquivo": "docs/tcc/assets/graficos/externos.png",
+      "bytes": 63113,
+      "sha256": "4d813ca3dfff7ade5c08d1e5c999aa4802c7a3762b0edcbb5db97e78df235e32",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F114",
+      "arquivo": "docs/tcc/assets/graficos/externos.svg",
+      "bytes": 51750,
+      "sha256": "586a41eae7931f256dd365e3700909556773dfa053d2009ccec905a5f37727f4",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 51747,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F115",
+      "arquivo": "docs/tcc/assets/graficos/faturamento.png",
+      "bytes": 66179,
+      "sha256": "95ea34312f576d2c1015c640293392e5137a27e4481d54dc2c26d66de11fa194",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F116",
+      "arquivo": "docs/tcc/assets/graficos/faturamento.svg",
+      "bytes": 56674,
+      "sha256": "c41e24e36e3ec027445ed6f6d761708b973ca2e9a15650519fc81e8c65b1b1ec",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 56669,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F117",
+      "arquivo": "docs/tcc/assets/graficos/ferramentas.png",
+      "bytes": 80616,
+      "sha256": "e3bfc0c73345b3f36134c143cb6af77b0478b387aacdcc2791f62fbb87b7835e",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F118",
+      "arquivo": "docs/tcc/assets/graficos/ferramentas.svg",
+      "bytes": 59059,
+      "sha256": "ea0475015144c41d12c350978407dc0bba29d6c6795ec5cfcba2fbacf24c90f5",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 59051,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F119",
+      "arquivo": "docs/tcc/assets/graficos/idade.png",
+      "bytes": 71818,
+      "sha256": "267a9efd168735824b7e90a234c87d715d06f2af42aba0018e66d9c013a35c1d",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F120",
+      "arquivo": "docs/tcc/assets/graficos/idade.svg",
+      "bytes": 52791,
+      "sha256": "de31f31ba132fd8c92ee582ae90ee363fee39f777e98d592577727ebe98bb4cd",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 52788,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F121",
+      "arquivo": "docs/tcc/assets/graficos/interface.png",
+      "bytes": 72725,
+      "sha256": "c9cee20db870d77d632e97afd55c43aea4859b134bc9f831501f135efba977df",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F122",
+      "arquivo": "docs/tcc/assets/graficos/interface.svg",
+      "bytes": 55741,
+      "sha256": "a5439ec22a9ccc5de183bde9e2847c6b99513730a2d1d42b1f006a4dbcc6d3cc",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 55736,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F123",
+      "arquivo": "docs/tcc/assets/graficos/internos.png",
+      "bytes": 64944,
+      "sha256": "93e191f87bf74c48678909995a3a336c936ea0b9ac6352e4d170368c7a4e3cf3",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F124",
+      "arquivo": "docs/tcc/assets/graficos/internos.svg",
+      "bytes": 53879,
+      "sha256": "0326d62d45f0d7aa7888795bc579f935aa3294ff785e296009a0561aa77dae5e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 53876,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F125",
+      "arquivo": "docs/tcc/assets/graficos/necessidade.png",
+      "bytes": 67515,
+      "sha256": "57fad89e626461904e530049161ed0b05038a6faecc0a602e3f3ae5b2f3d9eea",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F126",
+      "arquivo": "docs/tcc/assets/graficos/necessidade.svg",
+      "bytes": 52664,
+      "sha256": "3cf9823432aef699f099be4b28d7f4a9e770cac30705e9bda8086178c656d302",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 52661,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F127",
+      "arquivo": "docs/tcc/assets/graficos/organizacao.png",
+      "bytes": 64988,
+      "sha256": "e7b048e1367140b480a0947f8c528d88d695322336c9ca7d509c6cccaa11243c",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F128",
+      "arquivo": "docs/tcc/assets/graficos/organizacao.svg",
+      "bytes": 55262,
+      "sha256": "5f2d32a45ef28951b14d0214144a355b1d1fc3d63c5bf3122d317ef3d714bf65",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 55257,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F129",
+      "arquivo": "docs/tcc/assets/graficos/qualitativa.png",
+      "bytes": 93591,
+      "sha256": "7a8019bc14456d24b2189f98bc60c93e383852f7c11fab7cacb0baeffbf15724",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F130",
+      "arquivo": "docs/tcc/assets/graficos/qualitativa.svg",
+      "bytes": 68535,
+      "sha256": "6c4905c01811eda74c6c83992328b756d37b01bf2b57ac8fa9bfbdc87e1704e5",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 68521,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F131",
+      "arquivo": "docs/tcc/assets/graficos/satisfacao.png",
+      "bytes": 77689,
+      "sha256": "3b7d3602190d653f504eaf81c02c55955b6c45afab4512530893765eea5d81b0",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F132",
+      "arquivo": "docs/tcc/assets/graficos/satisfacao.svg",
+      "bytes": 58724,
+      "sha256": "1bc928263ca0d86ef29065dee3c9f9784e84708cbeca0f60ffbdc7ed2964022e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 58715,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F133",
+      "arquivo": "docs/tcc/assets/graficos/software.png",
+      "bytes": 69444,
+      "sha256": "6ff7221efa98c20c0133c4f97033e355c33bfa46d6d82af3e3860be5f9c7ff9c",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F134",
+      "arquivo": "docs/tcc/assets/graficos/software.svg",
+      "bytes": 53354,
+      "sha256": "6e51977b37c0ed500bbaaa846ebcff377edb1cc9724a1781030ad876d427d829",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 53351,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F135",
+      "arquivo": "docs/tcc/assets/lista-implementacao-atualizada.png",
+      "bytes": 104655,
+      "sha256": "e8b4d9ce809bbd19cb61ce2f1425b6a25db541174d2f6eeb8b5985749de35b9a",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F136",
+      "arquivo": "docs/tcc/assets/pesquisa-original/049aacfc461fe42c16d405d9fbe9fe2eb39600e9.png",
+      "bytes": 32236,
+      "sha256": "59560b17bb12c027411eb1ad9573695055f12d49ad89674a47098fd0edd0c7fe",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F137",
+      "arquivo": "docs/tcc/assets/pesquisa-original/4d2ed10ceca87f19d31d52c8cd9a8b11a4657bb8.png",
+      "bytes": 38055,
+      "sha256": "e947fce89ff97987fd7c1bb6080c1e3d487a887a0362e1d15106ba60f64119a8",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F138",
+      "arquivo": "docs/tcc/assets/pesquisa-original/4ec02800cd0520a7260b21d6e2a0b8618f66f2c1.png",
+      "bytes": 38174,
+      "sha256": "7c090103ef2ae026eacee06c5d72605e96d38cd7d60010d36dc0066fdad51f67",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F139",
+      "arquivo": "docs/tcc/assets/pesquisa-original/59d425ffff00fe413f88ef6cd779211e21a1753c.png",
+      "bytes": 29033,
+      "sha256": "805d0e9b639e846890ed0ff3ee6f5261b5d7ab3cb89427336e609ad4871212a8",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F140",
+      "arquivo": "docs/tcc/assets/pesquisa-original/5d2c809d9db708863fe23dcfa0671bb0dad7bf45.png",
+      "bytes": 42436,
+      "sha256": "259c52f76dd8fcd210183397c52705965ec86b47e2c4c40491104a64a4a60cef",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F141",
+      "arquivo": "docs/tcc/assets/pesquisa-original/6c3e5b8a3048464c55690880dd0761df2dc13508.png",
+      "bytes": 34388,
+      "sha256": "863dd5f0bd0f3d96efa5b667ba6c00aa4d4d61cadeb44cafcd886debca9be281",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F142",
+      "arquivo": "docs/tcc/assets/pesquisa-original/6e8fa9320aebe1d822d7b9ea6d701c9e300518e4.png",
+      "bytes": 35520,
+      "sha256": "ea1f7000ba7d5f75e7994a40436ae96e2901ebb2f173bae3d407b7084a2c9b85",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F143",
+      "arquivo": "docs/tcc/assets/pesquisa-original/802652dff5247d91ec94caa279314133be372e79.png",
+      "bytes": 53943,
+      "sha256": "c3319a2ddfd80c8ee78247f0e994d949fb3bfc051a86d7c9a58dcf3e9d5b7bda",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F144",
+      "arquivo": "docs/tcc/assets/pesquisa-original/a5d8094b03ae99c1da1f2da52f6533474e7bba0f.png",
+      "bytes": 33964,
+      "sha256": "748fe3278f62d89ee4f3f92cfe1fe484d4ac5c31b07f99c15e4243b1579f6f07",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F145",
+      "arquivo": "docs/tcc/assets/pesquisa-original/b3d9bcc12664b138d5727be1f591c28b4308feef.png",
+      "bytes": 51278,
+      "sha256": "1a07e0f5b6aa46c62e1343f44ed7ada09c78637108461681b7942798bd566215",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F146",
+      "arquivo": "docs/tcc/assets/pesquisa-original/ec24e7c9b1c519ddd2b41d12b1820727cfc65185.png",
+      "bytes": 32347,
+      "sha256": "c0c528b359b055bb21446843fac65482dd42236bb63568ba8d988e6b39fe02d6",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F147",
+      "arquivo": "docs/tcc/assets/pesquisa-original/f5e667e1387ee53c38bc9a3f6e3855c1924e2082.png",
+      "bytes": 43092,
+      "sha256": "30559384d70e23eb4c3a76ee2ee31643e82c252b4798f2250eeaa23d74d8fd90",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F148",
+      "arquivo": "docs/tcc/assets/pesquisa-original/fe10c07569cf115236a3925366972abb79045ad3.png",
+      "bytes": 32882,
+      "sha256": "e1127d3d387195d188e4a198487d84beb3dd306a01c292712e22f9813eb25329",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F149",
+      "arquivo": "docs/tcc/assets/phpunit-atual.json",
+      "bytes": 99,
+      "sha256": "b9f59d7b84ff4966114001e9bceed7d82a0fc5c74c3243f1a062795b250ec786",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 99,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F150",
+      "arquivo": "docs/tcc/assets/portfolio-espacamento-revisado.png",
+      "bytes": 192907,
+      "sha256": "2e161d170bc4892e55f6f6b63fc8a07e742eb043cfd7b91ff9d1c7de7962fad6",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F151",
+      "arquivo": "docs/tcc/assets/rotas.json",
+      "bytes": 40033,
+      "sha256": "11986f0a7a78105cfb4f211aef3d6c4c0c61cf07078f362b95b6a25dcccb62de",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 40033,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F152",
+      "arquivo": "docs/tcc/assets/tela-financeiro.png",
+      "bytes": 100172,
+      "sha256": "f75baccb298487101491fa9eeabdf18d2f26f5bac6f9c9adb5b3f05b43f85fcc",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F153",
+      "arquivo": "docs/tcc/assets/tela-home.png",
+      "bytes": 103291,
+      "sha256": "410c5ba016660a0e849caf850916c62db5ec5221ee1a7f6e1c36b378aeb92c6c",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F154",
+      "arquivo": "docs/tcc/assets/tela-portfolio.png",
+      "bytes": 182666,
+      "sha256": "100140693b448ed4c4a7bc8101b3c8d0d7b5cda3c0069804da0371ce107c7e2d",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F155",
+      "arquivo": "docs/tcc/assets/tela-tarefas.png",
+      "bytes": 107236,
+      "sha256": "5fadeab5a54e1785a1bcfa0eb62d0580f17c68473d01c2cd6905bb53a8ee3637",
+      "tratamento": "catalogado; sem leitura visual",
+      "caracteres_extraidos": 0,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F156",
+      "arquivo": "docs/tcc/assets/validacao.txt",
+      "bytes": 1195,
+      "sha256": "6ec4e7c3daf01a3796eea30488b056523222745e3a6ae10468794e47c5b6286d",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 1168,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F157",
+      "arquivo": "docs/tcc/capturar-telas.mjs",
+      "bytes": 6117,
+      "sha256": "6d5939ad1ec580e7e121046bd61b46256647301d6cd1b4a9d84fe567c0a80f0e",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 6090,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F158",
+      "arquivo": "docs/tcc/dados_pesquisa.csv",
+      "bytes": 5227,
+      "sha256": "8b7f116e193d2fff2cc975395f06577701acf17c88c081dc7552bb70ef9eb664",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 5080,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F159",
+      "arquivo": "docs/tcc/dados_pesquisa.json",
+      "bytes": 3339,
+      "sha256": "cbca47504c3d8b430dedb47324373bb42dd3c146ef68cc8417db8606581fe6c3",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 3282,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F160",
+      "arquivo": "docs/tcc/gerar_material.py",
+      "bytes": 30498,
+      "sha256": "c212949e438cac2ed02250b7ca0c794f6818ddde6d92959dd57f9eefedda46fc",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 29977,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F161",
+      "arquivo": "docs/tcc/revisao-2026-10-28/LEIA-ME.md",
+      "bytes": 869,
+      "sha256": "edcfea4345433acd90f6e513c33441548ac7ea60fd74a8cf57e66142690f3f33",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 849,
+      "classe": "histórico"
+    },
+    {
+      "id": "F162",
+      "arquivo": "docs/tcc/revisao-2026-10-28/ajustar_slides.py",
+      "bytes": 5815,
+      "sha256": "37ea6f376b9846ec12614ecb7e73b7e48d7c6f6cccb2d45557c0dabdeccbc7de",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 5756,
+      "classe": "histórico"
+    },
+    {
+      "id": "F163",
+      "arquivo": "docs/tcc/revisao-2026-10-28/antes-diferenciais/SPOT-Defesa-TCC-revisado.pdf",
+      "bytes": 232297,
+      "sha256": "99e2074104b23f7dd7576005cccd07980b6bc40f73eb21f0ecf21198c8327cbd",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 14924,
+      "classe": "histórico"
+    },
+    {
+      "id": "F164",
+      "arquivo": "docs/tcc/revisao-2026-10-28/antes-diferenciais/SPOT-Defesa-TCC-revisado.pptx",
+      "bytes": 81820,
+      "sha256": "be10291f1bc88b114da3f570c5125453767eba4bcecaa85429a4c893b8b5d0b8",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 16572,
+      "classe": "histórico"
+    },
+    {
+      "id": "F165",
+      "arquivo": "docs/tcc/revisao-2026-10-28/antes-fluxo-telas/SPOT-Defesa-TCC-revisado.pdf",
+      "bytes": 238708,
+      "sha256": "1284279847954dedc4db7210171a0a86f41dc23ee344cb4466a08e22c00e93b1",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 15546,
+      "classe": "histórico"
+    },
+    {
+      "id": "F166",
+      "arquivo": "docs/tcc/revisao-2026-10-28/antes-fluxo-telas/SPOT-Defesa-TCC-revisado.pptx",
+      "bytes": 105346,
+      "sha256": "e21e053c36573537e5be46aef32362419b51bae2beefb404aa0a86f76a3895de",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 17258,
+      "classe": "histórico"
+    },
+    {
+      "id": "F167",
+      "arquivo": "docs/tcc/revisao-2026-10-28/antes-identidade/SPOT-Defesa-TCC-revisado.pptx",
+      "bytes": 106343,
+      "sha256": "9d9600576ae0be79421706816a423d03a2aeea5601aa7fff5d9d7197d52a441e",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 18421,
+      "classe": "histórico"
+    },
+    {
+      "id": "F168",
+      "arquivo": "docs/tcc/revisao-2026-10-28/antes-identidade/antes-correcao-placeholders.pptx",
+      "bytes": 149855,
+      "sha256": "1aaa33e6ace3638ddcb454724a506ae5ef0653e98b3decd92d73f0c9b2ac677f",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 19304,
+      "classe": "histórico"
+    },
+    {
+      "id": "F169",
+      "arquivo": "docs/tcc/revisao-2026-10-28/aplicar_identidade.py",
+      "bytes": 4880,
+      "sha256": "310ed8a3fa0c37b13e7b0da2f00a4edd2dde2c470b44d017fa1ebb5b721b0ca4",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 4839,
+      "classe": "histórico"
+    },
+    {
+      "id": "F170",
+      "arquivo": "docs/tcc/revisao-2026-10-28/atualizar_diferenciais.py",
+      "bytes": 6117,
+      "sha256": "ca361524e6fe6440276a877126b8187bce345ee4955adc0225e8bcf3f0f554b2",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 5969,
+      "classe": "histórico"
+    },
+    {
+      "id": "F171",
+      "arquivo": "docs/tcc/revisao-2026-10-28/atualizar_fluxo_telas.py",
+      "bytes": 3532,
+      "sha256": "409685252158cf6c3642b062db06de53600f1f0863b5c5058743125ea9d508f8",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 3439,
+      "classe": "histórico"
+    },
+    {
+      "id": "F172",
+      "arquivo": "docs/tcc/revisao-2026-10-28/fonte-corrigida-convertida.pptx",
+      "bytes": 84564,
+      "sha256": "52078def33f468cbed332eac058f18817df589bde324cc848646b3aa80957a7b",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 16493,
+      "classe": "histórico"
+    },
+    {
+      "id": "F173",
+      "arquivo": "docs/tcc/revisao-2026-10-28/fonte-corrigida-recuperada.odp",
+      "bytes": 66019,
+      "sha256": "8b4caadbaeb51b1403c28ce57817d341c893808a33e2f02990685b5750c1dd2c",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 0,
+      "classe": "histórico"
+    },
+    {
+      "id": "F174",
+      "arquivo": "docs/tcc/revisao-2026-10-28/revisao.json",
+      "bytes": 1482,
+      "sha256": "a11496ccb160c8ab46fed63a749d003b03a5d8f53aca4a8f3f87e6b0d95ca2e5",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 1482,
+      "classe": "histórico"
+    },
+    {
+      "id": "F175",
+      "arquivo": "docs/tcc/revisao-2026-10-28/verificacao-identidade.md",
+      "bytes": 626,
+      "sha256": "0e132c486c5c6434fd9b95fe69ea58830d34d232bb92c1567416ff15c1ae2e22",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 602,
+      "classe": "histórico"
+    },
+    {
+      "id": "F176",
+      "arquivo": "docs/tcc/roteiro-tempos.json",
+      "bytes": 2053,
+      "sha256": "86561006c26137b88596143e43662c3397625ed285aee699177d4cc796e3080f",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 2039,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F177",
+      "arquivo": "docs/telas-de-erro.md",
+      "bytes": 6463,
+      "sha256": "3d0121f0b8195d9277ab280a4d106bfacfbd50ca9483d76087611e138c1de9bf",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 6266,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F178",
+      "arquivo": "docs/tutorial-atualizado.md",
+      "bytes": 3062,
+      "sha256": "3fdd2d45abdcad84a85ca8992a1052c103e9602afe0777045f29b6cbfa1bba92",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 2943,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F179",
+      "arquivo": "docs/verificacao-mensagens-de-erro.md",
+      "bytes": 4579,
+      "sha256": "499ba427b4a3969e7f1591055d1ec5224e28cd5f3ba679a808a0c6d1bc30edca",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 4430,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F180",
+      "arquivo": "docs/vinculos-de-documentos.md",
+      "bytes": 4548,
+      "sha256": "bc75dfccbab3decc1653ecb6fa4d167a602b0f90eca7c0d7c60aba6a4096aca7",
+      "tratamento": "texto extraído",
+      "caracteres_extraidos": 4412,
+      "classe": "local atual ou material auxiliar"
+    },
+    {
+      "id": "F181",
+      "arquivo": "/home/alexander/Downloads/Capitulo_Levantamento_Pesquisa_ABNT(1).docx",
+      "bytes": 437819,
+      "sha256": "af9a0d8f3cccb61c99e2412712be43fd028ab61cea2e7751832fc9d87c57354b",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 13451,
+      "classe": "original externo"
+    },
+    {
+      "id": "F182",
+      "arquivo": "/home/alexander/Downloads/Capitulo_Levantamento_Pesquisa_ABNT.docx",
+      "bytes": 437819,
+      "sha256": "af9a0d8f3cccb61c99e2412712be43fd028ab61cea2e7751832fc9d87c57354b",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 13451,
+      "classe": "original externo"
+    },
+    {
+      "id": "F183",
+      "arquivo": "/home/alexander/Downloads/Controle de Projetos - Memorial Descritivo(1).docx",
+      "bytes": 8602975,
+      "sha256": "1ae68dab98f8c3517f92990af9ec33cf9c33eed3887743f23696f878d03df153",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 7409,
+      "classe": "original externo"
+    },
+    {
+      "id": "F184",
+      "arquivo": "/home/alexander/Downloads/Controle de Projetos - Memorial Descritivo.docx",
+      "bytes": 8602975,
+      "sha256": "1ae68dab98f8c3517f92990af9ec33cf9c33eed3887743f23696f878d03df153",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 7409,
+      "classe": "original externo"
+    },
+    {
+      "id": "F185",
+      "arquivo": "/home/alexander/Downloads/Controle de Projetos - Memorial Descritivo.docx.pdf",
+      "bytes": 7948909,
+      "sha256": "da0adb37686037fca097587e67b08d0314539da788ec5c765dfb20c4ce5d998f",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 22091,
+      "classe": "original externo"
+    },
+    {
+      "id": "F186",
+      "arquivo": "/home/alexander/Downloads/Monografia.docx",
+      "bytes": 4756454,
+      "sha256": "0a0780bdf9047889ccc55a80a739f9a710dfce6966c3ca7cb9c3c048e1bbf620",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 45604,
+      "classe": "original externo"
+    },
+    {
+      "id": "F187",
+      "arquivo": "/home/alexander/Downloads/Monografia_SPOT_documentacao_integrada.docx",
+      "bytes": 4761478,
+      "sha256": "8064edcdf9bc9f173ce16e50340c386ff400fd4cf990fe8fd81f1dc9e9c0e194",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 59077,
+      "classe": "original externo"
+    },
+    {
+      "id": "F188",
+      "arquivo": "/home/alexander/Downloads/Monografia_SPOT_documentacao_integrada.docx.pdf",
+      "bytes": 4446798,
+      "sha256": "92bb5794ca592db17f57e9b47ee885a8e0dce09641105f85ee5e1c41751af789",
+      "tratamento": "texto PDF extraído; sem OCR/inspeção visual",
+      "caracteres_extraidos": 69149,
+      "classe": "original externo"
+    },
+    {
+      "id": "F189",
+      "arquivo": "/home/alexander/Downloads/SPOT-Defesa-TCC-revisado.pptx",
+      "bytes": 152654,
+      "sha256": "043e46a050998b9700ad70f1f2b9b132e874a3bf39a1e295caa082b4f38dfbc4",
+      "tratamento": "texto XML extraído; layout não revisado",
+      "caracteres_extraidos": 17309,
+      "classe": "original externo"
+    },
+    {
+      "id": "F190",
+      "arquivo": "/home/alexander/Downloads/apostila-api-laravel-react.pdf",
+      "bytes": 3684591,
+      "sha256": "b16e04ce9a1eb4e627f514b8d2eb4be9725ae5ea8d15a10883543cb24e63a5a4",
+      "classe": "apoio didático",
+      "tratamento": "texto PDF extraído; material didático, não especificação do Spot",
+      "caracteres_extraidos": 120912
+    },
+    {
+      "id": "F191",
+      "arquivo": "/home/alexander/Downloads/financial.csv",
+      "bytes": 122,
+      "sha256": "61c227fc72ef0a85e0943d307e62e27bc55f7e8b233741fa7a1d53168aec70fd",
+      "classe": "exportação auxiliar; não usada como dado da simulação",
+      "tratamento": "estrutura CSV consultada; valores não transcritos",
+      "caracteres_extraidos": 0,
+      "colunas": [
+        "Indicador",
+        "Valor",
+        "Unidade"
+      ],
+      "linhas_de_dados": 4
+    },
+    {
+      "id": "F192",
+      "arquivo": "/home/alexander/Downloads/status.csv",
+      "bytes": 96,
+      "sha256": "d4911bfa79e495b0bee20c5a40fefdee2386506112de3aaaf6b90bb4b33a30ee",
+      "classe": "exportação auxiliar; não usada como dado da simulação",
+      "tratamento": "estrutura CSV consultada; valores não transcritos",
+      "caracteres_extraidos": 0,
+      "colunas": [
+        "Indicador",
+        "Valor",
+        "Unidade"
+      ],
+      "linhas_de_dados": 3
+    }
+  ]
+}

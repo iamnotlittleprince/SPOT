@@ -1,0 +1,1563 @@
+{
+  "natureza": "SIMULAÇÃO DOCUMENTAL OFFLINE; não exercita API, UI ou banco do Spot",
+  "perfis_e_responsabilidades": "proposta para o cenário; não representa histórico pessoal",
+  "projeto": {
+    "nome": "SIMULAÇÃO — Reta final do TCC SPOT",
+    "empresa": "Ambiente acadêmico de demonstração",
+    "gerente": "alexander",
+    "finalizado": false
+  },
+  "membros": [
+    {
+      "id": "alexander",
+      "nome": "Alexander Molany Longo",
+      "perfil_spot": "gestor-administrador",
+      "papel_projeto": "manager",
+      "frente_simulada": "Coordenação, implementação e evidências técnicas"
+    },
+    {
+      "id": "lucas",
+      "nome": "Lucas Rodrigues Soares",
+      "perfil_spot": "analista",
+      "papel_projeto": "analyst",
+      "frente_simulada": "Pesquisa, requisitos e rastreabilidade"
+    },
+    {
+      "id": "pedro",
+      "nome": "Pedro Galvão de Matos",
+      "perfil_spot": "analista",
+      "papel_projeto": "analyst",
+      "frente_simulada": "Verificação, operação e roteiro de demonstração"
+    },
+    {
+      "id": "yasmin",
+      "nome": "Yasmin Regina de Souza",
+      "perfil_spot": "analista",
+      "papel_projeto": "analyst",
+      "frente_simulada": "Revisão documental, apresentação e entrega"
+    }
+  ],
+  "tarefas": [
+    {
+      "id": "T01",
+      "titulo": "Inventariar e congelar fontes",
+      "responsavel": "alexander",
+      "revisor_documental": "lucas",
+      "participantes": [
+        "lucas"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -13,
+      "estimativa_minutos": 120,
+      "duracao_simulada_minutos": 120,
+      "status_final": "done",
+      "dia_inicio_simulado": -13,
+      "dia_conclusao_simulada": -13,
+      "dependencias_do_roteiro": [],
+      "criterio_de_aceite": "Inventário com origem, versão e distinção entre fontes atuais e históricas",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T02",
+      "titulo": "Configurar equipe e escopo",
+      "responsavel": "alexander",
+      "revisor_documental": "pedro",
+      "participantes": [
+        "pedro"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -13,
+      "estimativa_minutos": 90,
+      "duracao_simulada_minutos": 105,
+      "status_final": "done",
+      "dia_inicio_simulado": -13,
+      "dia_conclusao_simulada": -13,
+      "dependencias_do_roteiro": [
+        "T01"
+      ],
+      "criterio_de_aceite": "Quatro vínculos ativos; gerente elegível; projeto marcado SIMULAÇÃO",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T03",
+      "titulo": "Reconciliar regras com código atual",
+      "responsavel": "alexander",
+      "revisor_documental": "pedro",
+      "participantes": [
+        "pedro"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -10,
+      "estimativa_minutos": 240,
+      "duracao_simulada_minutos": 225,
+      "status_final": "done",
+      "dia_inicio_simulado": -12,
+      "dia_conclusao_simulada": -10,
+      "dependencias_do_roteiro": [
+        "T02"
+      ],
+      "criterio_de_aceite": "Gerente obrigatório, chat e tarefas do projeto descritos sem regras antigas",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T04",
+      "titulo": "Consolidar evidências técnicas",
+      "responsavel": "alexander",
+      "revisor_documental": "pedro",
+      "participantes": [
+        "pedro"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -8,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 180,
+      "status_final": "done",
+      "dia_inicio_simulado": -10,
+      "dia_conclusao_simulada": -8,
+      "dependencias_do_roteiro": [
+        "T03"
+      ],
+      "criterio_de_aceite": "Separação entre relatórios de 10, 11 e 12/11; nenhuma soma entre execuções",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T05",
+      "titulo": "Revisar limites de acesso",
+      "responsavel": "alexander",
+      "revisor_documental": "lucas",
+      "participantes": [
+        "lucas"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -6,
+      "estimativa_minutos": 150,
+      "duracao_simulada_minutos": 165,
+      "status_final": "done",
+      "dia_inicio_simulado": -8,
+      "dia_conclusao_simulada": -6,
+      "dependencias_do_roteiro": [
+        "T03"
+      ],
+      "criterio_de_aceite": "Documentos privados; analista vê tarefas autorizadas; acesso financeiro separado",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T06",
+      "titulo": "Conferir versão de demonstração",
+      "responsavel": "alexander",
+      "revisor_documental": "pedro",
+      "participantes": [
+        "pedro"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -4,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 165,
+      "status_final": "done",
+      "dia_inicio_simulado": -5,
+      "dia_conclusao_simulada": -4,
+      "dependencias_do_roteiro": [
+        "T04",
+        "T05",
+        "T17"
+      ],
+      "criterio_de_aceite": "Código, roteiro e arquivos identificados; serviços externos condicionais",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T07",
+      "titulo": "Extrair dados da pesquisa",
+      "responsavel": "lucas",
+      "revisor_documental": "yasmin",
+      "participantes": [
+        "yasmin"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -12,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 180,
+      "status_final": "done",
+      "dia_inicio_simulado": -13,
+      "dia_conclusao_simulada": -12,
+      "dependencias_do_roteiro": [
+        "T01"
+      ],
+      "criterio_de_aceite": "Base declarada 94 e período preservados; nenhuma resposta individual reconstruída",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T08",
+      "titulo": "Conferir totais e percentuais",
+      "responsavel": "lucas",
+      "revisor_documental": "yasmin",
+      "participantes": [
+        "yasmin"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -10,
+      "estimativa_minutos": 210,
+      "duracao_simulada_minutos": 225,
+      "status_final": "done",
+      "dia_inicio_simulado": -12,
+      "dia_conclusao_simulada": -10,
+      "dependencias_do_roteiro": [
+        "T07"
+      ],
+      "criterio_de_aceite": "Totais variáveis e 57 comentários versus 49 frequências explicitados",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T09",
+      "titulo": "Relacionar pesquisa e requisitos",
+      "responsavel": "lucas",
+      "revisor_documental": "alexander",
+      "participantes": [
+        "alexander"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -8,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 165,
+      "status_final": "done",
+      "dia_inicio_simulado": -10,
+      "dia_conclusao_simulada": -8,
+      "dependencias_do_roteiro": [
+        "T08"
+      ],
+      "criterio_de_aceite": "Dor, recurso e limite associados em matriz rastreável",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T10",
+      "titulo": "Revisar objetivos e metodologia",
+      "responsavel": "lucas",
+      "revisor_documental": "yasmin",
+      "participantes": [
+        "yasmin"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -6,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 180,
+      "status_final": "done",
+      "dia_inicio_simulado": -8,
+      "dia_conclusao_simulada": -6,
+      "dependencias_do_roteiro": [
+        "T09"
+      ],
+      "criterio_de_aceite": "Objetivo implementado separado de benefício não medido e simulação",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T11",
+      "titulo": "Conferir referências e chamadas",
+      "responsavel": "lucas",
+      "revisor_documental": "yasmin",
+      "participantes": [
+        "yasmin"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -4,
+      "estimativa_minutos": 210,
+      "duracao_simulada_minutos": 225,
+      "status_final": "done",
+      "dia_inicio_simulado": -6,
+      "dia_conclusao_simulada": -4,
+      "dependencias_do_roteiro": [
+        "T10"
+      ],
+      "criterio_de_aceite": "Referências consistentes com fontes locais; pendências marcadas para conferência",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T12",
+      "titulo": "Preparar respostas sobre pesquisa",
+      "responsavel": "lucas",
+      "revisor_documental": "pedro",
+      "participantes": [
+        "pedro"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -2,
+      "estimativa_minutos": 120,
+      "duracao_simulada_minutos": 105,
+      "status_final": "done",
+      "dia_inicio_simulado": -4,
+      "dia_conclusao_simulada": -2,
+      "dependencias_do_roteiro": [
+        "T11"
+      ],
+      "criterio_de_aceite": "Respostas sobre conveniência, discrepâncias e ausência de avaliação pós-uso",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T13",
+      "titulo": "Mapear fluxos demonstráveis",
+      "responsavel": "pedro",
+      "revisor_documental": "alexander",
+      "participantes": [
+        "alexander"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -12,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 180,
+      "status_final": "done",
+      "dia_inicio_simulado": -13,
+      "dia_conclusao_simulada": -12,
+      "dependencias_do_roteiro": [
+        "T02"
+      ],
+      "criterio_de_aceite": "Projeto, tarefa, quadro, agenda e consulta documental com permissões",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T14",
+      "titulo": "Organizar matriz de verificações",
+      "responsavel": "pedro",
+      "revisor_documental": "alexander",
+      "participantes": [
+        "alexander"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -10,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 195,
+      "status_final": "done",
+      "dia_inicio_simulado": -12,
+      "dia_conclusao_simulada": -10,
+      "dependencias_do_roteiro": [
+        "T13"
+      ],
+      "criterio_de_aceite": "Resultado histórico, teste a repetir e revisão humana separados",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T15",
+      "titulo": "Preparar percurso de teclado e celular",
+      "responsavel": "pedro",
+      "revisor_documental": "yasmin",
+      "participantes": [
+        "yasmin"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -8,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 165,
+      "status_final": "done",
+      "dia_inicio_simulado": -10,
+      "dia_conclusao_simulada": -8,
+      "dependencias_do_roteiro": [
+        "T14"
+      ],
+      "criterio_de_aceite": "Roteiro de foco, Escape, retorno, 320 px e leitura 120%; sem certificar WCAG",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T16",
+      "titulo": "Preparar checklist de implantação",
+      "responsavel": "pedro",
+      "revisor_documental": "alexander",
+      "participantes": [
+        "alexander"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -6,
+      "estimativa_minutos": 150,
+      "duracao_simulada_minutos": 150,
+      "status_final": "done",
+      "dia_inicio_simulado": -8,
+      "dia_conclusao_simulada": -6,
+      "dependencias_do_roteiro": [
+        "T14"
+      ],
+      "criterio_de_aceite": "HTTPS, backup, worker, scheduler, SMTP/OAuth como condições de operação",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T17",
+      "titulo": "Preparar demonstração sem provedores",
+      "responsavel": "pedro",
+      "revisor_documental": "lucas",
+      "participantes": [
+        "lucas"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -5,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 195,
+      "status_final": "done",
+      "dia_inicio_simulado": -6,
+      "dia_conclusao_simulada": -5,
+      "dependencias_do_roteiro": [
+        "T15",
+        "T16"
+      ],
+      "criterio_de_aceite": "Dados sintéticos, agenda interna e alternativa para falha de integração",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T18",
+      "titulo": "Ensaiar demonstração e recuperação",
+      "responsavel": "pedro",
+      "revisor_documental": "alexander",
+      "participantes": [
+        "alexander"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -2,
+      "estimativa_minutos": 150,
+      "duracao_simulada_minutos": 135,
+      "status_final": "done",
+      "dia_inicio_simulado": -4,
+      "dia_conclusao_simulada": -2,
+      "dependencias_do_roteiro": [
+        "T06",
+        "T17"
+      ],
+      "criterio_de_aceite": "Percurso hipotético com falha e retomada; tempo identificado como simulado",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T19",
+      "titulo": "Comparar monografia e guias",
+      "responsavel": "yasmin",
+      "revisor_documental": "lucas",
+      "participantes": [
+        "lucas"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -12,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 180,
+      "status_final": "done",
+      "dia_inicio_simulado": -13,
+      "dia_conclusao_simulada": -12,
+      "dependencias_do_roteiro": [
+        "T01"
+      ],
+      "criterio_de_aceite": "Edição final priorizada; versões duplicadas e antigas identificadas",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T20",
+      "titulo": "Revisar estrutura e normalização",
+      "responsavel": "yasmin",
+      "revisor_documental": "lucas",
+      "participantes": [
+        "lucas"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -9,
+      "estimativa_minutos": 240,
+      "duracao_simulada_minutos": 255,
+      "status_final": "done",
+      "dia_inicio_simulado": -10,
+      "dia_conclusao_simulada": -9,
+      "dependencias_do_roteiro": [
+        "T19",
+        "T08"
+      ],
+      "criterio_de_aceite": "Sumário, listas, fontes, referências e pendências institucionais anotados",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T21",
+      "titulo": "Planejar atualização dos 12 slides",
+      "responsavel": "yasmin",
+      "revisor_documental": "alexander",
+      "participantes": [
+        "alexander"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -6,
+      "estimativa_minutos": 240,
+      "duracao_simulada_minutos": 225,
+      "status_final": "done",
+      "dia_inicio_simulado": -8,
+      "dia_conclusao_simulada": -6,
+      "dependencias_do_roteiro": [
+        "T20",
+        "T04"
+      ],
+      "criterio_de_aceite": "Plano de atualização baseado em 12 slides, não no roteiro antigo de 15",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T22",
+      "titulo": "Planejar falas dos quatro autores",
+      "responsavel": "yasmin",
+      "revisor_documental": "pedro",
+      "participantes": [
+        "pedro"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -4,
+      "estimativa_minutos": 150,
+      "duracao_simulada_minutos": 150,
+      "status_final": "done",
+      "dia_inicio_simulado": -6,
+      "dia_conclusao_simulada": -4,
+      "dependencias_do_roteiro": [
+        "T21",
+        "T10"
+      ],
+      "criterio_de_aceite": "Divisão de falas com reserva para troca e falhas; duração alvo, não medida",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T23",
+      "titulo": "Conferir pacote documental simulado",
+      "responsavel": "yasmin",
+      "revisor_documental": "lucas",
+      "participantes": [
+        "lucas"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -2,
+      "estimativa_minutos": 180,
+      "duracao_simulada_minutos": 195,
+      "status_final": "done",
+      "dia_inicio_simulado": -4,
+      "dia_conclusao_simulada": -2,
+      "dependencias_do_roteiro": [
+        "T11",
+        "T22"
+      ],
+      "criterio_de_aceite": "Checklist de nomes, versões e leitura; não equivale a aprovação institucional",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T24",
+      "titulo": "Registrar retrospectiva simulada",
+      "responsavel": "yasmin",
+      "revisor_documental": "alexander",
+      "participantes": [
+        "alexander"
+      ],
+      "prioridade": "medium",
+      "prazo_relativo": -1,
+      "estimativa_minutos": 90,
+      "duracao_simulada_minutos": 75,
+      "status_final": "done",
+      "dia_inicio_simulado": -2,
+      "dia_conclusao_simulada": -1,
+      "dependencias_do_roteiro": [
+        "T12",
+        "T18",
+        "T23"
+      ],
+      "criterio_de_aceite": "Achados do cenário separados de depoimentos ou ganhos reais",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T25",
+      "titulo": "Confirmar folha de aprovação",
+      "responsavel": "yasmin",
+      "revisor_documental": "alexander",
+      "participantes": [
+        "alexander"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -1,
+      "estimativa_minutos": 60,
+      "duracao_simulada_minutos": 0,
+      "status_final": "todo",
+      "dia_inicio_simulado": null,
+      "dia_conclusao_simulada": null,
+      "dependencias_do_roteiro": [
+        "T20"
+      ],
+      "criterio_de_aceite": "Decisão institucional registrada; sem nomes, datas ou assinaturas inventados",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T26",
+      "titulo": "Confirmar catalogação e modelo do colégio",
+      "responsavel": "lucas",
+      "revisor_documental": "yasmin",
+      "participantes": [
+        "yasmin"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -1,
+      "estimativa_minutos": 60,
+      "duracao_simulada_minutos": 0,
+      "status_final": "todo",
+      "dia_inicio_simulado": null,
+      "dia_conclusao_simulada": null,
+      "dependencias_do_roteiro": [
+        "T20"
+      ],
+      "criterio_de_aceite": "Orientação institucional real disponível antes do depósito",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T27",
+      "titulo": "Revisar prontidão da entrega",
+      "responsavel": "alexander",
+      "revisor_documental": "yasmin",
+      "participantes": [
+        "yasmin"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": -1,
+      "estimativa_minutos": 90,
+      "duracao_simulada_minutos": 45,
+      "status_final": "review",
+      "dia_inicio_simulado": -1,
+      "dia_conclusao_simulada": null,
+      "dependencias_do_roteiro": [
+        "T12",
+        "T18",
+        "T23",
+        "T24"
+      ],
+      "criterio_de_aceite": "Conferência do conjunto e bloqueios explícitos das tarefas 25 e 26",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    },
+    {
+      "id": "T28",
+      "titulo": "Autorizar entrega e finalizar projeto",
+      "responsavel": "alexander",
+      "revisor_documental": "pedro",
+      "participantes": [
+        "pedro"
+      ],
+      "prioridade": "high",
+      "prazo_relativo": 0,
+      "estimativa_minutos": 30,
+      "duracao_simulada_minutos": 0,
+      "status_final": "todo",
+      "dia_inicio_simulado": null,
+      "dia_conclusao_simulada": null,
+      "dependencias_do_roteiro": [
+        "T25",
+        "T26",
+        "T27"
+      ],
+      "criterio_de_aceite": "Pendências resolvidas e equipe conferida antes da finalização",
+      "natureza": "SIMULAÇÃO — não é registro real de uso"
+    }
+  ],
+  "eventos": [
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T01",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T02",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T07",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T19",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T03",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T08",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T13",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T04",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T05",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T09",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T14",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T20",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T10",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T15",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T16",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T21",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T25",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T26",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T11",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T17",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T22",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T06",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T12",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T23",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T18",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T24",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T27",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -14,
+      "ordem": 0,
+      "tarefa": "T28",
+      "autor": "alexander",
+      "acao": "criada",
+      "de": null,
+      "para": "todo"
+    },
+    {
+      "dia_relativo": -13,
+      "ordem": 1,
+      "tarefa": "T01",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -13,
+      "ordem": 2,
+      "tarefa": "T01",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -13,
+      "ordem": 3,
+      "tarefa": "T01",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -13,
+      "ordem": 1,
+      "tarefa": "T02",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -13,
+      "ordem": 1,
+      "tarefa": "T07",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -13,
+      "ordem": 1,
+      "tarefa": "T19",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -13,
+      "ordem": 2,
+      "tarefa": "T02",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -13,
+      "ordem": 3,
+      "tarefa": "T02",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -13,
+      "ordem": 1,
+      "tarefa": "T13",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -12,
+      "ordem": 2,
+      "tarefa": "T07",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -12,
+      "ordem": 2,
+      "tarefa": "T19",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -12,
+      "ordem": 3,
+      "tarefa": "T07",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -12,
+      "ordem": 3,
+      "tarefa": "T19",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -12,
+      "ordem": 1,
+      "tarefa": "T03",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -12,
+      "ordem": 1,
+      "tarefa": "T08",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -12,
+      "ordem": 2,
+      "tarefa": "T13",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -12,
+      "ordem": 3,
+      "tarefa": "T13",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -12,
+      "ordem": 1,
+      "tarefa": "T14",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 2,
+      "tarefa": "T03",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 2,
+      "tarefa": "T08",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 3,
+      "tarefa": "T03",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 3,
+      "tarefa": "T08",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 1,
+      "tarefa": "T04",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 1,
+      "tarefa": "T09",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 1,
+      "tarefa": "T20",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 2,
+      "tarefa": "T14",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 3,
+      "tarefa": "T14",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -10,
+      "ordem": 1,
+      "tarefa": "T15",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -9,
+      "ordem": 2,
+      "tarefa": "T20",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -9,
+      "ordem": 3,
+      "tarefa": "T20",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 1,
+      "tarefa": "T05",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 2,
+      "tarefa": "T04",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 2,
+      "tarefa": "T09",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 3,
+      "tarefa": "T04",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 3,
+      "tarefa": "T09",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 1,
+      "tarefa": "T10",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 1,
+      "tarefa": "T16",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 1,
+      "tarefa": "T21",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 2,
+      "tarefa": "T15",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -8,
+      "ordem": 3,
+      "tarefa": "T15",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 2,
+      "tarefa": "T05",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 3,
+      "tarefa": "T05",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 2,
+      "tarefa": "T10",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 2,
+      "tarefa": "T16",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 2,
+      "tarefa": "T21",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 3,
+      "tarefa": "T10",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 3,
+      "tarefa": "T16",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 3,
+      "tarefa": "T21",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 1,
+      "tarefa": "T11",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 1,
+      "tarefa": "T17",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -6,
+      "ordem": 1,
+      "tarefa": "T22",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -5,
+      "ordem": 2,
+      "tarefa": "T17",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -5,
+      "ordem": 3,
+      "tarefa": "T17",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -5,
+      "ordem": 1,
+      "tarefa": "T06",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -4,
+      "ordem": 2,
+      "tarefa": "T11",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -4,
+      "ordem": 2,
+      "tarefa": "T22",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -4,
+      "ordem": 3,
+      "tarefa": "T11",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -4,
+      "ordem": 3,
+      "tarefa": "T22",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -4,
+      "ordem": 1,
+      "tarefa": "T12",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -4,
+      "ordem": 1,
+      "tarefa": "T23",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -4,
+      "ordem": 2,
+      "tarefa": "T06",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -4,
+      "ordem": 3,
+      "tarefa": "T06",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -4,
+      "ordem": 1,
+      "tarefa": "T18",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -2,
+      "ordem": 2,
+      "tarefa": "T12",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -2,
+      "ordem": 2,
+      "tarefa": "T23",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -2,
+      "ordem": 3,
+      "tarefa": "T12",
+      "autor": "lucas",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -2,
+      "ordem": 3,
+      "tarefa": "T23",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -2,
+      "ordem": 2,
+      "tarefa": "T18",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -2,
+      "ordem": 3,
+      "tarefa": "T18",
+      "autor": "pedro",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -2,
+      "ordem": 1,
+      "tarefa": "T24",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -1,
+      "ordem": 2,
+      "tarefa": "T24",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    },
+    {
+      "dia_relativo": -1,
+      "ordem": 3,
+      "tarefa": "T24",
+      "autor": "yasmin",
+      "acao": "status",
+      "de": "review",
+      "para": "done"
+    },
+    {
+      "dia_relativo": -1,
+      "ordem": 1,
+      "tarefa": "T27",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "todo",
+      "para": "in_progress"
+    },
+    {
+      "dia_relativo": -1,
+      "ordem": 2,
+      "tarefa": "T27",
+      "autor": "alexander",
+      "acao": "status",
+      "de": "in_progress",
+      "para": "review"
+    }
+  ]
+}
