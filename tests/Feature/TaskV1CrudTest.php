@@ -23,6 +23,37 @@ class TaskV1CrudTest extends TestCase
         return [$admin, $project];
     }
 
+    public function test_project_filter_scopes_tasks_projects_and_people_without_cross_project_records(): void
+    {
+        [$admin, $project] = $this->setupProject();
+        $other = Project::create(['company_id' => $admin->current_company_id, 'user_id' => $admin->id, 'name' => 'Outro projeto']);
+        $person = User::factory()->create(['current_company_id' => $admin->current_company_id, 'active' => true]);
+        foreach ([$project, $other] as $item) {
+            $item->members()->create(['user_id' => $item->id === $project->id ? $admin->id : $person->id, 'role' => 'analyst', 'active' => true]);
+            Task::create(['project_id' => $item->id, 'user_id' => $admin->id, 'title' => 'Tarefa '.$item->id]);
+        }
+        $response = $this->actingAs($admin)->getJson('/api/v1/tasks?project_id='.$project->id)
+            ->assertOk()->assertJsonCount(1, 'tasks')->assertJsonCount(1, 'projects')->assertJsonCount(1, 'project_people');
+        $response->assertJsonPath('tasks.0.project_id', $project->id)->assertJsonPath('projects.0.id', $project->id)
+            ->assertJsonPath('project_people.0.id', $admin->id);
+        $this->getJson('/api/v1/tasks?project_id=invalid')->assertUnprocessable()->assertJsonValidationErrors('project_id');
+        $foreign = Project::create(['company_id' => Company::create(['legal_name' => 'Empresa externa'])->id, 'user_id' => $admin->id, 'name' => 'Projeto externo']);
+        $this->getJson('/api/v1/tasks?project_id='.$foreign->id)->assertNotFound();
+        $project->forceFill(['finalized_at' => now()])->save();
+        $this->getJson('/api/v1/tasks?project_id='.$project->id)->assertOk()->assertJsonCount(0, 'projects')->assertJsonPath('tasks.0.can_edit', false);
+    }
+
+    public function test_project_filter_does_not_grant_access_to_unassigned_projects_or_other_analysts_tasks(): void
+    {
+        [$admin, $project] = $this->setupProject();
+        $analyst = User::factory()->create(['current_company_id' => $admin->current_company_id]);
+        $analyst->profiles()->attach(DB::table('profiles')->where('slug', 'analista')->value('id'), ['company_id' => $admin->current_company_id]);
+        Task::create(['project_id' => $project->id, 'user_id' => $admin->id, 'title' => 'Privada']);
+        $this->actingAs($analyst)->getJson('/api/v1/tasks?project_id='.$project->id)->assertNotFound();
+        $project->members()->create(['user_id' => $analyst->id, 'role' => 'analyst', 'active' => true]);
+        $this->getJson('/api/v1/tasks?project_id='.$project->id)->assertOk()->assertJsonCount(0, 'tasks');
+    }
+
     private function payload(Project $project): array
     {
         return ['analyst_id' => auth()->id() ?? $project->user_id, 'worked_on' => '2026-09-16', 'duration_minutes' => 90, 'activity_type_id' => DB::table('activity_types')->where('company_id', $project->company_id)->value('id') ?? DB::table('activity_types')->value('id'), 'description' => 'Atividade de teste', 'is_overtime' => false, 'project_id' => $project->id, 'title' => 'Preparar entrega', 'status' => 'todo', 'priority' => 'medium', 'due_date' => '2026-10-15'];

@@ -430,3 +430,17 @@ navegador e imagem com PostgreSQL descartável. No servidor final,
 `php scripts/check-production.php` confere a configuração sem enviar e-mails
 nem imprimir credenciais. Homologue integrações e responsáveis dos projetos
 antes da publicação.
+
+## Mensagens de erro
+
+O [catálogo de mensagens](docs/mensagens-de-erro.md) reúne validações, nomes de
+campos, erros HTTP, autenticação e textos específicos dos fluxos. Os catálogos
+comuns têm versões pt/en/es. Propostas duplicadas explicam que números de projetos
+arquivados continuam reservados; o editor de projetos e cadastros associa erros aos
+campos e preserva os valores preenchidos. Consulte as
+[verificações e limitações](docs/verificacao-mensagens-de-erro.md).
+
+As tarefas também podem ser gerenciadas em **Projetos → Detalhes → Gerenciar
+tarefas**, com o projeto já selecionado. No quadro, os títulos mostram até 15
+caracteres; o conteúdo completo permanece nos detalhes e no nome acessível.
+Veja [tarefas no projeto e limite dos cartões](docs/quadro-de-tarefas.md).

@@ -29,3 +29,26 @@ A rota altera apenas `status`, preservando responsável, projeto, datas, duraç�
 - Testes existentes de CRUD e auditoria de tarefas, build e verificações compartilhadas de responsividade, teclado e traduções.
 
 Os testes de interface usam API simulada; os testes PHP verificam autorização e persistência no banco de testes. Toque foi exercitado em emulação Chromium; não houve avaliação em dispositivo físico, Firefox/Safari ou leitor de tela nesta alteração.
+
+## Tarefas dentro dos projetos — 12/11/2026
+
+Em **Projetos → nome do projeto (ou Detalhes) → Tarefas do projeto → Gerenciar tarefas**, o Spot abre o quadro daquele projeto. É possível criar, consultar, editar, excluir e mudar o status conforme as permissões existentes. O seletor de projeto no cadastro já vem preenchido e fica bloqueado nesse contexto. **Fechar quadro de tarefas** retorna à relação resumida; documentos continuam disponíveis na mesma página. Lista e calendário também podem ser usados nesse espaço.
+
+`GET /api/v1/tasks?project_id=ID` restringe tarefas, projetos disponíveis, clientes e pessoas ao projeto solicitado. A seleção continua sujeita à empresa, atribuição ao projeto e visibilidade das tarefas; a filtragem não concede permissões. Projetos finalizados aparecem para consulta e não oferecem cadastro/edição. As operações de escrita usam os endpoints e a auditoria já existentes. Não há migração nem alteração de dados anteriores.
+
+No quadro geral e no quadro do projeto, o título visível tem no máximo **15 caracteres, incluindo a reticência `…`**. A segmentação usa grafemas quando `Intl.Segmenter` está disponível, preservando acentos combinados e emojis compostos. Em navegadores sem essa API, o fallback usa pontos de código. O título completo permanece no nome acessível e no atributo `title` do botão; clicar ou pressionar Enter abre os detalhes com título e descrição completos. A truncagem não altera o conteúdo salvo nem a descrição exibida na lista e nos detalhes.
+
+### Verificação da alteração
+
+- Build de produção aprovado.
+- `TaskV1CrudTest` e `ProjectResourcesTest`: 14 testes, 144 asserções. Incluem filtro por projeto, pessoas restritas, empresa diferente, projeto sem atribuição, visibilidade por analista, validação do filtro e projeto finalizado.
+- `npm run test:tasks`: CRUD nas três vistas e movimentação com mouse, toque e teclado, persistência e tratamento de falhas.
+- `node scripts/test-project-tasks.mjs`: quadro incorporado, títulos de 15 grafemas (incluindo emoji), acesso ao conteúdo completo, criação/edição/exclusão no projeto, confirmação com Escape e retorno do foco, somente leitura e rótulos pt/en/es em 320 e 1440 px, com leitura a 120%.
+- `node scripts/test-project-resources.mjs`: tarefas e documentos, buscas, retomada após falha, teclado, temas claro/escuro e 320/1440 px a 120%.
+- `node scripts/test-accessibility.mjs`: foco, teclado, modais, movimento reduzido e recursos de leitura.
+- `node scripts/test-languages.mjs`: 144 verificações sem falhas.
+- `npm run test:responsive` (build e execução da suíte): 323 verificações sem erros; retrato/paisagem, 320–1440 px, 100% e 120%. Após o ajuste de largura do quadro incorporado, a mesma suíte foi novamente executada por `node scripts/test-responsive.mjs`.
+
+A inspeção do cenário de tela estreita identificou cartões maiores que sua coluna no quadro incorporado; as regras de grade foram corrigidas para manter os cartões dentro da coluna e a rolagem dentro do quadro. As cores e os tamanhos mínimos de interação existentes foram preservados, e os textos das ações continuam disponíveis no celular. Não foi realizada auditoria integral de contraste.
+
+Os testes de navegador usam Chromium e APIs simuladas. Não houve revisão com leitor de tela, dispositivos físicos, Firefox/Safari ou pessoas com deficiência. Os testes automatizados não certificam conformidade WCAG 2.2 AA.

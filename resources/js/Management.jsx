@@ -1,26 +1,84 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import '../css/management.css';
 import { translateText } from './i18n';
 import { projectStatus, projectStatusLabel } from './projectStatus';
 import AuditTrail from './AuditTrail';
 import ProjectResources from './ProjectResources';
+import useModalFocus from './useModalFocus';
 
 async function api(request, path, method = 'GET', body) {
   const response = await request(path, { method, ...(body ? { body: JSON.stringify(body) } : {}) });
   const data = response.status === 204 ? null : await response.json();
-  if (!response.ok) throw new Error(Object.values(data?.errors || {}).flat()[0] || data?.message || 'Não foi possível salvar.');
+  if (!response.ok) {
+    const error = new Error(Object.values(data?.errors || {}).flat()[0] || data?.message || 'Não foi possível salvar.');
+    error.fields = data?.errors || {};
+    throw error;
+  }
   return data;
 }
 const money = value => Number(value || 0).toLocaleString(document.documentElement.lang || 'pt-BR', { style: 'currency', currency: 'BRL' });
 const minutes = value => `${Math.floor(Number(value || 0) / 60)}h ${Number(value || 0) % 60}min`;
 export function Editor({ title, fields, initial, onSave, onClose }) {
-  const [form, setForm] = useState(initial || {}), [error, setError] = useState(''), [busy, setBusy] = useState(false);
-  useEffect(() => { const dialog = document.getElementById('management-editor'); dialog.showModal(); return () => dialog.close(); }, []);
-  return <dialog id="management-editor" className="management-dialog" onCancel={e => { e.preventDefault(); if (!busy) onClose(); }}><form noValidate onSubmit={async e => { e.preventDefault(); setError(''); const missing=fields.find(field=>field.required&&!String(form[field.key]??'').trim()); if(missing)return setError(missing.requiredMessage||`Informe ${missing.label.toLocaleLowerCase('pt-BR')}.`); const tooShort=fields.find(field=>field.minLength&&String(form[field.key]??'').trim().length<field.minLength); if(tooShort)return setError(tooShort.minLengthMessage||`${tooShort.label} deve ter pelo menos ${tooShort.minLength} caracteres.`); setBusy(true); try { await onSave(form); onClose(); } catch (e) { setError(e.message); } finally { setBusy(false); } }}>
-    <header><h2>{title}</h2><button type="button" disabled={busy} aria-label="Fechar" onClick={onClose}>×</button></header>
-    <div className="management-fields">{fields.map(field => <label key={field.key}><span>{field.label}</span>{field.options ? <select aria-label={field.label} required={field.required} disabled={field.disabled} value={form[field.key] ?? ''} onChange={e => setForm({ ...form, [field.key]: e.target.value })}><option value="">Selecione</option>{field.options.map(option => <option key={option.id} value={option.id} translate={field.key === 'project_status_id' ? undefined : "no"}>{field.key === 'project_status_id' ? projectStatusLabel(option.name || option.slug) : option.name}</option>)}</select> : <input aria-label={field.label} required={field.required} disabled={field.disabled} type={field.type || 'text'} min={field.min} max={field.max} step={field.step} minLength={field.minLength} maxLength={field.maxLength || 2000} value={form[field.key] ?? ''} onChange={e => setForm({ ...form, [field.key]: e.target.value })} />}{field.help&&<small className="management-field-help">{field.help}</small>}</label>)}</div>
-    {error && <p role="alert">{error}</p>}<footer><button type="button" disabled={busy} onClick={onClose}>Cancelar</button><button className="primary-action" disabled={busy}>{busy ? 'Salvando...' : 'Salvar'}</button></footer>
-  </form></dialog>;
+  const [form, setForm] = useState(initial || {});
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [busy, setBusy] = useState(false);
+  const id = useId();
+  useEffect(() => {
+    const dialog = document.getElementById('management-editor');
+    dialog.showModal();
+    return () => dialog.close();
+  }, []);
+  const modalRef = useModalFocus(true, () => { if (!busy) onClose(); });
+
+  async function submit(event) {
+    event.preventDefault();
+    setError('');
+    const errors = {};
+    for (const field of fields) {
+      const value = String(form[field.key] ?? '').trim();
+      if (field.required && !value) errors[field.key] = [field.requiredMessage || `${translateText('Preencha o campo')}: ${translateText(field.label)}.`];
+      else if (field.minLength && value.length < field.minLength) errors[field.key] = [field.minLengthMessage || `${translateText(field.label)}: ${translateText('Quantidade mínima de caracteres')}: ${field.minLength}.`];
+    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) { setError('Confira os campos indicados e corrija os dados antes de salvar.'); return; }
+    setBusy(true);
+    try { await onSave(form); onClose(); }
+    catch (failure) {
+      setFieldErrors(failure.fields || {});
+      setError(Object.keys(failure.fields || {}).length ? 'Confira os campos indicados e corrija os dados antes de salvar.' : failure.message);
+    }
+    finally { setBusy(false); }
+  }
+
+  return <dialog ref={modalRef} id="management-editor" className="management-dialog" aria-labelledby={`${id}-title`} onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}>
+    <form noValidate onSubmit={submit}>
+      <header><h2 id={`${id}-title`}>{title}</h2><button type="button" disabled={busy} aria-label="Fechar" onClick={onClose}>×</button></header>
+      <div className="management-fields">{fields.map(field => {
+        const messages = fieldErrors[field.key] || [];
+        const helpId = `${id}-${field.key}-help`;
+        const errorId = `${id}-${field.key}-error`;
+        const props = {
+          id: `${id}-${field.key}`, 'aria-label': field.label, required: field.required, disabled: field.disabled,
+          'aria-invalid': messages.length ? true : undefined,
+          'aria-describedby': [field.help && helpId, messages.length && errorId].filter(Boolean).join(' ') || undefined,
+          value: form[field.key] ?? '',
+          onChange: event => {
+            setForm({ ...form, [field.key]: event.target.value });
+            setFieldErrors(previous => ({ ...previous, [field.key]: [] }));
+          },
+        };
+        return <label key={field.key} htmlFor={props.id}><span>{field.label}</span>
+          {field.options ? <select {...props}><option value="">Selecione</option>{field.options.map(option => <option key={option.id} value={option.id} translate={field.key === 'project_status_id' ? undefined : 'no'}>{field.key === 'project_status_id' ? projectStatusLabel(option.name || option.slug) : option.name}</option>)}</select>
+            : <input {...props} type={field.type || 'text'} min={field.min} max={field.max} step={field.step} minLength={field.minLength} maxLength={field.maxLength || 2000} />}
+          {field.help && <small id={helpId} className="management-field-help">{field.help}</small>}
+          {!!messages.length && <small id={errorId} className="management-field-error">{messages.join(' ')}</small>}
+        </label>;
+      })}</div>
+      {error && <p role="alert">{error}{Object.entries(fieldErrors).filter(([key]) => !fields.some(field => field.key === key)).flatMap(([key, messages]) => messages.map((text, index) => <span key={`${key}-${index}`} style={{ display: 'block' }}>{text}</span>))}</p>}
+      <footer><button type="button" disabled={busy} onClick={onClose}>Cancelar</button><button className="primary-action" disabled={busy}>{busy ? 'Salvando...' : 'Salvar'}</button></footer>
+    </form>
+  </dialog>;
 }
 export function FinancialResult({ data }) {
   if (!data) return null;

@@ -3,13 +3,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CalendarDays, CalendarRange, Columns3, GripVertical, Pencil, Plus, Search, Table2, Trash2, X } from 'lucide-react';
 import { getFormatLocale, message, translateText } from './i18n';
 import '../css/tasks.css';
+import useModalFocus from './useModalFocus';
 
 const statuses = { todo: 'A fazer', in_progress: 'Em andamento', review: 'Em revisão', done: 'Concluído' };
 const priorities = { low: 'Baixa', medium: 'Média', high: 'Alta' };
 const tones = { todo: 'blue', in_progress: 'orange', review: 'purple', done: 'green' };
 const blank = { participant_ids: [], title: '', project_id: '', status: 'todo', priority: 'medium', due_date: '', analyst_id: '', worked_on: '', hours: '1', minutes: '0', activity_type_id: '', description: '', is_overtime: false };
 
-export default function TasksPage({ request, editTaskId = null, onClose, onSaved }) {
+function boardTitle(value) {
+  const characters = typeof Intl.Segmenter === 'function'
+    ? [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(value)].map(item => item.segment)
+    : Array.from(value);
+  return characters.length > 15 ? `${characters.slice(0, 14).join('')}…` : value;
+}
+
+export default function TasksPage({ request, editTaskId = null, projectId = null, onClose, onSaved }) {
   const [data, setData] = useState({ tasks: [], projects: [], can_create: false });
   const [view, setView] = useState('board');
   const [loading, setLoading] = useState(true);
@@ -28,7 +36,7 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
-  const modal = useRef(null);
+  const deleteModal = useModalFocus(Boolean(pendingDelete), () => { if (deleting === null) setPendingDelete(null); });
   const openedInitialTask = useRef(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [dragging, setDragging] = useState(null);
@@ -96,19 +104,20 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
 
   useEffect(() => {
     let active = true;
-    request('/tasks').then(async response => {
+    request(projectId ? `/tasks?project_id=${encodeURIComponent(projectId)}` : '/tasks').then(async response => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || 'Não foi possível carregar as tarefas.');
       if (active) setData(result);
     }).catch(error => { if (active) setError(error.message); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [request]);
+  }, [request, projectId]);
 
   useEffect(() => {
     if (editor && !modal.current.open) modal.current.showModal();
     else if (!editor && modal.current?.open) modal.current.close();
   }, [editor]);
+  const modal = useModalFocus(Boolean(editor), () => { if (!saving) closeEditor(); });
 
   useEffect(() => {
     if (loading || !editTaskId || openedInitialTask.current) return;
@@ -133,7 +142,7 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
     try {
       const response = await request(editor.id ? `/tasks/${editor.id}` : '/tasks', {
         method: editor.id ? 'PUT' : 'POST',
-        body: JSON.stringify({ ...form, title: form.description.trim().slice(0, 180), description: form.description.trim(), analyst_id: Number(form.analyst_id), duration_minutes: Number(form.hours) * 60 + Number(form.minutes), activity_type_id: Number(form.activity_type_id), project_id: Number(form.project_id), due_date: form.due_date || null }),
+        body: JSON.stringify({ ...form, title: form.description.trim().slice(0, 180), description: form.description.trim(), analyst_id: Number(form.analyst_id), duration_minutes: Number(form.hours) * 60 + Number(form.minutes), activity_type_id: Number(form.activity_type_id), project_id: Number(projectId || form.project_id), due_date: form.due_date || null }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(Object.values(result.errors || {}).flat()[0] || result.message || 'Não foi possível salvar a tarefa.');
@@ -154,15 +163,16 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
       }
       setData(current => ({ ...current, tasks: current.tasks.filter(item => item.id !== task.id) }));
       setFeedback('Tarefa excluída.');
-      setPendingDelete(null);
+      setPendingDelete(null); onSaved?.();
     } catch (error) { setError(error.message); }
     finally { setDeleting(null); }
   }
+  const canCreate = data.can_create && (!projectId || data.projects.some(project => String(project.id) === String(projectId)));
   const projectPeople = [...new Map((data.project_people || []).filter(person => String(person.project_id) === form.project_id && String(person.id) !== form.analyst_id).map(person => [person.id, person])).values()];
   const matchingPeople = projectPeople.filter(person => person.name.toLocaleLowerCase(getFormatLocale()).includes(peopleSearch.trim().toLocaleLowerCase(getFormatLocale())));
   const selectedPeople = projectPeople.filter(person => form.participant_ids.includes(person.id));
   const query = search.trim().toLocaleLowerCase(getFormatLocale());
-  const tasks = data.tasks.filter(task => (!query || `${task.title} ${task.project?.name || ''}`.toLocaleLowerCase(getFormatLocale()).includes(query))
+  const tasks = data.tasks.filter(task => (!projectId || String(task.project_id) === String(projectId)) && (!query || `${task.title} ${task.project?.name || ''}`.toLocaleLowerCase(getFormatLocale()).includes(query))
     && (!yearFilter || task.worked_on?.startsWith(yearFilter)) && (!clientFilter || String(task.project?.client_id) === clientFilter)
     && (!statusFilter || task.status === statusFilter) && (!projectFilter || String(task.project_id) === projectFilter));
   const groups = tasks.reduce((result, task) => { (result[task.worked_on || task.due_date || ''] ||= []).push(task); return result; }, {});
@@ -175,10 +185,10 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
     {!task.can_edit && !task.can_delete && <small>Somente leitura</small>}
   </div>;
 
-  return <div className={editTaskId ? "home-task-editor" : "workspace-page tasks-workspace"}>
+  return <div className={editTaskId ? "home-task-editor" : projectId ? "tasks-workspace project-tasks-workspace" : "workspace-page tasks-workspace"}>
     {!editTaskId && <>
-    <header className="workspace-heading"><div><span className="workspace-eyebrow">Meu trabalho</span><h1>Gestão de tarefas</h1><p>Priorize, organize e mova o trabalho pelo seu fluxo.</p></div>
-      <button className="primary-action" type="button" disabled={loading} onClick={() => openEditor()}><Plus size={17} />Nova tarefa</button>
+    <header className="workspace-heading"><div><span className="workspace-eyebrow">Meu trabalho</span>{projectId ? <h3>Gestão de tarefas</h3> : <h1>Gestão de tarefas</h1>}<p>Priorize, organize e mova o trabalho pelo seu fluxo.</p></div>
+      <button className="primary-action" type="button" disabled={loading || Boolean(projectId && !canCreate)} onClick={() => openEditor()}><Plus size={17} />Nova tarefa</button>
     </header>
     <div className="workspace-toolbar task-toolbar">
       <div className="view-switch">{[['board', Columns3, 'Quadro'], ['list', Table2, 'Lista'], ['calendar', CalendarRange, 'Calendário']].map(([value, Icon, label]) => <button type="button" key={value} className={view === value ? 'active' : ''} onClick={() => setView(value)}><Icon size={17} />{label}</button>)}</div>
@@ -186,7 +196,7 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
         <select aria-label="Filtrar por ano" value={yearFilter} onChange={e=>setYearFilter(e.target.value)}><option value="">Todos os anos</option>{[...new Set(data.tasks.map(t=>t.worked_on?.slice(0,4)).filter(Boolean))].sort().reverse().map(year=><option key={year} value={year}>{year}</option>)}</select>
         <select aria-label="Filtrar por cliente" value={clientFilter} onChange={e=>setClientFilter(e.target.value)}><option value="">Todos os clientes</option>{(data.clients||[]).map(client=><option key={client.id} value={client.id} translate="no">{client.name}</option>)}</select>
         <select aria-label="Filtrar por status" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="">Todos os status</option>{Object.entries(statuses).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select>
-        <select aria-label="Filtrar por projeto" value={projectFilter} onChange={event => setProjectFilter(event.target.value)}><option value="">Todos os projetos</option>{[...new Map([...data.projects, ...data.tasks.map(task => task.project).filter(Boolean)].map(project => [project.id,project])).values()].map(project => <option key={project.id} value={project.id} translate="no">{project.name}</option>)}</select>
+        {!projectId && <select aria-label="Filtrar por projeto" value={projectFilter} onChange={event => setProjectFilter(event.target.value)}><option value="">Todos os projetos</option>{[...new Map([...data.projects, ...data.tasks.map(task => task.project).filter(Boolean)].map(project => [project.id,project])).values()].map(project => <option key={project.id} value={project.id} translate="no">{project.name}</option>)}</select>}
         <label><Search size={17} /><input placeholder="Buscar tarefa..." value={search} onChange={event => setSearch(event.target.value)} /></label>
       </div>
     </div>
@@ -203,12 +213,12 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
         <header><span><i className={tones[status]} /><span>{label}</span><b>{tasks.filter(task => task.status === status).length}</b></span></header>
         <div className="kanban-cards">{tasks.filter(task => task.status === status).map(task => <article className={`kanban-card task-open-card ${dragging === task.id ? 'is-dragging' : ''} ${moving === task.id ? 'is-saving' : ''}`} draggable={Boolean(task.can_edit && moving === null)} aria-busy={moving === task.id || undefined} onDragStart={event => startDrag(event, task)} onDragEnd={clearDrag} key={task.id} data-task-id={task.id} onClick={event => openCard(event, task)}>
           <div className="card-project">{task.can_edit && <button className="task-drag-handle" type="button" aria-label="Arrastar tarefa" aria-describedby="kanban-help" disabled={moving !== null} onPointerDown={event => touchStart(event, task)} onPointerMove={touchMove} onPointerUp={touchEnd} onPointerCancel={clearDrag}><GripVertical size={18} aria-hidden="true" /></button>}<span translate="no">{task.project?.name}</span>{actions(task)}</div>
-          <h2><button className="task-open-button" type="button" onClick={() => setSelectedTask(task)} translate="no">{task.description || task.title}</button></h2><p className="task-activity-summary"><span translate="no">{task.activity_type_name || '—'}</span> · {task.duration_minutes == null ? '—' : `${Math.floor(task.duration_minutes / 60)}h ${task.duration_minutes % 60}min`}{task.is_overtime && <span> · Hora extra</span>}</p>
+          <h2><button className="task-open-button" type="button" onClick={() => setSelectedTask(task)} title={task.title || task.description} aria-label={task.title || task.description} translate="no">{boardTitle(task.title || task.description || '')}</button></h2><p className="task-activity-summary"><span translate="no">{task.activity_type_name || '—'}</span> · {task.duration_minutes == null ? '—' : `${Math.floor(task.duration_minutes / 60)}h ${task.duration_minutes % 60}min`}{task.is_overtime && <span> · Hora extra</span>}</p>
           <div className="card-tags"><span className={`priority ${task.priority}`}>{priorities[task.priority]}</span><span><CalendarDays size={13} />{dateLabel(task.worked_on || task.due_date)}</span></div>
           {task.can_edit && <label className="kanban-status-control"><span>Status</span><select aria-label={message('Status de {name}', {name: task.title})} value={task.status} disabled={moving !== null} onChange={event => { restoreStatusFocus.current = task.id; moveTask(task, event.target.value); }}>{Object.entries(statuses).map(([value,label]) => <option value={value} key={value}>{label}</option>)}</select></label>}
           <footer className="task-owner"><span>Responsável</span><strong translate="no">{task.user?.name || '—'}</strong></footer>
         </article>)}
-        {data.can_create && <button className="add-task-card" type="button" onClick={() => openEditor(null, status)}><Plus size={17} />Adicionar tarefa</button>}</div>
+        {canCreate && <button className="add-task-card" type="button" onClick={() => openEditor(null, status)}><Plus size={17} />Adicionar tarefa</button>}</div>
       </section>)}
     </div>}
     {view === 'list' && <section className="task-register-table"><table><thead><tr>{['Nome do projeto', 'Analista', 'Data da tarefa', 'Duração', 'Tipo de tarefa', 'Descrição', 'Hora extra?', 'Ações'].map(label => <th key={label}>{label}</th>)}</tr></thead><tbody>
@@ -222,11 +232,11 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
     {editTaskId && error && <div role="alert"><p>{error}</p><button type="button" className="secondary-button" onClick={onClose}>Fechar</button></div>}
     <TaskDetails task={selectedTask} onClose={() => setSelectedTask(null)} onEdit={openEditor} />
     <dialog ref={modal} className="task-editor-dialog" aria-labelledby="task-editor-title" onCancel={event => { event.preventDefault(); if (!saving) closeEditor(); }}>
-      {editor && !data.can_create && <div><header><h2 id="task-editor-title">Área restrita</h2><button type="button" aria-label="Fechar" onClick={closeEditor}><X size={20} /></button></header><div className="task-editor-fields"><p>Caso necessário acesso, falar com gerência</p></div><footer><button type="button" className="primary-action" onClick={closeEditor}>Fechar</button></footer></div>}
-      {editor && data.can_create && <form onSubmit={save}><header><h2 id="task-editor-title">{editor.id ? 'Editar tarefa' : 'Nova tarefa'}</h2><button type="button" aria-label="Fechar" disabled={saving} onClick={closeEditor}><X size={20} /></button></header>
+      {editor && !canCreate && <div><header><h2 id="task-editor-title">Área restrita</h2><button type="button" aria-label="Fechar" onClick={closeEditor}><X size={20} /></button></header><div className="task-editor-fields"><p>Caso necessário acesso, falar com gerência</p></div><footer><button type="button" className="primary-action" onClick={closeEditor}>Fechar</button></footer></div>}
+      {editor && canCreate && <form onSubmit={save}><header><h2 id="task-editor-title">{editor.id ? 'Editar tarefa' : 'Nova tarefa'}</h2><button type="button" aria-label="Fechar" disabled={saving} onClick={closeEditor}><X size={20} /></button></header>
         <div className="task-editor-fields">
           {incompleteLegacyTask && <div className="task-legacy-notice task-field-wide" role="status"><strong>Complete os dados da tarefa</strong><span>Esta tarefa foi criada antes desses campos se tornarem obrigatórios. Informe os itens destacados para salvar as alterações.</span></div>}
-          <label className="task-field-wide" htmlFor="task-project_id">Nome do projeto<select id="task-project_id" aria-label="Nome do projeto" autoFocus required value={form.project_id} onChange={event => { change('project_id', event.target.value); change('analyst_id', String(data.current_user?.id || '')); change('participant_ids', []); setAssignment('self'); }}><option value="">Selecione um projeto</option>{data.projects.map(project => <option value={project.id} key={project.id} translate="no">{project.name}</option>)}</select></label>
+          <label className="task-field-wide" htmlFor="task-project_id">Nome do projeto<select id="task-project_id" aria-label="Nome do projeto" disabled={Boolean(projectId)} autoFocus required value={form.project_id} onChange={event => { change('project_id', event.target.value); change('analyst_id', String(data.current_user?.id || '')); change('participant_ids', []); setAssignment('self'); }}><option value="">Selecione um projeto</option>{data.projects.map(project => <option value={project.id} key={project.id} translate="no">{project.name}</option>)}</select></label>
           {!data.projects.length && <p role="status">Nenhum projeto disponível para cadastrar tarefas.</p>}
           <fieldset className="task-field-wide task-participants-editor task-assignment-editor">
             <legend>Responsabilidade da tarefa</legend>
@@ -264,7 +274,7 @@ export default function TasksPage({ request, editTaskId = null, onClose, onSaved
       </form>}
     </dialog>
     {pendingDelete && <div className="task-delete-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && deleting === null && setPendingDelete(null)}>
-      <section className="task-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="task-delete-title" aria-describedby="task-delete-description">
+      <section ref={deleteModal} className="task-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="task-delete-title" aria-describedby="task-delete-description">
         <button className="task-delete-close" type="button" aria-label="Fechar" disabled={deleting !== null} onClick={() => setPendingDelete(null)}><X size={19} /></button>
         <span className="task-delete-icon"><Trash2 size={23} /></span>
         <h2 id="task-delete-title">Excluir tarefa?</h2>

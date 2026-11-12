@@ -1,3 +1,6 @@
+import { getLanguage, translateText } from './i18n';
+import errorMessages from '../errors/messages.json';
+
 /**
  * Cliente HTTP compartilhado pela SPA.
  *
@@ -25,14 +28,15 @@ async function fetchWithRecovery(url, options, path, handledStatuses = []) {
     if (response.status >= 400 && ![400, 409, 422, ...handledStatuses].includes(response.status)) notifyRequestError(response.status, path);
     return response;
   } catch (error) {
-    if (error.name !== 'AbortError') notifyRequestError('network', path);
-    throw error;
+    if (error.name === 'AbortError') throw error;
+    notifyRequestError('network', path);
+    throw new Error(translateText(errorMessages.network[1]), { cause: error });
   }
 }
 
 // For existing web endpoints that already provide their own CSRF headers.
 export async function spotFetch(url, options = {}) {
-  return fetchWithRecovery(url, options, new URL(url, window.location.origin).pathname);
+  return fetchWithRecovery(url, { ...options, headers: { 'X-Spot-Locale': getLanguage(), ...options.headers } }, new URL(url, window.location.origin).pathname);
 }
 
 export async function sessionRequest(path, options = {}) {
@@ -50,6 +54,7 @@ export async function sessionRequest(path, options = {}) {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",
+      'X-Spot-Locale': getLanguage(),
       // O navegador define o boundary multipart ao enviar FormData.
       ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
       ...(changesState ? { "X-XSRF-TOKEN": xsrfToken() } : {}),
@@ -78,7 +83,10 @@ export async function apiJson(path, options = {}) {
 
   if (!response.ok) {
     const validationError = Object.values(body?.errors || {}).flat()[0];
-    throw new Error(body?.message || validationError || "Não foi possível concluir a operação.");
+    const error = new Error(validationError || body?.message || "Não foi possível concluir a operação.");
+    error.fields = body?.errors || {};
+    error.status = response.status;
+    throw error;
   }
 
   return body;

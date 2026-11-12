@@ -1,6 +1,13 @@
 // Interface text only. User-entered names and content must use translate="no".
 export const interfaceTranslations = {
   "en": {
+    "Gerenciar tarefas": "Manage tasks",
+    "Fechar quadro de tarefas": "Close task board",
+
+    "Confira os campos indicados e corrija os dados antes de salvar.": "Check the indicated fields and correct the data before saving.",
+    "Preencha o campo": "Fill in the field",
+    "Quantidade mínima de caracteres": "Minimum number of characters",
+
     "Conversa direta": "Direct conversation",
     "Seu perfil permite conversar diretamente com pessoas desta empresa. Pesquise um nome e envie sua mensagem.": "Your role lets you chat directly with people in this company. Search for a name and send your message.",
     "Pesquise um nome e escolha uma pessoa para conversar.": "Search for a name and choose someone to chat with.",
@@ -1414,6 +1421,13 @@ export const interfaceTranslations = {
     "Cancelados": "Cancelled"
   },
   "es": {
+    "Gerenciar tarefas": "Gestionar tareas",
+    "Fechar quadro de tarefas": "Cerrar tablero de tareas",
+
+    "Confira os campos indicados e corrija os dados antes de salvar.": "Revise los campos indicados y corrija los datos antes de guardar.",
+    "Preencha o campo": "Complete el campo",
+    "Quantidade mínima de caracteres": "Cantidad mínima de caracteres",
+
     "Conversa direta": "Conversación directa",
     "Seu perfil permite conversar diretamente com pessoas desta empresa. Pesquise um nome e envie sua mensagem.": "Su perfil permite conversar directamente con personas de esta empresa. Busque un nombre y envíe su mensaje.",
     "Pesquise um nome e escolha uma pessoa para conversar.": "Busque un nombre y elija una persona para conversar.",

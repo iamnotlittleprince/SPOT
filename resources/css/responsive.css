@@ -823,3 +823,22 @@ html[data-theme="dark"] .public-auth .first-access-link { color: #a9ddf7; }
   .forgot-password-card .recovery-message { min-block-size: calc(4lh + 24px); }
   .forgot-password-card .submit-button { min-block-size: calc(2lh + 26px); }
 }
+
+/* A project board scrolls inside the project without widening the page. */
+.project-resource-grid.is-managing-tasks { grid-template-columns: minmax(0, 1fr); }
+.project-resource-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.project-tasks-workspace { min-width: 0; max-width: 100%; }
+.project-tasks-workspace .workspace-heading { flex-wrap: wrap; gap: 12px; }
+.project-tasks-workspace .task-crud-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.project-tasks-workspace .task-crud-filters > label { grid-column: 1 / -1; }
+.management-workspace .project-tasks-workspace .kanban-column { margin-top: 0; padding: 0; }
+.kanban-card .task-open-button { max-width: 100%; }
+@media (max-width: 600px) {
+  .project-resource-card > header { flex-wrap: wrap; }
+  .project-tasks-workspace .task-crud-filters { grid-template-columns: minmax(0, 1fr); }
+}
+.project-tasks-workspace .kanban-cards { grid-template-columns: minmax(0, 1fr); }
+.project-tasks-workspace .kanban-card { min-width: 0; }
+.project-tasks-workspace .card-project { min-width: 0; gap: 4px; }
+.project-tasks-workspace .card-project > span { min-width: 0; }
+.project-tasks-workspace .task-crud-actions { flex-shrink: 0; }

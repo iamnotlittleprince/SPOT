@@ -3,7 +3,7 @@
 .management-workspace h2 { font-size: 20px; }
 .management-workspace h3 { font-size: 16px; margin-top: 24px; }
 .management-workspace input, .management-workspace select, .management-dialog input, .management-dialog select { color: inherit; background: #fff; border: 1px solid #9dacb9; border-radius: 6px; padding: 9px; min-width: 0; max-width: 100%; }
-.management-workspace label, .management-dialog label { display: grid; gap: 7px; font-size: 13px; }
+.management-workspace label, .management-dialog label { display: grid; align-content: start; gap: 7px; font-size: 13px; }
 .management-workspace button, .management-dialog button { cursor: pointer; padding: 9px 12px; border: 1px solid #afc2d1; border-radius: 6px; color: inherit; background: transparent; margin: 3px; }
 .management-workspace .primary-action, .management-dialog .primary-action { background: #08659d; color: #fff; }
 .management-workspace button:disabled { opacity: .5; cursor: wait; }
@@ -100,3 +100,8 @@ html[data-theme="dark"] .approved-expenses p { border-color: #3b4246; }
 @media(max-width:600px) { .management-fields { grid-template-columns: 1fr; } .management-workspace section { padding: 12px; } .project-config-grid { padding: 12px; } .management-workspace .project-expenses, .management-workspace .management-report { margin: 0 12px 12px; } .project-config-card > header, .project-expenses > header, .report-heading { flex-direction: column; } .report-highlights { grid-template-columns: 1fr; } }
 .history-panel pre { max-width: min(800px, 65vw); overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
 .analytics-page .management-report { padding: 20px; margin: 20px 0; border: 1px solid #71808b; border-radius: 12px; }
+
+.management-field-error { display: block; color: #a11b2b; font-weight: 600; }
+[data-theme="dark"] .management-field-error { color: #ffb4bd; }
+.management-fields [aria-invalid="true"] { border: 2px solid currentColor; }
+@media (forced-colors: active) { .management-field-error { color: CanvasText; } }

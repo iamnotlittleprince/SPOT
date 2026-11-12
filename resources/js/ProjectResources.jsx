@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {CheckCheck, Download, Files, ListChecks, Search} from 'lucide-react';
 import {getFormatLocale, message} from './i18n';
 import useAutoRefresh from './useAutoRefresh';
+import TasksPage from './TasksPage';
 
 const statuses = {todo:'A fazer', in_progress:'Em andamento', review:'Em revisão', done:'Concluído'};
 export default function ProjectResources({projectId, request}) {
@@ -10,6 +11,7 @@ export default function ProjectResources({projectId, request}) {
   const [error,setError] = useState('');
   const [taskSearch,setTaskSearch] = useState('');
   const [documentSearch,setDocumentSearch] = useState('');
+  const [managingTasks,setManagingTasks] = useState(false);
   const generation = useRef(0);
   async function load(background=false, version=generation.current) {
     if (!background) setLoading(true);
@@ -24,7 +26,7 @@ export default function ProjectResources({projectId, request}) {
   }
   useEffect(()=>{
     const version=++generation.current;
-    setData({tasks:[],documents:[]});setTaskSearch('');setDocumentSearch('');
+    setData({tasks:[],documents:[]});setTaskSearch('');setDocumentSearch('');setManagingTasks(false);
     load(false,version);
     return ()=>{generation.current++;};
   },[projectId]);
@@ -39,10 +41,11 @@ export default function ProjectResources({projectId, request}) {
     <p className="project-resources-announcement" role="status">{!loading && !error ? message("Tarefas disponíveis: {tasks}. Documentos disponíveis: {documents}.",{tasks:data.tasks.length,documents:data.documents.length}) : ""}</p>
     {loading && <p role="status" className="project-resources-state">Carregando tarefas e documentos...</p>}
     {error && <div className="project-resources-state" role="alert"><p>{error}</p><button type="button" onClick={()=>load()}>Tentar novamente</button></div>}
-    <div className="project-resource-grid" aria-busy={loading}>
+    <div className={`project-resource-grid ${managingTasks ? 'is-managing-tasks' : ''}`} aria-busy={loading}>
       <section className="project-resource-card" aria-labelledby="project-tasks-title">
-        <header><div className="project-resource-heading"><ListChecks size={21} aria-hidden="true"/><div><h3 id="project-tasks-title">Tarefas do projeto</h3><p>Tarefas vinculadas disponíveis para você.</p></div></div><span className="project-resource-count">{data.tasks.length}</span></header>
-        {!loading && !error && <><div className="project-task-progress"><span><CheckCheck size={16} aria-hidden="true"/>{message('{done} de {total} concluídas',{done:completed,total:data.tasks.length})}</span><progress max={Math.max(1,data.tasks.length)} value={completed} aria-label="Tarefas concluídas"/></div>
+        <header><div className="project-resource-heading"><ListChecks size={21} aria-hidden="true"/><div><h3 id="project-tasks-title">Tarefas do projeto</h3><p>Tarefas vinculadas disponíveis para você.</p></div></div><div className="project-resource-actions"><span className="project-resource-count">{data.tasks.length}</span>{!loading && !error && <button type="button" aria-expanded={managingTasks} aria-controls="project-tasks-manager" onClick={()=>setManagingTasks(value=>!value)}>{managingTasks ? 'Fechar quadro de tarefas' : 'Gerenciar tarefas'}</button>}</div></header>
+        {managingTasks && <div id="project-tasks-manager"><TasksPage key={projectId} projectId={projectId} request={request} onSaved={()=>load(true)}/></div>}
+        {!managingTasks && !loading && !error && <><div className="project-task-progress"><span><CheckCheck size={16} aria-hidden="true"/>{message('{done} de {total} concluídas',{done:completed,total:data.tasks.length})}</span><progress max={Math.max(1,data.tasks.length)} value={completed} aria-label="Tarefas concluídas"/></div>
         <label className="project-resource-search"><span>Buscar tarefa no projeto</span><div><Search size={16} aria-hidden="true"/><input type="search" value={taskSearch} onChange={event=>setTaskSearch(event.target.value)}/></div></label>
         {tasks.length ? <ul className="project-resource-list">{tasks.map(task=><li key={task.id}><div className="project-task-row"><strong translate="no">{task.title}</strong><span className={'project-task-status status-'+task.status}>{statuses[task.status] || task.status}</span></div><dl className="project-resource-meta"><div><dt>Responsável</dt><dd translate={task.user?.name?'no':undefined}>{task.user?.name || 'Não informado'}</dd></div><div><dt>Prazo</dt><dd>{date(task.due_date)}</dd></div></dl>{task.description && <details><summary>Descrição da tarefa</summary><p translate="no">{task.description}</p></details>}</li>)}</ul>:<div className="management-empty compact"><strong>{data.tasks.length?'Nenhuma tarefa corresponde à busca.':'Nenhuma tarefa vinculada ao projeto.'}</strong></div>}</>}
       </section>

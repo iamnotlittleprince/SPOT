@@ -19,24 +19,31 @@ class TaskV1Controller extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $filters = $request->validate(['project_id' => ['sometimes', 'integer', 'min:1']]);
+        $projects = $this->projects($user);
+        if (isset($filters['project_id'])) {
+            $projects->whereKey($filters['project_id']);
+            (clone $projects)->firstOrFail();
+        }
         $tasks = $this->tasks($user)->with(['project:id,name,client_id,client_name,finalized_at', 'user:id,name', 'participants:id,name'])
+            ->when(isset($filters['project_id']), fn ($query) => $query->where('project_id', $filters['project_id']))
             ->orderBy('position')->orderByDesc('id')->get();
 
         return response()->json([
             'tasks' => $tasks->map(fn (Task $task) => $this->payload($task, $user)),
-            'projects' => $this->projects($user)->whereNull('finalized_at')->orderBy('name')->get(['id', 'name', 'client_id', 'client_name']),
+            'projects' => (clone $projects)->whereNull('finalized_at')->orderBy('name')->get(['id', 'name', 'client_id', 'client_name']),
             'can_create' => $user->canCreateTasks(),
-            'clients' => DB::table('clients')->where('company_id', $user->current_company_id)->whereIn('id', $this->projects($user)->select('client_id'))->get(['id', 'name']),
+            'clients' => DB::table('clients')->where('company_id', $user->current_company_id)->whereIn('id', (clone $projects)->select('client_id'))->get(['id', 'name']),
             'current_user' => $user->only(['id', 'name']),
             'can_assign_others' => $user->canCreateTasks(),
             'analysts' => $user->can('work_logs.create_for_others') ? DB::table('project_members')
                 ->join('users', 'users.id', '=', 'project_members.user_id')
-                ->whereIn('project_id', $this->projects($user)->select('id'))
+                ->whereIn('project_id', (clone $projects)->select('id'))
                 ->where('project_members.active', true)->where('users.active', true)
                 ->get(['users.id', 'users.name', 'project_members.project_id'])
                 ->filter(fn ($row) => User::find($row->id)?->canCreateTasks())->values() : [],
             'project_people' => DB::table('project_members')->join('users', 'users.id', '=', 'project_members.user_id')
-                ->whereIn('project_id', $this->projects($user)->select('id'))->where('users.current_company_id', $user->current_company_id)
+                ->whereIn('project_id', (clone $projects)->select('id'))->where('users.current_company_id', $user->current_company_id)
                 ->where('project_members.active', true)->where('users.active', true)->get(['users.id', 'users.name', 'project_members.project_id'])
                 ->map(fn ($person) => [...(array) $person, 'can_be_responsible' => (bool) User::find($person->id)?->canCreateTasks()]),
             'activity_types' => DB::table('activity_types')->where('company_id', $user->current_company_id)->where('active', true)->orderBy('name')->get(['id', 'name']),

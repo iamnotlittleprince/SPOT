@@ -32,7 +32,10 @@ class TaskBoardStatusTest extends TestCase
         unset($before['updated_at'], $after['updated_at']);
         $this->assertSame($before, $after);
         $this->assertSame(4, AuditLog::where('action', 'task.status_changed')->count());
-        $audit = AuditLog::where('action', 'task.status_changed')->firstOrFail();
+        $audit = AuditLog::where('action', 'task.status_changed')
+            ->where('new_values->_context->task_id', $task->id)
+            ->where('new_values->status', 'in_progress')
+            ->sole();
         $this->assertSame('todo', $audit->old_values['status']);
         $this->assertSame('in_progress', $audit->new_values['status']);
         $this->assertSame($task->id, $audit->new_values['_context']['task_id']);

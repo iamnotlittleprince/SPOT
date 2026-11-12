@@ -4,7 +4,7 @@ import { createBrowserSession } from './browser-fixtures.mjs';
 const browser=await chromium.launch({headless:true});const errors=[];
 try {
  const {page,context,user}=await createBrowserSession(browser,{admin:true,dismissNotice:true,onError:e=>errors.push(e)});
- let projects=[],clients=[],rates=[],taxes=[];const mutations=[];
+ let projects=[],clients=[],rates=[],taxes=[],rejectNextUpdate=true;const mutations=[];
  const access=Object.fromEntries(['projects.create','projects.update','projects.delete','projects.finalize','projects.reopen','financial.view','financial.manage','parameters.view','parameters.create','parameters.update','expenses.create'].map(k=>[k,true]));
  const params={users:[user],managers:[user],clients,project_statuses:[{id:1,name:'Planejamento'}],project_situations:[{id:1,name:'No prazo'}],activity_types:[{id:1,name:'Reunião'}],expense_types:[{id:1,name:'Transporte'}],tax_types:[{id:1,name:'ISS'}],field_access:{}};
  await page.route('**/sanctum/csrf-cookie',r=>r.fulfill({status:204}));
@@ -15,6 +15,7 @@ try {
   if(path==='/parameters')return r.fulfill({json:{...params,clients}});
   if(path==='/projects'&&method==='POST'){projects=[{...q.postDataJSON(),id:1,tasks_count:0,status:'planning',finalized_at:null}];return r.fulfill({status:201,json:projects[0]});}
   if(path==='/projects')return r.fulfill({json:projects});
+  if(path==='/projects/1'&&method==='PUT'&&rejectNextUpdate){rejectNextUpdate=false;return r.fulfill({status:422,json:{message:'Confira os campos indicados e corrija os dados antes de salvar.',errors:{proposal_number:['Este número de proposta já está em uso, inclusive em projetos arquivados. Informe outro número.'],end_date:['Informe data de término igual ou posterior a data de início.']}}});}
   if(path==='/projects/1'&&method==='PUT'){projects=[{...projects[0],...q.postDataJSON()}];return r.fulfill({json:projects[0]});}
   if(path==='/projects/1/finalize'){projects[0].finalized_at='2026-09-16';return r.fulfill({json:projects[0]});}
   if(path==='/projects/1/reopen'){projects[0].finalized_at=null;return r.fulfill({json:projects[0]});}
@@ -39,7 +40,20 @@ try {
  await page.getByRole('button',{name:'Criar projeto',exact:true}).click();
  await page.getByRole('button',{name:'Projeto memorial navegador',exact:true}).waitFor();assert.equal(projects[0].estimated_minutes,150);
  await page.getByRole('button',{name:'Editar',exact:true}).click();
- let dialog=page.getByRole('dialog');await dialog.getByLabel('Nome do projeto',{exact:true}).fill('Projeto editado');await dialog.getByRole('button',{name:'Salvar',exact:true}).click();await dialog.waitFor({state:'hidden'});
+ let dialog=page.getByRole('dialog');
+ await page.getByRole('dialog',{name:'Editar projeto',exact:true}).waitFor();
+ await dialog.getByLabel('Nome do projeto',{exact:true}).fill('Projeto editado');
+ await dialog.getByRole('button',{name:'Salvar',exact:true}).click();
+ await dialog.getByRole('alert').filter({hasText:'Confira os campos indicados'}).waitFor();
+ const proposal=dialog.getByLabel('Número da proposta',{exact:true});
+ assert.equal(await proposal.getAttribute('aria-invalid'),'true');
+ assert.match(await proposal.getAttribute('aria-describedby'),/error/);
+ await dialog.getByText('Este número de proposta já está em uso, inclusive em projetos arquivados. Informe outro número.',{exact:true}).waitFor();
+ assert.equal(await dialog.getByLabel('Nome do projeto',{exact:true}).inputValue(),'Projeto editado');
+ assert.equal(await dialog.getByLabel('Data de término',{exact:true}).getAttribute('aria-invalid'),'true');
+ await proposal.fill('MEM-002');
+ assert.equal(await proposal.getAttribute('aria-invalid'),null);
+ await dialog.getByRole('button',{name:'Salvar',exact:true}).click();await dialog.waitFor({state:'hidden'});
  await page.getByRole('button',{name:'Finalizar',exact:true}).click();await dialog.getByLabel('Justificativa',{exact:true}).fill('Entrega aprovada pelo cliente.');await dialog.getByRole('button',{name:'Salvar',exact:true}).click();await dialog.waitFor({state:'hidden'});await page.locator('.project-finalized').waitFor();assert.equal(await page.getByRole('button',{name:'Editar',exact:true}).count(),0);
  await page.getByRole('button',{name:'Reabrir',exact:true}).click();await dialog.getByLabel('Justificativa',{exact:true}).fill('Cliente solicitou novo ajuste.');await dialog.getByRole('button',{name:'Salvar',exact:true}).click();await dialog.waitFor({state:'hidden'});
  await page.getByRole('button',{name:'Detalhes',exact:true}).click();await page.getByRole('button',{name:'Adicionar custo/hora',exact:true}).click();await dialog.getByLabel('Analista',{exact:true}).selectOption('1');await dialog.getByLabel('Custo/hora normal',{exact:true}).fill('100');await dialog.getByLabel('Vigência inicial',{exact:true}).fill('2026-01-01');await dialog.getByRole('button',{name:'Salvar',exact:true}).click();await dialog.waitFor({state:'hidden'});assert.equal(rates[0].normal_cost_rate,'100');

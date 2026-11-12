@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(\App\Http\Middleware\SetRequestLocale::class);
         $middleware->statefulApi();
         // Keep significant spaces between formatted text nodes and inside code blocks.
         $middleware->trimStrings(except: ['body_format.*']);
@@ -27,8 +28,23 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($status < 400) return $response;
             [$title, $description] = \App\Support\ErrorPage::message($status);
             if ($request->is('api/*') || $request->expectsJson()) {
+                if ($exception instanceof \Illuminate\Validation\ValidationException) {
+                    $payload = json_decode($response->getContent(), true);
+                    $payload['message'] = __('errors.validation');
+                    $response->setContent(json_encode($payload, JSON_UNESCAPED_UNICODE));
+                }
+                // Replace framework defaults while retaining actionable domain messages.
+                if ($status < 500 && ! ($exception instanceof \Illuminate\Validation\ValidationException)) {
+                    $payload = json_decode($response->getContent(), true);
+                    $message = $payload['message'] ?? '';
+                    $defaults = ['', 'Unauthenticated.', 'This action is unauthorized.', 'Forbidden', 'Not Found', 'Page Expired', 'CSRF token mismatch.', 'Too Many Attempts.', 'Server Error'];
+                    if (is_array($payload) && (in_array($message, $defaults, true) || str_starts_with($message, 'No query results for model') || str_starts_with($message, 'The route ') || str_starts_with($message, 'The POST method is not supported') || str_starts_with($message, 'The GET method is not supported'))) {
+                        $payload['message'] = \App\Support\ErrorPage::localizedDescription($status);
+                        $response->setContent(json_encode($payload, JSON_UNESCAPED_UNICODE));
+                    }
+                }
                 // Never expose traces, SQL or credentials in server failure responses.
-                if ($status >= 500) $response->setContent(json_encode(['message' => $description]));
+                if ($status >= 500) $response->setContent(json_encode(['message' => \App\Support\ErrorPage::localizedDescription($status)]));
                 if ($status >= 500) $response->headers->set('Content-Type', 'application/json');
                 return $response;
             }
