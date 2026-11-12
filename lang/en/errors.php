@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'session_changed' => 'The signed-in account changed in another tab. Reopen Spot to continue.',
     'validation' => 'Check the indicated fields and correct the data before saving.',
     'http' => [
     '400' => 'We could not understand the request. Check the information and try again.',

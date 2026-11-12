@@ -1,6 +1,10 @@
 // Interface text only. User-entered names and content must use translate="no".
 export const interfaceTranslations = {
   "en": {
+    "Sessão alterada": "Session changed",
+    "A conta conectada mudou ou saiu em outra aba. Reabra o Spot para continuar com a sessão atual.": "The account changed or signed out in another tab. Reopen Spot to continue with the current session.",
+    "Reabrir o Spot": "Reopen Spot",
+
     "Gerenciar tarefas": "Manage tasks",
     "Fechar quadro de tarefas": "Close task board",
 
@@ -1421,6 +1425,10 @@ export const interfaceTranslations = {
     "Cancelados": "Cancelled"
   },
   "es": {
+    "Sessão alterada": "Sesión cambiada",
+    "A conta conectada mudou ou saiu em outra aba. Reabra o Spot para continuar com a sessão atual.": "La cuenta cambió o cerró sesión en otra pestaña. Vuelve a abrir Spot para continuar con la sesión actual.",
+    "Reabrir o Spot": "Volver a abrir Spot",
+
     "Gerenciar tarefas": "Gestionar tareas",
     "Fechar quadro de tarefas": "Cerrar tablero de tareas",
 

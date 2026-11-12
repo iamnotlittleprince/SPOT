@@ -17,6 +17,8 @@ import { AuditChanges, auditActionLabels } from "./AuditTrail";
 import SpotTutorial from "./tutorial/SpotTutorial";
 import { sessionRequest, spotFetch } from "./api";
 import useAutoRefresh from "./useAutoRefresh";
+import useSessionSync from './useSessionSync';
+import { announceSessionChange, setSessionIdentity } from './sessionSync';
 import useBrowserPage from "./useBrowserPage";
 import usePopoverPosition from "./usePopoverPosition";
 import { ErrorScreen } from "./ErrorScreen";
@@ -2299,7 +2301,9 @@ function FirstAccessPage() {
       const data = await response.json();
       if (!response.ok) setEmailInvalid(Boolean(data.errors?.email));
       if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || data.message || 'Não foi possível ativar a conta.');
-      window.location.assign('/?home');
+      // Reload the server-confirmed identity after rotating the activation session.
+      // A URL parameter must never stand in for an authenticated session.
+      window.location.assign('/');
     } catch (failure) {
       setError(failure.message || 'Não foi possível concluir. Tente novamente.');
     } finally {
@@ -2387,10 +2391,15 @@ function LegacySpotApp() {
   const [showPassword, setShowPassword] = useState(false);
   const [user, setUser] = useState(() => window.__SPOT__?.user || null);
   const [authenticated, setAuthenticated] = useState(
-    () => Boolean(window.__SPOT__?.authenticated || new URLSearchParams(window.location.search).has("home")),
+    () => Boolean(window.__SPOT__?.authenticated),
   );
   const [loginError, setLoginError] = useState("");
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const sessionChanged = useSessionSync(user?.id, authenticated);
+  useEffect(() => {
+    setSessionIdentity(authenticated ? user?.id : null);
+    if (authenticated) announceSessionChange();
+  }, [authenticated, user?.id]);
 
   if (/^\/first-access\/[^/]+\/?$/.test(window.location.pathname)) return publicScreen(<FirstAccessPage />);
 
@@ -2408,7 +2417,13 @@ function LegacySpotApp() {
         if (data.two_factor_required) setTwoFactorRequired(true);
         throw new Error(data.message || "Não foi possível entrar.");
       }
-      setUser(data.user);
+      // A successful password check is not enough: confirm that the browser
+      // can use the new session before mounting private screens.
+      const sessionResponse = await sessionRequest('/auth/me', { handledStatuses: [401] });
+      const sessionUser = await sessionResponse.json();
+      if (!sessionResponse.ok) throw new Error(sessionUser.message || 'Não foi possível entrar.');
+      setSessionIdentity(sessionUser.id);
+      setUser(sessionUser);
       setAuthenticated(true);
     } catch (error) {
       setLoginError(error.message);
@@ -2416,10 +2431,16 @@ function LegacySpotApp() {
   }
 
   async function handleLogout() {
-    const response = await sessionRequest("/auth/logout", { method: "POST" });
-    if (response.ok) window.location.replace("/");
+    const response = await sessionRequest("/auth/logout", { method: "POST", handledStatuses: [401] });
+    // An expired session is already signed out on the server.
+    if (response.ok || response.status === 401) window.location.replace("/");
   }
 
+  if (authenticated && sessionChanged) return publicScreen(<AuthShell>
+    <h1>Sessão alterada</h1>
+    <p role="status">A conta conectada mudou ou saiu em outra aba. Reabra o Spot para continuar com a sessão atual.</p>
+    <a className="back-to-login" href="/">Reabrir o Spot</a>
+  </AuthShell>);
   if (authenticated) return <Dashboard onLogout={handleLogout} user={user} onUserUpdate={setUser} />;
 
   if (window.__SPOT__?.two_factor_challenge && !new URLSearchParams(window.location.search).has('login')) return publicScreen(<TwoFactorChallenge />);

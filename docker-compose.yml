@@ -49,7 +49,7 @@ services:
     <<: *app
     healthcheck:
       disable: true
-    command: ["php", "artisan", "queue:work", "--queue=emails,default", "--sleep=3", "--tries=3", "--timeout=60"]
+    command: ["php", "artisan", "queue:work", "--queue=emails,default", "--sleep=1", "--tries=3", "--timeout=60"]
 
   scheduler:
     <<: *app

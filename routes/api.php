@@ -34,7 +34,11 @@ Route::prefix('auth')->group(function () {
 });
 
 // API principal da SPA. Usa a sessao web protegida por Sanctum e CSRF.
-Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:spot-api'])->group(function () {
+// v1 already uses the web cookie, session and CSRF middleware. Sanctum's
+// frontend wrapper would execute that stack twice on browser requests.
+Route::prefix('v1')->name('v1.')
+    ->withoutMiddleware(\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class)
+    ->middleware(['web', \App\Http\Middleware\AuthenticateBrowserSession::class, 'throttle:spot-api'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('two-factor/challenge', [AuthController::class, 'challengeTwoFactor'])->middleware(['guest', 'throttle:5,1']);
         Route::post('login', [AuthController::class, 'loginSession'])->middleware(['guest', 'throttle:5,1']);
@@ -43,7 +47,7 @@ Route::prefix('v1')->name('v1.')->middleware(['web', 'throttle:spot-api'])->grou
     Route::get('invitations/{token}', [ProjectInvitationController::class, 'showAcceptance'])->middleware('throttle:30,1')->name('invitations.show');
     Route::post('invitations/{token}/accept', [ProjectInvitationController::class, 'accept'])->middleware('throttle:10,1')->name('invitations.accept');
 
-    Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureAccountNotArchived::class])->group(function () {
+    Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureAccountNotArchived::class, \App\Http\Middleware\VerifySessionIdentity::class])->group(function () {
         Route::prefix('auth')->group(function () {
             Route::post('logout', [AuthController::class, 'logoutSession']);
             Route::get('me', [AuthController::class, 'meSession']);

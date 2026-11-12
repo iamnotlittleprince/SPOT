@@ -17,6 +17,7 @@ export async function createBrowserSession(browser, { admin = false, email = 'an
   requests.push({method:r.request().method(),url:r.request().url()});
   const path=new URL(r.request().url()).pathname.replace('/api/v1','');
   const fixtures={
+   '/auth/me':user,
    '/home-dashboard':{updated_at:new Date().toISOString(),projects:[{id:1,name:'Planejamento',status:'planning',progress:10}],tasks:[],teams:[]},
    '/chat':{contacts:[],requests:[],reviewers:[],can_review:admin,reviewers_available:false,translation_available:false},
    '/tasks':{tasks:[],projects:[],can_create:true},

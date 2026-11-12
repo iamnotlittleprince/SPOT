@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'session_changed' => 'A conta conectada mudou em outra aba. Reabra o Spot para continuar.',
     'validation' => 'Confira os campos indicados e corrija os dados antes de salvar.',
     'http' => [
     '400' => 'Não foi possível entender o pedido. Confira os dados informados e tente novamente.',

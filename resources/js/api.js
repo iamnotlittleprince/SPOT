@@ -1,5 +1,6 @@
 import { getLanguage, translateText } from './i18n';
 import errorMessages from '../errors/messages.json';
+import { announceSessionChange, sessionIdentityHeaders } from './sessionSync';
 
 /**
  * Cliente HTTP compartilhado pela SPA.
@@ -25,6 +26,10 @@ function notifyRequestError(code, path) {
 async function fetchWithRecovery(url, options, path, handledStatuses = []) {
   try {
     const response = await fetch(url, options);
+    if (response.status === 409) {
+      const data = await response.clone().json().catch(() => null);
+      if (data?.code === 'session_changed') window.dispatchEvent(new Event('spot:session-changed'));
+    }
     if (response.status >= 400 && ![400, 409, 422, ...handledStatuses].includes(response.status)) notifyRequestError(response.status, path);
     return response;
   } catch (error) {
@@ -55,14 +60,18 @@ export async function sessionRequest(path, options = {}) {
     headers: {
       Accept: "application/json",
       'X-Spot-Locale': getLanguage(),
+      ...sessionIdentityHeaders(),
       // O navegador define o boundary multipart ao enviar FormData.
       ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
       ...(changesState ? { "X-XSRF-TOKEN": xsrfToken() } : {}),
       ...options.headers,
     },
   }, path, handledStatuses);
-  // Logout ends access to private data; refreshing subscribers would produce 401s.
-  if (changesState && response.ok && path !== '/auth/logout' && typeof window !== 'undefined') {
+  // Identity changes must not refresh stale private screens in other tabs.
+  const changesSession = /^\/auth\/(login|logout|two-factor\/challenge)$/.test(path)
+    || path.startsWith('/first-access/') || /^\/invitations\/[^/]+\/accept$/.test(path);
+  if (changesState && (response.ok || (path === '/auth/logout' && response.status === 401)) && changesSession) announceSessionChange();
+  if (changesState && response.ok && !changesSession && typeof window !== 'undefined') {
     // Agenda depois do retorno para não sobrescrever a atualização local do formulário.
     window.setTimeout(() => {
       window.dispatchEvent(new Event('spot:data-changed'));

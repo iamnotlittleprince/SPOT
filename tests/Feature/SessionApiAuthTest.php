@@ -12,6 +12,84 @@ class SessionApiAuthTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_old_tab_cannot_use_or_log_out_the_account_that_replaced_its_session(): void
+    {
+        $previous = User::factory()->create();
+        $current = User::factory()->create();
+        $this->actingAs($current)->withHeader('X-Spot-User', (string) $previous->id)
+            ->getJson('/api/v1/auth/me')->assertConflict()->assertJsonPath('code', 'session_changed');
+        $this->postJson('/api/v1/auth/logout')->assertConflict()->assertJsonPath('code', 'session_changed');
+        $this->assertAuthenticatedAs($current);
+        $this->withHeader('X-Spot-User', (string) $current->id)
+            ->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('id', $current->id);
+    }
+
+    public function test_browser_password_change_still_invalidates_the_previous_session(): void
+    {
+        config(['sanctum.stateful' => ['localhost'], 'session.driver' => 'database']);
+        $user = User::factory()->create(['password' => 'senha-antiga']);
+        $this->withHeaders(['Origin' => 'http://localhost', 'Referer' => 'http://localhost/']);
+        $login = $this->postJson('/api/v1/auth/login', ['email' => $user->email, 'password' => 'senha-antiga'])->assertOk();
+        $this->useBrowserSession($login);
+        $current = $this->getJson('/api/v1/auth/me')->assertOk();
+        $this->useBrowserSession($current);
+        $user->update(['password' => 'senha-nova']);
+        $this->getJson('/api/v1/auth/me')->assertUnauthorized();
+    }
+
+    public function test_first_access_replaces_an_existing_browser_session_and_survives_the_redirect(): void
+    {
+        config(['sanctum.stateful' => ['localhost'], 'session.driver' => 'database']);
+        $admin = User::factory()->create(['password' => 'senha-segura']);
+        $pending = User::factory()->create(['password' => null, 'active' => false, 'account_status' => 'pending_activation']);
+        \App\Models\UserActivationToken::create([
+            'user_id' => $pending->id, 'created_by' => $admin->id,
+            'token_hash' => hash('sha256', 'browser-activation'), 'expires_at' => now()->addHour(),
+        ]);
+        $this->withHeaders(['Origin' => 'http://localhost', 'Referer' => 'http://localhost/']);
+        $login = $this->postJson('/api/v1/auth/login', ['email' => $admin->email, 'password' => 'senha-segura'])->assertOk();
+        $this->useBrowserSession($login);
+        $activation = $this->postJson('/api/v1/first-access/browser-activation', [
+            'name' => $pending->name, 'email' => $pending->email,
+            'password' => 'nova-senha-segura', 'password_confirmation' => 'nova-senha-segura',
+        ])->assertOk();
+        $this->useBrowserSession($activation);
+        $this->get('/?home')->assertOk()->assertSee($pending->email);
+        \Illuminate\Support\Facades\Auth::forgetGuards();
+        $this->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('id', $pending->id);
+        $this->postJson('/api/v1/auth/logout')->assertOk();
+    }
+
+    private function useBrowserSession($response): void
+    {
+        $cookie = collect($response->headers->getCookies())->first(fn ($cookie) => $cookie->getName() === config('session.cookie'));
+        $this->assertNotNull($cookie);
+        \Illuminate\Support\Facades\Auth::forgetGuards();
+        app('session')->forgetDrivers();
+        app()->forgetInstance('session.store');
+        $this->withCredentials()->withUnencryptedCookies([$cookie->getName() => $cookie->getValue()]);
+    }
+
+    public function test_browser_login_emits_a_session_cookie_readable_by_web_routes(): void
+    {
+        config(['sanctum.stateful' => ['localhost'], 'session.driver' => 'database']);
+        $user = User::factory()->create(['password' => 'senha-segura']);
+        $response = $this->withHeaders(['Origin' => 'http://localhost', 'Referer' => 'http://localhost/'])
+            ->postJson('/api/v1/auth/login', ['email' => $user->email, 'password' => 'senha-segura'])
+            ->assertOk();
+
+        $cookie = collect($response->headers->getCookies())->first(fn ($cookie) => $cookie->getName() === config('session.cookie'));
+        $this->assertNotNull($cookie);
+        $sessionId = \Illuminate\Cookie\CookieValuePrefix::remove(app('encrypter')->decrypt($cookie->getValue(), false));
+        $this->assertSame(session()->getId(), $sessionId, 'API cookies must be encrypted once, like web-route cookies.');
+
+        \Illuminate\Support\Facades\Auth::forgetGuards();
+        app('session')->forgetDrivers();
+        app()->forgetInstance('session.store');
+        $this->withCredentials()->withUnencryptedCookies([$cookie->getName() => $cookie->getValue()])
+            ->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('id', $user->id);
+    }
+
     public function test_spa_can_authenticate_and_use_versioned_api_with_session(): void
     {
         $user = User::factory()->create(['password' => 'senha-segura']);
